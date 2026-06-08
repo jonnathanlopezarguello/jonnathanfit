@@ -1,0 +1,19 @@
+# Secretos y configuración local — NUNCA subir
+.mcp.json
+.claude/
+.env
+*.key
+
+# Datos personales / temporales
+_xlsxtmp/
+.xlsxbuild/
+preguntas-jonnathanfit.xlsx
+
+# Herramientas de diseño / referencias (no necesarias para la web)
+openspec/
+stitch-*.png
+
+# Sistema
+Thumbs.db
+.DS_Store
+desktop.ini
