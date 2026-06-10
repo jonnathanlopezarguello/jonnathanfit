@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Seguridad: Content-Security-Policy. Bloquea scripts externos e impide enviar datos a dominios ajenos (anti-XSS/robo de datos). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'" />
+<meta name="referrer" content="no-referrer" />
 <title>JONNATHAN FIT — Diario de entrenamiento y nutrición</title>
 <meta name="description" content="Diario personal de entrenamiento y alimentación basado en evidencia." />
 <meta name="theme-color" content="#1F1F18" media="(prefers-color-scheme: dark)" />
@@ -704,6 +707,8 @@ function macroBlock(name,val,target,unit,tone,highlight){
   const lab=met?`<span class="label" style="color:var(--good)">${name} ✓</span>`:`<span class="label">${name}</span>`;
   return `<div class="mb2"><div class="macro-row">${lab}<span class="v">${Math.round(val)}<span> / ${target} ${unit}</span></span></div>${bar(val,target,met?'var(--good)':tone)}</div>`}
 const esc=s=>(''+s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* escape seguro para una cadena JS embebida en un atributo HTML (p. ej. onclick="f('${jsAttr(x)}')") */
+const jsAttr=s=>esc(String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
 function dayTotals(date){const l=S.nutrition[date]||[];return l.reduce((t,i)=>({kcal:t.kcal+i.kcal,p:t.p+i.p,c:t.c+i.c,f:t.f+i.f,fb:t.fb+(i.fb||0)}),{kcal:0,p:0,c:0,f:0,fb:0})}
 function goTab(v){document.querySelector('.tab[data-view="'+v+'"]').click()}
 function profileIncomplete(){return !S.profile._set}
@@ -819,11 +824,11 @@ function finishWorkout(){const a=S.active;a.exercises=a.exercises.filter(e=>e.se
     if(best>0&&(!prior||best>prior.v))prs.push(`${e.name} · ${best} kg (1RM est.)`)});
   a.dur=Math.round((Date.now()-a.start)/60000);S.workouts.unshift(a);S.active=null;clearInterval(elapsedTimer);save();renderEntreno();
   setTimeout(()=>alert(`Sesión guardada · ${vol_(a).toLocaleString()} kg de volumen total`+(prs.length?`\n\n🏆 ¡Nuevo récord!\n`+prs.join('\n'):'')),50)}
-function openExercisePicker(){const items=EXERCISE_LIB.map(n=>`<div class="search-item" onclick="addExercise('${n.replace(/'/g,"\\'")}')"><span class="nm">${esc(n)}</span><span class="dim">+</span></div>`).join('');
+function openExercisePicker(){const items=EXERCISE_LIB.map(n=>`<div class="search-item" onclick="addExercise('${jsAttr(n)}')"><span class="nm">${esc(n)}</span><span class="dim">+</span></div>`).join('');
   modal(`<div class="modal-head"><span class="label">Añadir ejercicio</span><button class="btn-ghost" onclick="closeModal()">✕</button></div>
     <input class="input mb2" id="exSearch" placeholder="Buscar o escribir nuevo…" oninput="filterEx(this.value)"><div class="search-list" id="exList">${items}</div>
     <button class="btn btn-secondary btn-block mt2" onclick="addCustomEx()">+ Crear personalizado</button>`)}
-function filterEx(q){q=q.toLowerCase();document.getElementById('exList').innerHTML=EXERCISE_LIB.filter(n=>n.toLowerCase().includes(q)).map(n=>`<div class="search-item" onclick="addExercise('${n.replace(/'/g,"\\'")}')"><span class="nm">${esc(n)}</span><span class="dim">+</span></div>`).join('')}
+function filterEx(q){q=q.toLowerCase();document.getElementById('exList').innerHTML=EXERCISE_LIB.filter(n=>n.toLowerCase().includes(q)).map(n=>`<div class="search-item" onclick="addExercise('${jsAttr(n)}')"><span class="nm">${esc(n)}</span><span class="dim">+</span></div>`).join('')}
 function addCustomEx(){const v=document.getElementById('exSearch').value.trim();if(v)addExercise(v)}
 function addExercise(n){S.active.exercises.push({name:n,sets:[{kg:'',reps:'',done:false}]});save();closeModal();renderEntreno()}
 function showWorkout(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
@@ -865,7 +870,7 @@ document.getElementById('dayPrev').onclick=()=>{foodDate=shiftDate(foodDate,-1);
 document.getElementById('dayNext').onclick=()=>{foodDate=shiftDate(foodDate,1);renderComida()};
 function shiftDate(d,n){const x=new Date(d+'T00:00');x.setDate(x.getDate()+n);return x.toLocaleDateString('en-CA')}
 function delFood(gi){S.nutrition[foodDate].splice(gi,1);save();renderComida()}
-function foodItemHTML(f){return `<div class="search-item" onclick="pickFood('${f.n.replace(/'/g,"\\'")}','${currentMeal}')"><span class="nm">${esc(f.n)}${f.custom?' <span class="dim" style="font-size:10px">· propio</span>':''}</span><span class="dim num">${f.k} · P${f.p}</span></div>`}
+function foodItemHTML(f){return `<div class="search-item" onclick="pickFood('${jsAttr(f.n)}','${jsAttr(currentMeal)}')"><span class="nm">${esc(f.n)}${f.custom?' <span class="dim" style="font-size:10px">· propio</span>':''}</span><span class="dim num">${f.k} · P${f.p}</span></div>`}
 function recipeItemHTML(r,i){const kc=r.items.reduce((a,it)=>{const f=findFood(it.food);return a+(f?macrosFor(f,it.grams).kcal:0)},0);
   return `<div class="search-item" onclick="addRecipe(${i},'${currentMeal}')"><span class="nm">★ ${esc(r.name)} <span class="dim" style="font-size:10px">· ${r.items.length} ítems</span></span><span class="dim num">${kc} · +1 toque</span></div>`}
 function foodListHTML(q){q=(q||'').toLowerCase().trim();
@@ -903,8 +908,8 @@ function addRecipe(i,meal){const r=S.recipes[i];if(!r)return;S.nutrition[foodDat
   r.items.forEach(it=>{const f=findFood(it.food);if(f){const m=macrosFor(f,it.grams);S.nutrition[foodDate].push({food:it.food,grams:it.grams,meal,...m})}});save();closeModal();renderComida()}
 function pickFood(name,meal){currentMeal=meal;
   modal(`<div class="modal-head"><div><span class="label">${meal}</span><div class="serif" style="font-size:24px">${esc(name)}</div></div><button class="btn-ghost" onclick="closeModal()">✕</button></div>
-    <div class="field mb2"><label>Cantidad (gramos)</label><input class="input" id="gramInput" type="number" inputmode="decimal" value="100" oninput="previewFood('${name.replace(/'/g,"\\'")}')"></div>
-    <div class="card mb2" id="foodPreview"></div><button class="btn btn-primary btn-block" onclick="confirmFood('${name.replace(/'/g,"\\'")}','${meal}')">Añadir</button>`);
+    <div class="field mb2"><label>Cantidad (gramos)</label><input class="input" id="gramInput" type="number" inputmode="decimal" value="100" oninput="previewFood('${jsAttr(name)}')"></div>
+    <div class="card mb2" id="foodPreview"></div><button class="btn btn-primary btn-block" onclick="confirmFood('${jsAttr(name)}','${jsAttr(meal)}')">Añadir</button>`);
   previewFood(name);setTimeout(()=>document.getElementById('gramInput').select(),50)}
 function previewFood(name){const g=+document.getElementById('gramInput').value||0,m=macrosFor(findFood(name),g);
   document.getElementById('foodPreview').innerHTML=`<div class="flex between center"><div class="kpi"><div class="n" style="font-size:38px">${m.kcal}<small>kcal</small></div></div><div class="flex gapsm wrapf"><span class="pill">P ${m.p}</span><span class="pill">C ${m.c}</span><span class="pill">G ${m.f}</span></div></div>`}
