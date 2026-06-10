@@ -360,7 +360,7 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 const KEY='jfit.v1';
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
 const def={
-  profile:{name:'',sex:'male',age:25,weight:75,height:175,activity:1.55,goal:'recomp',days:4,proteinPerKg:2.0,fatPerKg:0.9,bodyFat:'',yearsTraining:'',calAdjust:0,_set:false},
+  profile:{name:'',sex:'male',age:25,weight:79,height:176,activity:1.55,goal:'bulk',days:4,proteinPerKg:2.0,fatPerKg:1.0,bodyFat:'',yearsTraining:'',calAdjust:0,_set:false},
   bodyweight:[],waist:[],workouts:[],active:null,nutrition:{},
   customFoods:[],recipes:[],suppLog:{},cardio:{}
 };
@@ -571,37 +571,84 @@ const allFoods=()=>FOODS.concat(S.customFoods||[]);
 const findFood=n=>allFoods().find(f=>f.n===n);
 const macrosFor=(food,g)=>{const x=g/100;return{kcal:Math.round(food.k*x),p:+(food.p*x).toFixed(1),c:+(food.c*x).toFixed(1),f:+(food.f*x).toFixed(1),fb:+(((food.fb||0)*x).toFixed(1))}};
 
-/* ============ PLANTILLAS ============ */
-const TEMPLATES={
-  'Torso A':['Press de banca','Remo con barra','Press militar','Jalón al pecho','Curl de bíceps con barra','Extensión de tríceps en polea'],
-  'Pierna A':['Sentadilla','Peso muerto rumano','Prensa de piernas','Curl femoral tumbado','Elevación de gemelos','Plancha abdominal'],
-  'Torso B':['Press inclinado con mancuernas','Dominadas','Press militar con mancuernas','Remo en polea baja','Elevaciones laterales','Curl martillo'],
-  'Pierna B':['Peso muerto convencional','Zancadas con mancuernas','Hip thrust','Extensión de cuádriceps','Curl femoral sentado','Gemelo sentado'],
-  'Full-body A':['Sentadilla','Press de banca','Remo con barra','Press militar','Curl de bíceps con barra','Plancha abdominal'],
-  'Full-body B':['Peso muerto rumano','Press inclinado con mancuernas','Jalón al pecho','Prensa de piernas','Elevaciones laterales','Extensión de tríceps en polea'],
-  'Full-body C':['Hip thrust','Dominadas','Press militar con mancuernas','Zancadas con mancuernas','Curl martillo','Elevación de gemelos'],
-  'Empuje (Push)':['Press de banca','Press militar','Press inclinado con mancuernas','Elevaciones laterales','Extensión de tríceps en polea','Fondos en paralelas'],
-  'Jalón (Pull)':['Dominadas','Remo con barra','Jalón al pecho','Remo en polea baja','Curl de bíceps con barra','Curl martillo'],
-  'Pierna (Legs)':['Sentadilla','Peso muerto rumano','Prensa de piernas','Curl femoral tumbado','Hip thrust','Elevación de gemelos']
+/* ============ PLAN DE HIPERTROFIA — Mes 1 (4 días, Lun/Mar/Jue/Vie) ============ */
+/* Cada ejercicio: n nombre · g grupo · s series · reps · rir · rest descanso · foco región · c coach(vídeo) */
+const PLAN_DAYS=['Lunes','Martes','Jueves','Viernes'];
+const DAY_TITLE={
+  'Lunes':'Cuádriceps · Hombro · Abdomen · Gemelo',
+  'Martes':'Espalda · Bíceps',
+  'Jueves':'Femoral/Glúteo · Hombro · Abdomen · Gemelo',
+  'Viernes':'Pecho · Tríceps · Abdomen'
 };
-/* división según días/semana reales (Q18) */
-const SPLITS={3:['Full-body A','Full-body B','Full-body C'],4:['Torso A','Pierna A','Torso B','Pierna B'],5:['Torso A','Pierna A','Empuje (Push)','Jalón (Pull)','Pierna (Legs)'],6:['Empuje (Push)','Jalón (Pull)','Pierna (Legs)','Empuje (Push)','Jalón (Pull)','Pierna (Legs)']};
-const SPLIT_LABEL={3:'Full-body',4:'Torso / Pierna',5:'Híbrido',6:'Push / Pull / Legs ×2'};
-function currentSplit(){return SPLITS[+S.profile.days]||SPLITS[4]}
-const EXERCISE_LIB=[...new Set(Object.values(TEMPLATES).flat())].sort();
+const PLAN_LABEL='Hipertrofia · Mes 1';
+const TEMPLATES={
+  'Lunes':[
+    {n:'Sentadilla libre',g:'Cuádriceps',s:4,reps:'6-10',rir:'2-3',rest:'2-3 min',foco:'Vasto ext/medial; profundidad completa',c:'Nippard'},
+    {n:'Prensa 45°',g:'Cuádriceps',s:3,reps:'10-12',rir:'1-2',rest:'2 min',foco:'General; recorrido largo sin bloquear',c:'Nippard'},
+    {n:'Hack squat o Búlgara',g:'Cuádriceps',s:3,reps:'8-12',rir:'1-2',rest:'2 min',foco:'Vasto externo; rango profundo',c:'Raúl Ocaña'},
+    {n:'Extensión de cuádriceps',g:'Cuádriceps',s:3,reps:'12-15',rir:'0-1',rest:'1.5 min',foco:'Recto femoral; drop set última',c:'Nippard'},
+    {n:'Press militar de pie',g:'Hombro',s:3,reps:'6-10',rir:'2-3',rest:'2 min',foco:'Deltoides anterior; sin arquear lumbar',c:'Nippard'},
+    {n:'Elevación lateral mancuerna',g:'Hombro',s:3,reps:'12-20',rir:'0-1',rest:'1 min',foco:'Deltoides lateral; codo lidera',c:'Shakil Ahmed'},
+    {n:'Elevación lateral en polea',g:'Hombro',s:2,reps:'12-20',rir:'0-1',rest:'1 min',foco:'Lateral; tensión en estiramiento',c:'Raúl Ocaña'},
+    {n:'Face pull / posterior polea',g:'Hombro',s:2,reps:'15-20',rir:'0-1',rest:'1 min',foco:'Deltoides posterior',c:'Nippard'},
+    {n:'Elevación de piernas colgado',g:'Abdomen',s:2,reps:'10-15',rir:'1-2',rest:'1 min',foco:'Recto inferior; sin balanceo',c:'Athlean-X'},
+    {n:'Crunch en polea arrodillado',g:'Abdomen',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Recto superior; flexionar columna',c:'Nippard'},
+    {n:'Rueda abdominal',g:'Abdomen',s:2,reps:'8-12',rir:'1-2',rest:'1 min',foco:'Anti-extensión; core completo',c:'Athlean-X'},
+    {n:'Crunch inverso',g:'Abdomen',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Porción inferior',c:'Athlean-X'},
+    {n:'Gemelo de pie',g:'Gemelo',s:3,reps:'10-15',rir:'0-1',rest:'1 min',foco:'Gastrocnemio; estiramiento abajo',c:'Nippard'},
+    {n:'Gemelo en prensa',g:'Gemelo',s:3,reps:'12-20',rir:'0-1',rest:'1 min',foco:'Gastrocnemio; rodilla extendida',c:'Raúl Ocaña'}
+  ],
+  'Martes':[
+    {n:'Dominadas o Jalón al pecho',g:'Espalda',s:4,reps:'8-12',rir:'2-3',rest:'2 min',foco:'Dorsal ancho (anchura)',c:'Nippard'},
+    {n:'Remo con barra',g:'Espalda',s:3,reps:'8-12',rir:'1-2',rest:'2 min',foco:'Espesor; apretar escápulas',c:'Raúl Ocaña'},
+    {n:'Remo sentado en máquina',g:'Espalda',s:3,reps:'10-12',rir:'1-2',rest:'1.5 min',foco:'Dorsal medio / romboides',c:'Nippard'},
+    {n:'Jalón brazo recto / Pullover',g:'Espalda',s:3,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Dorsal en estiramiento',c:'Shakil Ahmed'},
+    {n:'Curl con barra',g:'Bíceps',s:3,reps:'8-12',rir:'1-2',rest:'1.5 min',foco:'Cabeza corta y larga',c:'Nippard'},
+    {n:'Curl inclinado mancuerna',g:'Bíceps',s:2,reps:'10-12',rir:'1-2',rest:'1 min',foco:'Cabeza larga (estiramiento)',c:'Raúl Ocaña'},
+    {n:'Curl martillo',g:'Bíceps',s:2,reps:'10-12',rir:'1-2',rest:'1 min',foco:'Braquial / braquiorradial',c:'Nippard'},
+    {n:'Curl predicador o en polea',g:'Bíceps',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Cabeza corta; drop set última',c:'Shakil Ahmed'}
+  ],
+  'Jueves':[
+    {n:'Peso muerto rumano',g:'Femoral y glúteo',s:4,reps:'6-10',rir:'2-3',rest:'2-3 min',foco:'Femoral (estiramiento) y glúteo',c:'Nippard'},
+    {n:'Hip thrust',g:'Femoral y glúteo',s:3,reps:'8-12',rir:'1-2',rest:'2 min',foco:'Glúteo mayor; pausa 1s arriba',c:'Raúl Ocaña'},
+    {n:'Curl femoral tumbado',g:'Femoral y glúteo',s:3,reps:'10-15',rir:'0-1',rest:'1.5 min',foco:'Femoral (cabezas inferiores)',c:'Nippard'},
+    {n:'Curl femoral sentado',g:'Femoral y glúteo',s:3,reps:'10-15',rir:'0-1',rest:'1.5 min',foco:'Femoral (mayor estiramiento)',c:'Nippard'},
+    {n:'Press hombro sentado / Arnold',g:'Hombro',s:3,reps:'8-12',rir:'1-2',rest:'2 min',foco:'Deltoides anterior; rango completo',c:'Raúl Ocaña'},
+    {n:'Elevación lateral mancuerna',g:'Hombro',s:3,reps:'12-20',rir:'0-1',rest:'1 min',foco:'Deltoides lateral',c:'Shakil Ahmed'},
+    {n:'Elevación lateral en polea',g:'Hombro',s:2,reps:'12-20',rir:'0-1',rest:'1 min',foco:'Lateral; tensión constante',c:'Nippard'},
+    {n:'Reverse pec deck',g:'Hombro',s:2,reps:'15-20',rir:'0-1',rest:'1 min',foco:'Deltoides posterior',c:'Nippard'},
+    {n:'Rueda abdominal',g:'Abdomen',s:2,reps:'8-12',rir:'1-2',rest:'1 min',foco:'Core anti-extensión',c:'Athlean-X'},
+    {n:'Crunch lastrado en polea',g:'Abdomen',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Recto superior',c:'Nippard'},
+    {n:'Elevación de piernas colgado',g:'Abdomen',s:2,reps:'10-15',rir:'1-2',rest:'1 min',foco:'Porción inferior',c:'Athlean-X'},
+    {n:'Rotación / Pallof press',g:'Abdomen',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Oblicuos',c:'Athlean-X'},
+    {n:'Gemelo sentado',g:'Gemelo',s:3,reps:'12-20',rir:'0-1',rest:'1 min',foco:'Sóleo; rodilla flexionada',c:'Nippard'},
+    {n:'Gemelo de pie en máquina',g:'Gemelo',s:3,reps:'10-15',rir:'0-1',rest:'1 min',foco:'Gastrocnemio',c:'Raúl Ocaña'}
+  ],
+  'Viernes':[
+    {n:'Press inclinado con mancuerna',g:'Pecho',s:4,reps:'6-10',rir:'2-3',rest:'2 min',foco:'Pecho superior; estiramiento amplio',c:'Nippard'},
+    {n:'Press plano máquina o barra',g:'Pecho',s:3,reps:'8-12',rir:'1-2',rest:'2 min',foco:'Pecho medio; escápulas retraídas',c:'Raúl Ocaña'},
+    {n:'Aperturas / Pec deck',g:'Pecho',s:3,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Estiramiento máximo; drop set',c:'Nippard'},
+    {n:'Cruces en polea / Fondos',g:'Pecho',s:3,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Pecho inferior/interno',c:'Shakil Ahmed'},
+    {n:'Press francés',g:'Tríceps',s:3,reps:'8-12',rir:'1-2',rest:'1.5 min',foco:'Cabeza larga (estiramiento)',c:'Nippard'},
+    {n:'Extensión en polea (cuerda)',g:'Tríceps',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Cabeza lateral',c:'Raúl Ocaña'},
+    {n:'Fondos o press cerrado',g:'Tríceps',s:2,reps:'8-12',rir:'1-2',rest:'1.5 min',foco:'Cabeza medial/lateral',c:'Nippard'},
+    {n:'Extensión sobre la cabeza',g:'Tríceps',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Cabeza larga (estiramiento)',c:'Shakil Ahmed'},
+    {n:'Crunch en polea',g:'Abdomen',s:2,reps:'12-15',rir:'0-1',rest:'1 min',foco:'Recto superior',c:'Nippard'},
+    {n:'Rueda abdominal',g:'Abdomen',s:2,reps:'8-12',rir:'1-2',rest:'1 min',foco:'Core completo',c:'Athlean-X'},
+    {n:'Elevación de piernas',g:'Abdomen',s:2,reps:'10-15',rir:'1-2',rest:'1 min',foco:'Recto inferior',c:'Athlean-X'},
+    {n:'Plancha lastrada',g:'Abdomen',s:2,reps:'30-45 s',rir:'-',rest:'1 min',foco:'Estabilidad de core',c:'Athlean-X'}
+  ]
+};
+function currentSplit(){return PLAN_DAYS}
+function exMeta(name){for(const d of PLAN_DAYS){const e=TEMPLATES[d].find(x=>x.n===name);if(e)return e}return null}
+function vidUrl(e){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(e.n+' técnica hipertrofia'+(e.c?' '+e.c:''))}
+const EXERCISE_LIB=[...new Set(Object.values(TEMPLATES).flat().map(e=>e.n))].sort();
 
-/* mapa ejercicio → grupo muscular (para volumen semanal, Q17) */
-const MUSCLE={'Press de banca':'Pecho','Press inclinado con mancuernas':'Pecho','Fondos en paralelas':'Pecho','Aperturas':'Pecho',
-  'Remo con barra':'Espalda','Dominadas':'Espalda','Jalón al pecho':'Espalda','Remo en polea baja':'Espalda','Peso muerto convencional':'Espalda',
-  'Press militar':'Hombros','Press militar con mancuernas':'Hombros','Elevaciones laterales':'Hombros',
-  'Curl de bíceps con barra':'Bíceps','Curl martillo':'Bíceps',
-  'Extensión de tríceps en polea':'Tríceps',
-  'Sentadilla':'Cuádriceps','Prensa de piernas':'Cuádriceps','Extensión de cuádriceps':'Cuádriceps','Zancadas con mancuernas':'Cuádriceps','Hack squat':'Cuádriceps',
-  'Peso muerto rumano':'Isquios y glúteo','Curl femoral tumbado':'Isquios y glúteo','Curl femoral sentado':'Isquios y glúteo','Hip thrust':'Isquios y glúteo',
-  'Elevación de gemelos':'Gemelos','Gemelo sentado':'Gemelos',
-  'Plancha abdominal':'Core','Crunch':'Core','Elevación de piernas':'Core'};
-const MUSCLE_GROUPS=['Pecho','Espalda','Hombros','Bíceps','Tríceps','Cuádriceps','Isquios y glúteo','Gemelos','Core'];
-const MEV=10; /* series semanales mínimas por grupo (Schoenfeld/Israetel) */
+/* grupo muscular por ejercicio + rangos de volumen semanal (Q17, según tu plan) */
+const MUSCLE={};Object.values(TEMPLATES).flat().forEach(e=>{MUSCLE[e.n]=e.g});
+const MUSCLE_GROUPS=['Cuádriceps','Femoral y glúteo','Pecho','Espalda','Hombro','Bíceps','Tríceps','Abdomen','Gemelo'];
+const VOL_RANGE={'Cuádriceps':[12,18],'Femoral y glúteo':[12,18],'Hombro':[14,22],'Abdomen':[14,26],'Gemelo':[8,16],'Pecho':[10,18],'Espalda':[10,18],'Bíceps':[8,16],'Tríceps':[8,16]};
+const volMin=g=>(VOL_RANGE[g]||[10,20])[0];
 
 /* ============ SOBRECARGA PROGRESIVA + PRs (Q1, Q2) ============ */
 function lastPerf(name,beforeId){ /* última actuación de un ejercicio en sesiones guardadas */
@@ -682,10 +729,10 @@ function renderHoy(){
   // ---- Entrenamiento sugerido con sobrecarga progresiva ----
   const split=currentSplit(),last=S.workouts[0];let ni=0;if(last){const i=split.indexOf(last.name);if(i>=0)ni=(i+1)%split.length}
   const next=split[ni],a=S.active;
-  const ov=!a?TEMPLATES[next].map(n=>{const s=suggestNext(n);return s?`<div class="row" style="padding:9px 0"><span>${esc(n)}</span><span class="meta">hoy: <b style="color:var(--accent)">${s.kg} kg × ${s.reps}</b></span></div>`:'';}).filter(Boolean).slice(0,3).join(''):'';
+  const ov=!a?TEMPLATES[next].map(e=>{const s=suggestNext(e.n);return s?`<div class="row" style="padding:9px 0"><span>${esc(e.n)}</span><span class="meta">hoy: <b style="color:var(--accent)">${s.kg} kg × ${s.reps}</b></span></div>`:'';}).filter(Boolean).slice(0,3).join(''):'';
   document.getElementById('hoyTraining').innerHTML=a?`
     <div class="flex between center"><div><div class="label">En curso</div><div class="serif" style="font-size:26px;margin-top:6px">${esc(a.name)}</div></div><button class="btn btn-primary btn-sm" onclick="goTab('entreno')">Continuar →</button></div>`:`
-    <div class="flex between center mb"><div><div class="label">Sugerido hoy</div><div class="serif" style="font-size:26px;margin-top:6px">${next}</div><div class="muted" style="font-size:13px;margin-top:4px">${TEMPLATES[next].length} ejercicios · ${SPLIT_LABEL[+S.profile.days]||''}</div></div><button class="btn btn-primary btn-sm" onclick="goTab('entreno')">Empezar →</button></div>
+    <div class="flex between center mb"><div><div class="label">Sugerido hoy</div><div class="serif" style="font-size:26px;margin-top:6px">${next}</div><div class="muted" style="font-size:13px;margin-top:4px">${TEMPLATES[next].length} ejercicios · ${DAY_TITLE[next]||''}</div></div><button class="btn btn-primary btn-sm" onclick="goTab('entreno')">Empezar →</button></div>
     ${ov?`<div class="label" style="margin:var(--s-md) 0 4px;color:var(--accent)">Objetivos de sobrecarga</div>${ov}`:''}`;
   // ---- Suplementos de hoy ----
   renderSuppHoy();
@@ -708,26 +755,35 @@ function saveAct(){const d=todayISO(),steps=+document.getElementById('actSteps')
 function weeklySetsByMuscle(){const cut=Date.now()-7*864e5,m={};MUSCLE_GROUPS.forEach(g=>m[g]=0);
   S.workouts.forEach(w=>{if(new Date(w.date).getTime()<cut)return;w.exercises.forEach(e=>{const g=MUSCLE[e.name];if(!g)return;m[g]+=e.sets.filter(s=>s.done).length})});return m}
 function volumeHTML(){const m=weeklySetsByMuscle(),any=Object.values(m).some(v=>v>0);
-  if(!any)return `<div class="card"><div class="muted" style="font-size:13px">Registra entrenamientos para ver tus series semanales por grupo. Objetivo: ≥${MEV} series/semana por grupo.</div></div>`;
-  const rows=MUSCLE_GROUPS.map(g=>{const v=m[g],short=v<MEV,pct=Math.min(100,v/MEV*100);
-    return `<div class="mb"><div class="macro-row"><span class="label" style="${short?'color:var(--over)':''}">${g}${short?' ⚠':' ✓'}</span><span class="v">${v}<span> / ${MEV} series</span></span></div><div class="track"><div class="fill" style="width:${pct}%;background:${short?'var(--over)':'var(--good)'}"></div></div></div>`}).join('');
-  const lows=MUSCLE_GROUPS.filter(g=>m[g]<MEV);
+  if(!any)return `<div class="card"><div class="muted" style="font-size:13px">Registra entrenamientos para ver tus series semanales por grupo. Tu plan apunta a un rango óptimo por grupo (p. ej. cuádriceps 12-18, hombro 14-22).</div></div>`;
+  const rows=MUSCLE_GROUPS.map(g=>{const rng=VOL_RANGE[g]||[10,20],min=rng[0],v=m[g],short=v<min,pct=Math.min(100,v/min*100);
+    return `<div class="mb"><div class="macro-row"><span class="label" style="${short?'color:var(--over)':''}">${g}${short?' ⚠':' ✓'}</span><span class="v">${v}<span> / ${min}-${rng[1]} series</span></span></div><div class="track"><div class="fill" style="width:${pct}%;background:${short?'var(--over)':'var(--good)'}"></div></div></div>`}).join('');
+  const lows=MUSCLE_GROUPS.filter(g=>m[g]<volMin(g));
   return `<div class="card">${rows}${lows.length?`<div class="hint mt" style="color:var(--over)">Te quedas corto en: ${lows.join(', ')}. Añade series esta semana para asegurar el estímulo de hipertrofia.</div>`:'<div class="hint mt" style="color:var(--good)">Buen volumen en todos los grupos esta semana.</div>'}</div>`}
 function renderEntreno(){
   const el=document.getElementById('entrenoBody');
   if(S.active){el.innerHTML=activeHTML();bindActive();return}
-  const split=currentSplit(),seen=new Set();
-  const tpl=split.filter(n=>!seen.has(n)&&seen.add(n)).map(n=>`<button class="btn btn-secondary btn-block mb" style="justify-content:space-between" onclick="startWorkout('${n}')">${n}<span class="dim">${TEMPLATES[n].length} ej →</span></button>`).join('');
+  const split=currentSplit();
+  const tpl=split.map(n=>`<button class="btn btn-secondary btn-block mb" style="justify-content:space-between;text-align:left;height:auto;padding:14px 18px" onclick="startWorkout('${n}')"><span><span style="display:block">${n}</span><span class="dim" style="font-size:10px;letter-spacing:.04em;text-transform:none">${DAY_TITLE[n]}</span></span><span class="dim" style="white-space:nowrap">${TEMPLATES[n].length} ej →</span></button>`).join('');
   const hist=S.workouts.length?S.workouts.map(histRow).join(''):`<div class="empty"><div class="big">Aún sin entrenamientos</div><div class="muted">Empieza tu primera sesión arriba.</div></div>`;
-  el.innerHTML=`<div class="section-title flex"><span>Tu división</span><span class="dim" style="margin-left:auto;font-size:11px;letter-spacing:.04em;text-transform:none">${S.profile.days} días · ${SPLIT_LABEL[+S.profile.days]||''}</span></div>${tpl}<button class="btn btn-secondary btn-block" onclick="startWorkout(null)" style="border-style:dashed">+ Sesión vacía</button>
+  el.innerHTML=`<div class="section-title flex"><span>Tu división</span><span class="dim" style="margin-left:auto;font-size:11px;letter-spacing:.04em;text-transform:none">4 días · ${PLAN_LABEL}</span></div>${tpl}<button class="btn btn-secondary btn-block" onclick="startWorkout(null)" style="border-style:dashed">+ Sesión vacía</button>
     <div class="section-title">Series semanales por grupo</div>${volumeHTML()}
     <div class="section-title">Historial</div>${hist}`;
 }
 function histRow(w){const vol=vol_(w),sets=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
   return `<div class="row" style="cursor:pointer" onclick="showWorkout('${w.id}')"><div><div class="serif" style="font-size:20px">${esc(w.name)}</div><div class="meta">${new Date(w.date).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div></div><div style="text-align:right"><div class="num" style="font-size:20px">${vol.toLocaleString()} kg</div><div class="meta">${sets} series · ${w.exercises.length} ej</div></div></div>`}
 function vol_(w){return w.exercises.reduce((a,e)=>a+e.sets.reduce((x,s)=>x+(s.done?(+s.kg||0)*(+s.reps||0):0),0),0)}
-function startWorkout(name){const ex=name?TEMPLATES[name].map(n=>({name:n,sets:[{kg:'',reps:'',done:false}]})):[];
-  S.active={id:'w'+Date.now(),name:name||'Entrenamiento',date:new Date().toISOString(),start:Date.now(),exercises:ex};save();renderEntreno()}
+function lastSets(name){ /* series (kg/reps) de la última sesión con ese ejercicio */
+  for(const w of S.workouts){const e=w.exercises.find(x=>x.name===name);if(!e)continue;
+    const got=e.sets.filter(s=>(+s.kg>0||+s.reps>0));if(got.length)return got.map(s=>({kg:s.kg,reps:s.reps}))}
+  return null}
+function startWorkout(name){let ex=[];
+  if(name&&TEMPLATES[name]){ex=TEMPLATES[name].map(t=>{
+    const prev=lastSets(t.n),count=prev?prev.length:t.s,sets=[];
+    for(let i=0;i<count;i++){const p=prev&&prev[i];sets.push({kg:p?p.kg:'',reps:p?p.reps:'',done:false})}
+    return{name:t.n,plan:{s:t.s,reps:t.reps,rir:t.rir,rest:t.rest,foco:t.foco,c:t.c,g:t.g},prefilled:!!prev,sets};
+  });}
+  S.active={id:'w'+Date.now(),name:name||'Entrenamiento',day:name||'',date:new Date().toISOString(),start:Date.now(),exercises:ex};save();renderEntreno()}
 function activeHTML(){const a=S.active;
   const ex=a.exercises.map((e,ei)=>{const rows=e.sets.map((s,si)=>`
     <div class="set-grid set-row ${s.done?'done':''}"><div class="sn">${si+1}</div>
@@ -735,9 +791,11 @@ function activeHTML(){const a=S.active;
       <input class="input" inputmode="numeric" placeholder="0" value="${s.reps}" oninput="setVal(${ei},${si},'reps',this.value)">
       <button class="set-done ${s.done?'done':''}" onclick="toggleSet(${ei},${si})">✓</button>
       <button class="set-x" onclick="delSet(${ei},${si})">✕</button></div>`).join('');
+    const m=e.plan||exMeta(e.name);
+    const presc=m?`<div class="hint mb" style="margin-top:-2px">Objetivo <b style="color:var(--text-2)">${m.s}×${m.reps}${m.rir&&m.rir!=='-'?' · RIR '+m.rir:''}</b> · descanso ${m.rest} · ${m.foco} · <a href="${vidUrl(m)}" target="_blank" rel="noopener" style="color:var(--accent)">Ver técnica ↗</a></div>`:'';
     const lp=lastPerf(e.name,a.id),sg=suggestNext(e.name);
-    const hint=lp?`<div class="hint mb" style="margin-top:-4px">Última vez: <b style="color:var(--text-2)">${lp.kg} kg × ${lp.reps}</b>${sg?` · hoy intenta <b style="color:var(--accent)">${sg.kg} kg × ${sg.reps}</b> (${sg.why})`:''}</div>`:'';
-    return `<div class="ex"><div class="ex-head"><h4>${esc(e.name)}</h4><button class="btn-ghost btn-sm" onclick="delEx(${ei})">Quitar</button></div>${hint}
+    const hint=lp?`<div class="hint mb" style="margin-top:-4px">${e.prefilled?'✓ Pesos de la última sesión cargados (edítalos). ':''}Última vez: <b style="color:var(--text-2)">${lp.kg} kg × ${lp.reps}</b>${sg?` · hoy intenta <b style="color:var(--accent)">${sg.kg} kg × ${sg.reps}</b> (${sg.why})`:''}</div>`:'';
+    return `<div class="ex"><div class="ex-head"><h4>${esc(e.name)}</h4><button class="btn-ghost btn-sm" onclick="delEx(${ei})">Quitar</button></div>${presc}${hint}
       <div class="set-grid"><div class="h">Set</div><div class="h">Kg</div><div class="h">Reps</div><div class="h">OK</div><div class="h"></div></div>${rows}
       <button class="btn btn-ghost btn-sm mt" onclick="addSet(${ei})">+ Serie</button></div>`}).join('');
   return `<div class="card mb2 flex between center">
@@ -783,7 +841,9 @@ function renderComida(){
   const t=calc(),tot=dayTotals(foodDate);
   document.getElementById('foodTotals').innerHTML=`<div class="kpi mb2"><div class="n">${Math.round(tot.kcal)}<small>/ ${t.kcal} kcal</small></div></div>${bar(tot.kcal,t.kcal,'var(--text)')}
     <div class="grid g4 mt2">${macroBlock('Proteína',tot.p,t.protein,'g','var(--accent)',true)}${macroBlock('Carbos',tot.c,t.carbs,'g','var(--sand)')}${macroBlock('Grasa',tot.f,t.fat,'g','var(--accent-2)')}${macroBlock('Fibra',tot.fb,t.fiber,'g','var(--good)',true)}</div>`;
-  const meals=['Desayuno','Almuerzo','Merienda','Cena'],list=S.nutrition[foodDate]||[];
+  const ORDER=['Desayuno','Almuerzo','Pre-entreno','Merienda','Post-entreno','Cena'],list=S.nutrition[foodDate]||[];
+  const present=[...new Set(list.map(i=>i.meal))];
+  const meals=ORDER.filter(m=>['Desayuno','Almuerzo','Merienda','Cena'].includes(m)||present.includes(m));
   document.getElementById('mealsBody').innerHTML=meals.map(m=>{
     const items=list.map((it,gi)=>({it,gi})).filter(o=>o.it.meal===m),sub=items.reduce((a,o)=>a+o.it.kcal,0);
     const rows=items.map(o=>`<div class="row" style="cursor:pointer" onclick="editFood(${o.gi})"><div><div>${esc(o.it.food)}</div><div class="meta">${o.it.grams} g · P${o.it.p} C${o.it.c} G${o.it.f}${o.it.fb?` · Fib${o.it.fb}`:''}</div></div><div class="flex center gapsm"><span class="num" style="font-size:16px">${o.it.kcal}</span><button class="set-x" onclick="event.stopPropagation();delFood(${o.gi})">✕</button></div></div>`).join('')||'<div class="meta" style="padding:12px 0">—</div>';
@@ -852,23 +912,27 @@ function confirmFood(name,meal){const g=+document.getElementById('gramInput').va
   (S.nutrition[foodDate]=S.nutrition[foodDate]||[]).push({food:name,grams:g,meal,...m});save();closeModal();renderComida()}
 
 /* ---------- PLAN ---------- */
-function buildMealPlan(){const t=calc();
-  const meals=[
-    {name:'Desayuno',share:.25,pFood:'Huevo entero',cFood:'Avena',extras:[['Plátano',120]]},
-    {name:'Almuerzo',share:.30,pFood:'Pechuga de pollo',cFood:'Arroz blanco cocido',extras:[['Aceite de oliva',10],['Brócoli',150]]},
-    {name:'Merienda',share:.20,pFood:'Yogur griego natural',cFood:'Avena',extras:[['Almendras',25],['Arándanos',80]]},
-    {name:'Cena',share:.25,pFood:'Salmón',cFood:'Boniato (camote)',extras:[['Aguacate',50]]}];
-  return meals.map(md=>{const mealP=t.protein*md.share,mealC=t.carbs*md.share,pf=findFood(md.pFood),cf=findFood(md.cFood);
-    let items=[],accP=0,accC=0;
-    // 1) extras fijos primero
-    md.extras.forEach(([n,g])=>{items.push({food:n,grams:g});const m=macrosFor(findFood(n),g);accP+=m.p;accC+=m.c});
-    // 2) fuente de carbos para cubrir los carbos restantes
-    const cg=Math.max(0,Math.round((mealC-accC)/(cf.c/100)/5)*5);
-    if(cg>0){const m=macrosFor(cf,cg);accP+=m.p;accC+=m.c;items.unshift({food:md.cFood,grams:cg})}
-    // 3) fuente de proteína para cubrir la proteína restante (ya descontada la de carbos y extras)
-    const pg=Math.max(0,Math.round((mealP-accP)/(pf.p/100)/5)*5);
-    if(pg>0)items.unshift({food:md.pFood,grams:pg});
-    const tot=items.reduce((a,it)=>{const m=macrosFor(findFood(it.food),it.grams);return{kcal:a.kcal+m.kcal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}},{kcal:0,p:0,c:0,f:0});
+/* Tu plan de alimentación (lean bulk) — día de entreno y día de descanso */
+const MEALPLANS={
+  entreno:{label:'Día de entrenamiento · Lun, Mar, Jue, Vie',meals:[
+    {name:'Desayuno',hora:'7:30',items:[['Huevo entero',150],['Clara de huevo',100],['Avena',70],['Plátano',120],['Yogur griego natural',150]]},
+    {name:'Almuerzo',hora:'12:30',items:[['Pechuga de pollo',150],['Arroz blanco cocido',200],['Lentejas cocidas',150],['Aceite de oliva',10]]},
+    {name:'Pre-entreno',hora:'16:30',items:[['Atún al natural',120],['Arroz blanco cocido',150],['Manzana',180]]},
+    {name:'Post-entreno',hora:'20:00',items:[['Proteína whey (polvo)',30],['Patata cocida',300],['Plátano',120]]},
+    {name:'Cena',hora:'21:00',items:[['Carne de res magra 90/10',150],['Quinoa cocida',150],['Aguacate',75],['Brócoli',150]]}
+  ]},
+  descanso:{label:'Día de descanso · Miércoles',meals:[
+    {name:'Desayuno',hora:'7:30',items:[['Huevo entero',150],['Clara de huevo',100],['Avena',50],['Manzana',180],['Yogur griego natural',150]]},
+    {name:'Almuerzo',hora:'12:30',items:[['Pechuga de pollo',150],['Arroz blanco cocido',150],['Frijoles negros cocidos',150],['Aceite de oliva',10]]},
+    {name:'Merienda',hora:'16:30',items:[['Yogur griego natural',200],['Nueces',30],['Manzana',180]]},
+    {name:'Cena',hora:'21:00',items:[['Carne de res magra 90/10',180],['Quinoa cocida',150],['Aguacate',75],['Brócoli',150]]}
+  ]}
+};
+let planType='entreno';
+function setPlanType(t){planType=t;renderPlan()}
+function buildMealPlan(){const p=MEALPLANS[planType];
+  return p.meals.map(md=>{const items=md.items.map(([food,grams])=>({food,grams}));
+    const tot=items.reduce((a,it)=>{const m=macrosFor(findFood(it.food),it.grams);return{kcal:a.kcal+m.kcal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f,fb:a.fb+(m.fb||0)}},{kcal:0,p:0,c:0,f:0,fb:0});
     return{...md,items,tot}})}
 function renderPlan(){const t=calc(),plan=buildMealPlan();
   const pt=plan.reduce((a,m)=>({kcal:a.kcal+m.tot.kcal,p:a.p+m.tot.p,c:a.c+m.tot.c,f:a.f+m.tot.f}),{kcal:0,p:0,c:0,f:0});
@@ -877,12 +941,15 @@ function renderPlan(){const t=calc(),plan=buildMealPlan();
     <div class="card kpi"><div class="n accent">${t.protein}<small>g</small></div><div class="l label">Proteína</div></div>
     <div class="card kpi"><div class="n">${t.carbs}<small>g</small></div><div class="l label">Carbos</div></div>
     <div class="card kpi"><div class="n">${t.fat}<small>g</small></div><div class="l label">Grasa</div></div></div>`;
-  const mc=plan.map(m=>`<div class="card mb"><div class="flex between center mb"><div class="label">${m.name} · ${Math.round(m.share*100)}%</div><span class="dim num" style="font-size:14px">${m.tot.kcal} kcal · P${Math.round(m.tot.p)} C${Math.round(m.tot.c)} G${Math.round(m.tot.f)}</span></div>
+  const toggle=`<div class="flex gapsm mb2">
+    <button class="btn btn-sm ${planType==='entreno'?'btn-primary':'btn-secondary'}" onclick="setPlanType('entreno')">Día de entreno</button>
+    <button class="btn btn-sm ${planType==='descanso'?'btn-primary':'btn-secondary'}" onclick="setPlanType('descanso')">Día de descanso</button></div>`;
+  const mc=plan.map(m=>`<div class="card mb"><div class="flex between center mb"><div class="label">${m.name}${m.hora?' · '+m.hora:''}</div><span class="dim num" style="font-size:14px">${m.tot.kcal} kcal · P${Math.round(m.tot.p)} C${Math.round(m.tot.c)} G${Math.round(m.tot.f)}</span></div>
     ${m.items.map(it=>{const mm=macrosFor(findFood(it.food),it.grams);return `<div class="row" style="padding:11px 0"><div>${esc(it.food)}</div><div class="flex center gapsm"><span class="meta">${it.grams} g</span><span class="num" style="font-size:16px">${mm.kcal}</span></div></div>`}).join('')}</div>`).join('');
   document.getElementById('planBody').innerHTML=`<div class="section-title">Tus objetivos diarios</div>${cards}
     <div class="flex between center mb2"><div class="muted" style="font-size:13px">BMR ${t.bmr} · TDEE ${t.tdee} · Objetivo <b style="color:var(--text)">${GOAL_LABEL[S.profile.goal]}</b></div><button class="btn btn-secondary btn-sm" onclick="loadPlanToday()">Cargar a Comida ↧</button></div>
-    <div class="section-title">Plan de comidas (ejemplo)</div>
-    <p class="muted mb2" style="font-size:13px">Suma aprox.: <span class="num">${pt.kcal} kcal · P${Math.round(pt.p)} C${Math.round(pt.c)} G${Math.round(pt.f)}</span>. Fuentes intercambiables; ajusta gramos.</p>${mc}
+    <div class="section-title">${MEALPLANS[planType].label}</div>${toggle}
+    <p class="muted mb2" style="font-size:13px">Suma aprox.: <span class="num">${pt.kcal} kcal · P${Math.round(pt.p)} C${Math.round(pt.c)} G${Math.round(pt.f)}</span>. Pesa en crudo salvo que diga «cocido»; ajusta gramos a tu peso real.</p>${mc}
     <div class="section-title">Por qué estos números</div>
     <div class="card mb2"><div class="cite">
       <b>Gasto energético</b> — BMR por Mifflin-St Jeor (1990), la ecuación más precisa en población general; TDEE = BMR × ${S.profile.activity} (tu actividad).<br><br>
@@ -986,8 +1053,9 @@ function renderPerfil(){const p=S.profile,t=calc();
       <div class="card kpi"><div class="n">${t.protein}<small>g</small></div><div class="l label">Proteína</div></div></div>
     ${trainingLevelHTML()}
     <div class="section-title">Copia de seguridad y traspaso</div>
-    <div class="card mb2"><div class="muted mb" style="font-size:13px">Tus datos viven en este navegador. Haz copias y pásalas entre el móvil y el PC con el archivo JSON.</div>
-      <div class="grid g2 mb"><button class="btn btn-secondary" onclick="exportData()">↧ Exportar copia</button><button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">↥ Importar copia</button></div>
+    <div class="card mb2"><div class="muted mb" style="font-size:13px">Exporta tus datos a <b>Excel</b> para verlos y analizarlos (perfil, entrenamientos, comidas, peso, cintura y suplementos en hojas separadas). La copia <b>.json</b> sirve para restaurar o pasar los datos a otro dispositivo.</div>
+      <button class="btn btn-primary btn-block mb" onclick="exportExcel()">↧ Exportar a Excel (.xlsx)</button>
+      <div class="grid g2 mb"><button class="btn btn-secondary" onclick="exportData()">Copia .json</button><button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">↥ Importar copia</button></div>
       <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(this)">
       <div id="installRow"></div>
       <div class="hint">El respaldo en la nube con sincronización automática llegará en una fase 2.</div></div>
@@ -1005,6 +1073,50 @@ function trainingLevelHTML(){const p=S.profile,bf=+p.bodyFat,yt=+p.yearsTraining
 function saveProfile(){S.profile={...S.profile,name:document.getElementById('pf-name').value,sex:document.getElementById('pf-sex').value,age:+document.getElementById('pf-age').value,weight:+document.getElementById('pf-weight').value,height:+document.getElementById('pf-height').value,activity:+document.getElementById('pf-act').value,goal:document.getElementById('pf-goal').value,days:+document.getElementById('pf-days').value,bodyFat:document.getElementById('pf-bf').value,yearsTraining:document.getElementById('pf-yt').value,proteinPerKg:+document.getElementById('pf-prot').value,fatPerKg:+document.getElementById('pf-fat').value,_set:true};
   save();renderPerfil();alert('Perfil guardado. Plan y objetivos actualizados.')}
 function exportData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='jonnathanfit-'+todayISO()+'.json';a.click()}
+/* ---------- EXPORTAR A EXCEL (.xlsx generado sin librerías) ---------- */
+function _u8(s){return new TextEncoder().encode(s)}
+function _xmlEsc(s){return (''+s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]))}
+function _colName(i){let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=(i-m-1)/26}return s}
+const _CRCT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);t[n]=c>>>0}return t})();
+function _crc32(b){let crc=-1;for(let i=0;i<b.length;i++)crc=(crc>>>8)^_CRCT[(crc^b[i])&0xff];return (crc^-1)>>>0}
+function _sheetXml(rows){let body='';rows.forEach((row,r)=>{let cells='';row.forEach((val,c)=>{if(val===''||val==null)return;const ref=_colName(c)+(r+1);
+  if(typeof val==='number'&&isFinite(val))cells+=`<c r="${ref}"><v>${val}</v></c>`;else cells+=`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${_xmlEsc(val)}</t></is></c>`});
+  body+=`<row r="${r+1}">${cells}</row>`});
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+body+'</sheetData></worksheet>'}
+function _zip(files){const parts=[],central=[];let offset=0;
+  files.forEach(([name,data])=>{const nb=_u8(name),crc=_crc32(data),size=data.length;
+    const lh=new Uint8Array(30+nb.length),dv=new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(10,0,true);dv.setUint16(12,0x21,true);
+    dv.setUint32(14,crc,true);dv.setUint32(18,size,true);dv.setUint32(22,size,true);dv.setUint16(26,nb.length,true);lh.set(nb,30);
+    parts.push(lh,data);
+    const ch=new Uint8Array(46+nb.length),cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(14,0x21,true);
+    cv.setUint32(16,crc,true);cv.setUint32(20,size,true);cv.setUint32(24,size,true);cv.setUint16(28,nb.length,true);cv.setUint32(42,offset,true);ch.set(nb,46);
+    central.push(ch);offset+=lh.length+size});
+  let cdSize=0;central.forEach(c=>cdSize+=c.length);
+  const eo=new Uint8Array(22),ev=new DataView(eo.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,cdSize,true);ev.setUint32(16,offset,true);
+  return new Blob([...parts,...central,eo],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+function buildXlsx(sheets){const f=[];
+  f.push(['[Content_Types].xml',_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>')]);
+  f.push(['_rels/.rels',_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')]);
+  f.push(['xl/workbook.xml',_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map((s,i)=>`<sheet name="${_xmlEsc(s.name).slice(0,31)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')+'</sheets></workbook>')]);
+  f.push(['xl/_rels/workbook.xml.rels',_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+'</Relationships>')]);
+  sheets.forEach((s,i)=>f.push([`xl/worksheets/sheet${i+1}.xml`,_u8(_sheetXml(s.rows))]));
+  return _zip(f)}
+function exportExcel(){const t=calc(),p=S.profile;
+  const perfil=[['JONNATHAN FIT — Exportación',todayISO()],[],
+    ['PERFIL',''],['Nombre',p.name||''],['Sexo',p.sex==='male'?'Hombre':'Mujer'],['Edad',+p.age||''],['Peso (kg)',+p.weight||''],['Altura (cm)',+p.height||''],['Actividad',+p.activity||''],['Objetivo',GOAL_LABEL[p.goal]||p.goal],['Días/semana',+p.days||''],['% grasa',p.bodyFat||''],['Años entrenando',p.yearsTraining||''],[],
+    ['OBJETIVOS DIARIOS',''],['BMR',t.bmr],['TDEE',t.tdee],['kcal objetivo',t.kcal],['Proteína (g)',t.protein],['Carbos (g)',t.carbs],['Grasa (g)',t.fat],['Fibra (g)',t.fiber]];
+  const ent=[['Fecha','Sesión','Ejercicio','Grupo','Serie','Kg','Reps','1RM est.']];
+  S.workouts.slice().reverse().forEach(w=>{const d=(w.date||'').slice(0,10);w.exercises.forEach(e=>{e.sets.forEach((s,i)=>{if(!s.done&&!(+s.kg)&&!(+s.reps))return;ent.push([d,w.name,e.name,MUSCLE[e.name]||'',i+1,+s.kg||0,+s.reps||0,e1rm(+s.kg||0,+s.reps||0)])})})});
+  const com=[['Fecha','Comida','Alimento','Gramos','kcal','Proteína','Carbos','Grasa','Fibra']];
+  Object.keys(S.nutrition).sort().forEach(d=>(S.nutrition[d]||[]).forEach(it=>com.push([d,it.meal,it.food,it.grams,it.kcal,it.p,it.c,it.f,it.fb||0])));
+  const peso=[['Fecha','Peso (kg)']];S.bodyweight.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(x=>peso.push([x.date,x.kg]));
+  const cint=[['Fecha','Cintura (cm)']];S.waist.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(x=>cint.push([x.date,x.cm]));
+  const sup=[['Fecha','Suplemento']];Object.keys(S.suppLog).sort().forEach(d=>(S.suppLog[d]||[]).forEach(id=>{const s=SUPPS.find(x=>x.id===id);sup.push([d,s?s.n:id])}));
+  const blob=buildXlsx([{name:'Perfil y objetivos',rows:perfil},{name:'Entrenamientos',rows:ent},{name:'Comidas',rows:com},{name:'Peso',rows:peso},{name:'Cintura',rows:cint},{name:'Suplementos',rows:sup}]);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='jonnathanfit-'+todayISO()+'.xlsx';a.click()}
 function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();
   r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!d.profile)throw 0;
     if(!confirm('Esto reemplazará los datos de este dispositivo con los de la copia. ¿Continuar?'))return;
