@@ -291,6 +291,17 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
   </div>
 </div></div>
 
+<!-- ============ BLOQUEO POR PIN ============ -->
+<div class="onb" id="lockScreen"><div class="onb-inner" style="max-width:400px;text-align:center;padding-top:18vh">
+  <div class="onb-brand">Jonnathan&nbsp;Fit</div>
+  <h2 style="font-size:clamp(32px,7vw,46px)">Bloqueada con <em>PIN</em></h2>
+  <p class="sub" style="margin-bottom:var(--s-xl)">Introduce tu PIN para entrar.</p>
+  <input class="input" id="lockPin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="PIN" style="text-align:center;font-size:26px;letter-spacing:.45em">
+  <div class="err" id="lockErr" style="margin-top:var(--s-md)"></div>
+  <button class="btn btn-primary btn-block" id="lockBtn" style="margin-top:var(--s-md)">Desbloquear</button>
+  <div class="hint" style="margin-top:var(--s-lg)">¿Olvidaste el PIN? Solo se quita borrando los datos del sitio en el navegador (perderás lo guardado si no tienes copia).</div>
+</div></div>
+
 <!-- ============ TOP BAR ============ -->
 <header class="topbar"><div class="wrap">
   <span class="brand">Jonnathan&nbsp;<b>Fit</b></span>
@@ -565,11 +576,37 @@ const FOODS=[
   {n:'Proteína vegana (polvo)',k:375,p:75,c:10,f:6,cat:'Suplementos'},
   {n:'Maltodextrina',k:380,p:0,c:95,f:0,cat:'Suplementos'},
   {n:'Creatina monohidrato',k:0,p:0,c:0,f:0,cat:'Suplementos'},
-  {n:'Barrita de proteína',k:350,p:30,c:40,f:9,cat:'Suplementos'}
+  {n:'Barrita de proteína',k:350,p:30,c:40,f:9,cat:'Suplementos'},
+  /* Platos y productos colombianos /100g (fuentes: ICBF TCAC, Fitia, FatSecret, El Tiempo/Javeriana) */
+  {n:'Ajiaco santafereño',k:92,p:6,c:12,f:2.5,fb:1.5,cat:'Colombianos'},
+  {n:'Sancocho de gallina',k:110,p:8,c:11,f:4,fb:1.2,cat:'Colombianos'},
+  {n:'Bandeja paisa (plato mixto)',k:185,p:11,c:14,f:10,fb:2.5,cat:'Colombianos'},
+  {n:'Frijoles antioqueños (cargamanto)',k:140,p:8,c:21,f:2.5,fb:7,cat:'Colombianos'},
+  {n:'Mondongo',k:95,p:8,c:8,f:3.5,fb:1,cat:'Colombianos'},
+  {n:'Caldo de costilla',k:60,p:5,c:4,f:2.5,fb:0.3,cat:'Colombianos'},
+  {n:'Changua',k:50,p:3,c:4,f:2.5,fb:0.2,cat:'Colombianos'},
+  {n:'Arepa blanca de maíz',k:219,p:5.5,c:35,f:6,fb:2.3,cat:'Colombianos'},
+  {n:'Arepa con queso',k:260,p:9,c:32,f:11,fb:1.8,cat:'Colombianos'},
+  {n:'Empanada colombiana (carne y papa)',k:267,p:7,c:28,f:14,fb:2,cat:'Colombianos'},
+  {n:'Buñuelo',k:450,p:8.5,c:40,f:28,fb:1,cat:'Colombianos'},
+  {n:'Pandebono',k:330,p:9,c:41,f:14,fb:1,cat:'Colombianos'},
+  {n:'Almojábana',k:280,p:10,c:35,f:11,fb:0.8,cat:'Colombianos'},
+  {n:'Tamal tolimense',k:108,p:5.7,c:12.7,f:3.8,fb:1.3,cat:'Colombianos'},
+  {n:'Lechona tolimense',k:224,p:21.8,c:7.3,f:12,fb:0.8,cat:'Colombianos'},
+  {n:'Chicharrón de cerdo',k:545,p:28,c:0.5,f:48,fb:0,cat:'Colombianos'},
+  {n:'Patacón (plátano verde frito)',k:252,p:1.5,c:36,f:12,fb:3,cat:'Colombianos'},
+  {n:'Tajadas de plátano maduro frito',k:240,p:1.3,c:36,f:10,fb:2.5,cat:'Colombianos'},
+  {n:'Hogao',k:95,p:1.2,c:8,f:7,fb:1.5,cat:'Colombianos'},
+  {n:'Arroz con coco',k:185,p:3,c:28,f:7,fb:1,cat:'Colombianos'},
+  {n:'Aguapanela',k:50,p:0,c:13,f:0,fb:0,cat:'Colombianos'},
+  {n:'Arequipe',k:315,p:7,c:55,f:7.5,fb:0,cat:'Colombianos'},
+  {n:'Natilla',k:160,p:2.5,c:30,f:3.5,fb:0.2,cat:'Colombianos'},
+  {n:'Mazamorra con leche',k:85,p:2.3,c:16,f:1.5,fb:0.6,cat:'Colombianos'},
+  {n:'Avena (bebida colombiana)',k:80,p:2.5,c:14,f:1.8,fb:0.5,cat:'Colombianos'}
 ];
 /* fibra /100g para los alimentos con aporte relevante (resto = 0) */
 const FIBER={'Avena':10.6,'Granola':7,'Cereales integrales':10,'Pan integral':7,'Pan blanco':2.7,'Pasta integral cocida':4.5,'Pasta cocida':1.8,'Arroz integral cocido':1.8,'Quinoa cocida':2.8,'Cuscús cocido':1.4,'Lentejas cocidas':7.9,'Garbanzos cocidos':7.6,'Frijoles negros cocidos':8.7,'Frijoles rojos cocidos':7.4,'Alubias blancas cocidas':6.3,'Guisantes (arvejas)':5.1,'Edamame':5,'Hummus':6,'Soja texturizada (seca)':20,'Tempeh':4.5,'Boniato (camote)':3,'Patata cocida':1.8,'Yuca / mandioca cocida':1.8,'Maíz dulce':2.7,'Brócoli':2.6,'Espinaca':2.2,'Zanahoria':2.8,'Coliflor':2,'Judías verdes':3.4,'Espárragos':2.1,'Col / repollo':2.5,'Berenjena':3,'Pimiento':2.1,'Champiñones':1,'Tomate':1.2,'Aguacate':6.7,'Almendras':12.5,'Nueces':6.7,'Cacahuetes / maní':8.5,'Pistachos':10.6,'Anacardos':3.3,'Semillas de chía':34,'Semillas de lino':27,'Semillas de girasol':8.6,'Coco rallado':16,'Mantequilla de maní':6,'Tahini':9.3,'Plátano':2.6,'Manzana':2.4,'Pera':3.1,'Naranja':2.4,'Mandarina':1.8,'Fresas':2,'Arándanos':2.4,'Uvas':0.9,'Piña':1.4,'Mango':1.6,'Kiwi':3,'Papaya':1.7,'Dátiles':6.7,'Pasas':3.7,'Aceitunas':3.2,'Chocolate negro 70%':11,'Palomitas':14,'Plátano macho cocido':2.3,'Tortilla de maíz':5,'Tortilla de trigo':3,'Lechuga':1.3,'Pepino':0.5,'Cebolla':1.7,'Calabacín':1};
-FOODS.forEach(f=>{f.fb=FIBER[f.n]||0});
+FOODS.forEach(f=>{f.fb=f.fb!=null?f.fb:(FIBER[f.n]||0)});
 const allFoods=()=>FOODS.concat(S.customFoods||[]);
 const findFood=n=>allFoods().find(f=>f.n===n);
 const macrosFor=(food,g)=>{const x=g/100;return{kcal:Math.round(food.k*x),p:+(food.p*x).toFixed(1),c:+(food.c*x).toFixed(1),f:+(food.f*x).toFixed(1),fb:+(((food.fb||0)*x).toFixed(1))}};
@@ -1057,6 +1094,7 @@ function renderPerfil(){const p=S.profile,t=calc();
       <div class="card kpi"><div class="n accent">${t.kcal}</div><div class="l label">Objetivo${p.calAdjust?` (${p.calAdjust>0?'+':''}${p.calAdjust})`:''}</div></div>
       <div class="card kpi"><div class="n">${t.protein}<small>g</small></div><div class="l label">Proteína</div></div></div>
     ${trainingLevelHTML()}
+    ${pinSectionHTML()}
     <div class="section-title">Copia de seguridad y traspaso</div>
     <div class="card mb2"><div class="muted mb" style="font-size:13px">Exporta tus datos a <b>Excel</b> para verlos y analizarlos (perfil, entrenamientos, comidas, peso, cintura y suplementos en hojas separadas). La copia <b>.json</b> sirve para restaurar o pasar los datos a otro dispositivo.</div>
       <button class="btn btn-primary btn-block mb" onclick="exportExcel()">↧ Exportar a Excel (.xlsx)</button>
@@ -1168,9 +1206,50 @@ function renderInstall(){const el=document.getElementById('installRow');if(!el)r
 function doInstall(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;renderInstall()})}
 if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 
+/* ---------- BLOQUEO POR PIN ---------- */
+const PINKEY='jfit.pin';
+const pinCfg=()=>{try{return JSON.parse(localStorage.getItem(PINKEY))}catch(e){return null}};
+async function sha256hex(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function setPin(pin){const salt=[...crypto.getRandomValues(new Uint8Array(16))].map(x=>x.toString(16).padStart(2,'0')).join('');
+  localStorage.setItem(PINKEY,JSON.stringify({salt,hash:await sha256hex(salt+pin)}))}
+async function checkPin(pin){const c=pinCfg();if(!c)return true;try{return (await sha256hex(c.salt+pin))===c.hash}catch(e){return false}}
+let lockFails=0,lockWaitUntil=0;
+function showLock(){document.getElementById('lockScreen').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('lockPin').focus(),80)}
+function hideLock(){document.getElementById('lockScreen').classList.remove('open');document.body.style.overflow=profileIncomplete()?'hidden':''}
+async function tryUnlock(){const err=document.getElementById('lockErr'),inp=document.getElementById('lockPin');
+  if(Date.now()<lockWaitUntil){err.textContent='Espera '+Math.ceil((lockWaitUntil-Date.now())/1000)+' s e inténtalo de nuevo.';return}
+  if(await checkPin(inp.value)){lockFails=0;inp.value='';err.textContent='';hideLock()}
+  else{lockFails++;inp.value='';
+    if(lockFails>=3){lockWaitUntil=Date.now()+30000;lockFails=0;err.textContent='3 intentos fallidos. Espera 30 segundos.'}
+    else err.textContent='PIN incorrecto.'}}
+document.getElementById('lockBtn').onclick=tryUnlock;
+document.getElementById('lockPin').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock()});
+function pinSectionHTML(){const has=!!pinCfg();
+  return `<div class="section-title">Seguridad</div><div class="card mb2">
+    <div class="muted mb" style="font-size:13px">${has?'El PIN de bloqueo está <b style="color:var(--good)">activado</b>: se pide cada vez que abres la app en este dispositivo.':'Protege la app con un PIN de 4–6 dígitos que se pedirá al abrirla en este dispositivo.'}</div>
+    ${has?`<div class="grid g2"><button class="btn btn-secondary" onclick="openPinModal('change')">Cambiar PIN</button><button class="btn btn-danger" onclick="openPinModal('off')">Desactivar</button></div>`
+        :`<button class="btn btn-primary btn-block" onclick="openPinModal('on')">Activar PIN de bloqueo</button>`}
+    <div class="hint mt">Es una barrera local contra miradas ajenas. El PIN se guarda como hash (no en claro), pero los datos del navegador siguen sin cifrar — el cifrado llegará con la nube en la fase 2.</div></div>`}
+function openPinModal(mode){const needCur=mode!=='on'&&pinCfg();
+  modal(`<div class="modal-head"><span class="label">${mode==='on'?'Activar PIN':mode==='change'?'Cambiar PIN':'Desactivar PIN'}</span><button class="btn-ghost" onclick="closeModal()">✕</button></div>
+    ${needCur?'<div class="field mb"><label>PIN actual</label><input class="input" id="pinCur" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div>':''}
+    ${mode!=='off'?`<div class="field mb"><label>Nuevo PIN (4–6 dígitos)</label><input class="input" id="pinNew" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div>
+    <div class="field mb"><label>Repite el PIN</label><input class="input" id="pinNew2" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div>`:''}
+    <div class="err" id="pinErr"></div>
+    <button class="btn ${mode==='off'?'btn-danger':'btn-primary'} btn-block" onclick="confirmPin('${mode}')">${mode==='off'?'Desactivar PIN':'Guardar'}</button>`)}
+async function confirmPin(mode){const err=document.getElementById('pinErr');
+  const cur=document.getElementById('pinCur'),n1=document.getElementById('pinNew'),n2=document.getElementById('pinNew2');
+  if(cur&&!(await checkPin(cur.value))){err.textContent='El PIN actual no es correcto.';return}
+  if(mode==='off'){localStorage.removeItem(PINKEY);closeModal();renderPerfil();alert('PIN desactivado.');return}
+  if(!/^\d{4,6}$/.test(n1.value)){err.textContent='El PIN debe tener entre 4 y 6 dígitos.';return}
+  if(n1.value!==n2.value){err.textContent='Los PIN no coinciden.';return}
+  if(!window.isSecureContext||!crypto.subtle){err.textContent='Este navegador no permite guardar el PIN de forma segura.';return}
+  await setPin(n1.value);closeModal();renderPerfil();alert(mode==='on'?'PIN activado. Se pedirá al abrir la app.':'PIN actualizado.')}
+
 /* ---------- INIT ---------- */
 if(profileIncomplete())openOnboarding();
 renderHoy();
+if(pinCfg())showLock();
 </script>
 </body>
 </html>
