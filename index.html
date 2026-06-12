@@ -38,7 +38,7 @@
   --accent-2:#8A6A45;    /* marrón */
   --sand:#BCA98C;        /* taupe muro */
   --good:#7FB07A;        /* verde salvia (objetivo cumplido) */
-  --over:#C7603C;        /* terracota (exceso) */
+  --over:#D26A45;        /* terracota (exceso) — AA sobre --bg */
   /* radios estilo Apple */
   --r:12px;              /* base */
   --r-sm:9px;
@@ -57,7 +57,7 @@
 }
 body.light{
   --bg:#EDE7DA;--surface:#FAF7EF;--surface-2:#FFFFFF;--glass:rgba(250,247,239,.7);--line:#E0D9C9;--line-2:#CBC2AD;
-  --text:#23231B;--text-2:#5A5648;--text-3:#857E6B;--accent:#A66A28;--accent-soft:rgba(166,106,40,.12);--sand:#7A6A50;--good:#4E8A4A;
+  --text:#23231B;--text-2:#5A5648;--text-3:#6E6754;--accent:#8F551E;--accent-soft:rgba(166,106,40,.12);--sand:#7A6A50;--good:#3A7237;--over:#A84A28;
   --sh-1:0 1px 2px rgba(60,52,38,.08);--sh-2:0 10px 30px -10px rgba(60,52,38,.18);--sh-3:0 24px 60px -18px rgba(60,52,38,.22);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -68,6 +68,16 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 input,select{font-family:var(--f-ui);font-size:15px;color:var(--text)}
 input::placeholder{color:var(--text-3);opacity:1}
 ::selection{background:var(--accent);color:var(--bg)}
+
+/* accesibilidad: foco de teclado visible en todo control (los inputs ya marcan foco con su borde) */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.input:focus-visible{outline:none}
+
+/* accesibilidad: respetar la preferencia de menos movimiento */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 
 /* tipografía editorial */
 .serif{font-family:var(--f-disp)}
@@ -150,7 +160,7 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 
 /* barra de progreso redondeada estilo Apple */
 .track{height:6px;background:color-mix(in srgb,var(--line-2) 70%,transparent);border-radius:var(--r-pill);margin-top:var(--s-sm);position:relative;overflow:hidden}
-.track .fill{position:absolute;inset:0 auto 0 0;height:100%;border-radius:var(--r-pill);background:var(--accent);transition:width .6s var(--spring)}
+.track .fill{position:absolute;inset:0 auto 0 0;height:100%;border-radius:var(--r-pill);background:var(--accent);transition:width .5s var(--ease)}
 .macro-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
 .macro-row .v{font-family:var(--f-disp);font-size:18px;color:var(--text);font-variant-numeric:tabular-nums}
 .macro-row .v span{font-family:var(--f-ui);font-size:11px;color:var(--text-3)}
@@ -164,15 +174,15 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 .ex{border:1px solid var(--line);border-radius:var(--r-card);padding:var(--s-lg);margin-bottom:var(--s-md);background:var(--surface);box-shadow:var(--sh-1)}
 .ex-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:var(--s-md)}
 .ex-head h4{font-family:var(--f-disp);font-weight:400;font-size:24px;color:var(--text)}
-.set-grid{display:grid;grid-template-columns:32px 1fr 1fr 44px 32px;gap:var(--s-sm);align-items:center}
+.set-grid{display:grid;grid-template-columns:32px 1fr 1fr 48px 40px;gap:var(--s-sm);align-items:center}
 .set-grid .h{font-family:var(--f-ui);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);text-align:center;padding-bottom:4px}
 .set-grid .sn{font-family:var(--f-disp);font-size:16px;color:var(--text-2);text-align:center}
 .set-grid input{text-align:center;padding:9px 4px;border-radius:var(--r-sm)}
-.set-done{width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--text-3);font-size:14px;transition:transform .25s var(--spring),background .2s,color .2s,border-color .2s}
+.set-done{width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--text-3);font-size:15px;transition:transform .25s var(--spring),background .2s,color .2s,border-color .2s}
 .set-done:active{transform:scale(.88)}
 .set-done.done{background:var(--good);border-color:var(--good);color:#fff}
 .set-row.done input{color:var(--good)}
-.set-x{background:none;border:0;color:var(--text-3);font-size:13px}
+.set-x{background:none;border:0;color:var(--text-3);font-size:13px;min-width:36px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
 .set-x:hover{color:var(--over)}
 
 /* pills */
@@ -192,7 +202,7 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 /* modal */
 .modal-bg{position:fixed;inset:0;background:rgba(15,15,10,.72);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:var(--s-2xl) var(--s-md);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .modal-bg.open{display:flex;animation:fade .3s var(--ease)}
-.modal{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-card);width:100%;max-width:520px;max-height:86vh;overflow:auto;padding:var(--s-xl);box-shadow:var(--sh-3);animation:pop .4s var(--spring)}
+.modal{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-card);width:100%;max-width:520px;max-height:86vh;overflow:auto;padding:var(--s-xl);box-shadow:var(--sh-3);animation:pop .3s var(--ease)}
 @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
 .modal-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--s-lg)}
 .search-list{display:flex;flex-direction:column}
@@ -232,7 +242,7 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 .err{color:var(--over);font-size:12px;text-align:center;min-height:16px}
 
 @media(max-width:820px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr}}
-@media(max-width:560px){.wrap{padding:0 var(--s-lg)}.g2,.g4{grid-template-columns:1fr 1fr}.opts.two{grid-template-columns:1fr}.set-grid{grid-template-columns:28px 1fr 1fr 40px 28px}}
+@media(max-width:560px){.wrap{padding:0 var(--s-lg)}.g2,.g4{grid-template-columns:1fr 1fr}.opts.two{grid-template-columns:1fr}.set-grid{grid-template-columns:24px 1fr 1fr 46px 36px}}
 </style>
 </head>
 <body>
@@ -309,13 +319,13 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 </div></header>
 
 <!-- ============ TABS ============ -->
-<nav class="tabs"><div class="wrap">
-  <button class="tab active" data-view="hoy">Hoy</button>
-  <button class="tab" data-view="entreno">Entreno</button>
-  <button class="tab" data-view="comida">Comida</button>
-  <button class="tab" data-view="plan">Plan</button>
-  <button class="tab" data-view="progreso">Progreso</button>
-  <button class="tab" data-view="perfil">Perfil</button>
+<nav class="tabs" aria-label="Secciones"><div class="wrap" role="tablist">
+  <button class="tab active" data-view="hoy" role="tab" aria-selected="true">Hoy</button>
+  <button class="tab" data-view="entreno" role="tab" aria-selected="false">Entreno</button>
+  <button class="tab" data-view="comida" role="tab" aria-selected="false">Comida</button>
+  <button class="tab" data-view="plan" role="tab" aria-selected="false">Plan</button>
+  <button class="tab" data-view="progreso" role="tab" aria-selected="false">Progreso</button>
+  <button class="tab" data-view="perfil" role="tab" aria-selected="false">Perfil</button>
 </div></nav>
 
 <main class="wrap">
@@ -341,9 +351,9 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
     <div class="page-head"><span class="label">Registro de alimentación</span><h1>Comida</h1></div>
     <div class="flex between center mb2">
       <div class="flex center gapsm">
-        <button class="btn-ghost" id="dayPrev" style="font-size:16px">‹</button>
-        <input type="date" class="input" id="foodDate" style="width:auto">
-        <button class="btn-ghost" id="dayNext" style="font-size:16px">›</button>
+        <button class="btn-ghost" id="dayPrev" style="font-size:18px;padding:0 14px" aria-label="Día anterior">‹</button>
+        <input type="date" class="input" id="foodDate" style="width:auto" aria-label="Fecha">
+        <button class="btn-ghost" id="dayNext" style="font-size:18px;padding:0 14px" aria-label="Día siguiente">›</button>
       </div>
       <button class="btn btn-secondary btn-sm" id="loadPlanBtn">Cargar plan ↧</button>
     </div>
@@ -367,7 +377,7 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
   </section>
 </main>
 
-<div class="modal-bg" id="modalBg"><div class="modal" id="modalBox"></div></div>
+<div class="modal-bg" id="modalBg"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
 
 <script>
 /* ============ ESTADO ============ */
@@ -723,9 +733,9 @@ const SUPPS=[
 
 /* ============ NAV ============ */
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-selected','false')});
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');document.getElementById('view-'+t.dataset.view).classList.add('active');
+  t.classList.add('active');t.setAttribute('aria-selected','true');document.getElementById('view-'+t.dataset.view).classList.add('active');
   window.scrollTo(0,0);render(t.dataset.view);
 });
 const modeToggle=document.getElementById('modeToggle');
@@ -832,7 +842,7 @@ function activeHTML(){const a=S.active;
       <input class="input" inputmode="decimal" placeholder="0" value="${s.kg}" oninput="setVal(${ei},${si},'kg',this.value)">
       <input class="input" inputmode="numeric" placeholder="0" value="${s.reps}" oninput="setVal(${ei},${si},'reps',this.value)">
       <button class="set-done ${s.done?'done':''}" onclick="toggleSet(${ei},${si})">✓</button>
-      <button class="set-x" onclick="delSet(${ei},${si})">✕</button></div>`).join('');
+      <button class="set-x" onclick="delSet(${ei},${si})" aria-label="Quitar serie ${si+1}">✕</button></div>`).join('');
     const m=e.plan||exMeta(e.name);
     const presc=m?`<div class="hint mb" style="margin-top:-2px">Objetivo <b style="color:var(--text-2)">${m.s}×${m.reps}${m.rir&&m.rir!=='-'?' · RIR '+m.rir:''}</b> · descanso ${m.rest} · ${m.foco} · <a href="${vidUrl(m)}" target="_blank" rel="noopener" style="color:var(--accent)">Ver técnica ↗</a></div>`:'';
     const lp=lastPerf(e.name,a.id),sg=suggestNext(e.name);
@@ -862,7 +872,7 @@ function finishWorkout(){const a=S.active;a.exercises=a.exercises.filter(e=>e.se
   a.dur=Math.round((Date.now()-a.start)/60000);S.workouts.unshift(a);S.active=null;clearInterval(elapsedTimer);save();renderEntreno();
   setTimeout(()=>alert(`Sesión guardada · ${vol_(a).toLocaleString()} kg de volumen total`+(prs.length?`\n\n🏆 ¡Nuevo récord!\n`+prs.join('\n'):'')),50)}
 function openExercisePicker(){const items=EXERCISE_LIB.map(n=>`<div class="search-item" onclick="addExercise('${jsAttr(n)}')"><span class="nm">${esc(n)}</span><span class="dim">+</span></div>`).join('');
-  modal(`<div class="modal-head"><span class="label">Añadir ejercicio</span><button class="btn-ghost" onclick="closeModal()">✕</button></div>
+  modal(`<div class="modal-head"><span class="label">Añadir ejercicio</span><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
     <input class="input mb2" id="exSearch" placeholder="Buscar o escribir nuevo…" oninput="filterEx(this.value)"><div class="search-list" id="exList">${items}</div>
     <button class="btn btn-secondary btn-block mt2" onclick="addCustomEx()">+ Crear personalizado</button>`)}
 function filterEx(q){q=q.toLowerCase();document.getElementById('exList').innerHTML=EXERCISE_LIB.filter(n=>n.toLowerCase().includes(q)).map(n=>`<div class="search-item" onclick="addExercise('${jsAttr(n)}')"><span class="nm">${esc(n)}</span><span class="dim">+</span></div>`).join('')}
@@ -871,7 +881,7 @@ function addExercise(n){S.active.exercises.push({name:n,sets:[{kg:'',reps:'',don
 function showWorkout(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
   const ex=w.exercises.map(e=>{const sets=e.sets.filter(s=>s.done).map((s,i)=>`<div class="row" style="padding:9px 0"><span class="meta">Serie ${i+1}</span><span class="num" style="font-size:16px">${s.kg} kg × ${s.reps}</span></div>`).join('');
     return `<div class="ex"><div class="ex-head"><h4>${esc(e.name)}</h4></div>${sets}</div>`}).join('');
-  modal(`<div class="modal-head"><div><span class="label">${new Date(w.date).toLocaleDateString('es-ES',{day:'numeric',month:'long'})}</span><div class="serif" style="font-size:26px">${esc(w.name)}</div></div><button class="btn-ghost" onclick="closeModal()">✕</button></div>
+  modal(`<div class="modal-head"><div><span class="label">${new Date(w.date).toLocaleDateString('es-ES',{day:'numeric',month:'long'})}</span><div class="serif" style="font-size:26px">${esc(w.name)}</div></div><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
     <div class="flex gap mb2"><span class="pill on">${vol_(w).toLocaleString()} kg</span><span class="pill">${w.dur||0} min</span></div>${ex}
     <button class="btn btn-danger btn-block mt2" onclick="delWorkout('${id}')">Eliminar sesión</button>`)}
 function delWorkout(id){if(confirm('¿Eliminar esta sesión?')){S.workouts=S.workouts.filter(x=>x.id!==id);save();closeModal();renderEntreno()}}
@@ -888,11 +898,11 @@ function renderComida(){
   const meals=ORDER.filter(m=>['Desayuno','Almuerzo','Merienda','Cena'].includes(m)||present.includes(m));
   document.getElementById('mealsBody').innerHTML=meals.map(m=>{
     const items=list.map((it,gi)=>({it,gi})).filter(o=>o.it.meal===m),sub=items.reduce((a,o)=>a+o.it.kcal,0);
-    const rows=items.map(o=>`<div class="row" style="cursor:pointer" onclick="editFood(${o.gi})"><div><div>${esc(o.it.food)}</div><div class="meta">${o.it.grams} g · P${o.it.p} C${o.it.c} G${o.it.f}${o.it.fb?` · Fib${o.it.fb}`:''}</div></div><div class="flex center gapsm"><span class="num" style="font-size:16px">${o.it.kcal}</span><button class="set-x" onclick="event.stopPropagation();delFood(${o.gi})">✕</button></div></div>`).join('')||'<div class="meta" style="padding:12px 0">—</div>';
+    const rows=items.map(o=>`<div class="row" style="cursor:pointer" onclick="editFood(${o.gi})"><div><div>${esc(o.it.food)}</div><div class="meta">${o.it.grams} g · P${o.it.p} C${o.it.c} G${o.it.f}${o.it.fb?` · Fib${o.it.fb}`:''}</div></div><div class="flex center gapsm"><span class="num" style="font-size:16px">${o.it.kcal}</span><button class="set-x" onclick="event.stopPropagation();delFood(${o.gi})" aria-label="Quitar alimento">✕</button></div></div>`).join('')||'<div class="meta" style="padding:12px 0">—</div>';
     return `<div class="section-title flex"><span>${m}</span><span class="dim num" style="margin-left:auto;font-size:15px">${sub} kcal</span></div>${rows}<div class="flex gapsm mt wrapf"><button class="btn btn-ghost btn-sm" onclick="openFoodPicker('${m}')">+ Añadir alimento</button>${items.length?`<button class="btn btn-ghost btn-sm" onclick="saveMealAsRecipe('${m}')">★ Guardar como receta</button>`:''}</div>`}).join('');
 }
 function editFood(gi){const it=(S.nutrition[foodDate]||[])[gi];if(!it)return;const f=findFood(it.food);
-  modal(`<div class="modal-head"><div><span class="label">${esc(it.meal)} · editar</span><div class="serif" style="font-size:24px">${esc(it.food)}</div></div><button class="btn-ghost" onclick="closeModal()">✕</button></div>
+  modal(`<div class="modal-head"><div><span class="label">${esc(it.meal)} · editar</span><div class="serif" style="font-size:24px">${esc(it.food)}</div></div><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
     <div class="field mb2"><label>Cantidad (gramos)</label><input class="input" id="editGram" type="number" inputmode="decimal" value="${it.grams}" ${f?`oninput="previewEdit(${gi})"`:''}></div>
     ${f?`<div class="card mb2" id="editPreview"></div>`:'<div class="hint mb2">Alimento sin tabla nutricional; al cambiar gramos se escalan sus macros.</div>'}
     <button class="btn btn-primary btn-block" onclick="saveEditFood(${gi})">Guardar cambios</button>`);
@@ -919,7 +929,7 @@ function foodListHTML(q){q=(q||'').toLowerCase().trim();
   html+=cats.map(c=>`<div class="section-title" style="margin:22px 0 2px">${c}</div>`+FOODS.filter(f=>f.cat===c).map(foodItemHTML).join('')).join('');
   return html}
 function openFoodPicker(meal){currentMeal=meal;
-  modal(`<div class="modal-head"><span class="label">${meal} · ${allFoods().length} alimentos /100g</span><button class="btn-ghost" onclick="closeModal()">✕</button></div>
+  modal(`<div class="modal-head"><span class="label">${meal} · ${allFoods().length} alimentos /100g</span><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
     <input class="input mb" id="foodSearch" placeholder="Buscar alimento…" oninput="filterFood(this.value)">
     <button class="btn btn-secondary btn-block btn-sm mb2" onclick="openCustomFood()">+ Crear alimento propio</button>
     <div class="search-list" id="foodList">${foodListHTML('')}</div>`)}
@@ -944,7 +954,7 @@ function saveMealAsRecipe(meal){const items=(S.nutrition[foodDate]||[]).filter(i
 function addRecipe(i,meal){const r=S.recipes[i];if(!r)return;S.nutrition[foodDate]=S.nutrition[foodDate]||[];
   r.items.forEach(it=>{const f=findFood(it.food);if(f){const m=macrosFor(f,it.grams);S.nutrition[foodDate].push({food:it.food,grams:it.grams,meal,...m})}});save();closeModal();renderComida()}
 function pickFood(name,meal){currentMeal=meal;
-  modal(`<div class="modal-head"><div><span class="label">${meal}</span><div class="serif" style="font-size:24px">${esc(name)}</div></div><button class="btn-ghost" onclick="closeModal()">✕</button></div>
+  modal(`<div class="modal-head"><div><span class="label">${meal}</span><div class="serif" style="font-size:24px">${esc(name)}</div></div><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
     <div class="field mb2"><label>Cantidad (gramos)</label><input class="input" id="gramInput" type="number" inputmode="decimal" value="100" oninput="previewFood('${jsAttr(name)}')"></div>
     <div class="card mb2" id="foodPreview"></div><button class="btn btn-primary btn-block" onclick="confirmFood('${jsAttr(name)}','${jsAttr(meal)}')">Añadir</button>`);
   previewFood(name);setTimeout(()=>document.getElementById('gramInput').select(),50)}
@@ -1171,6 +1181,7 @@ function resetData(){if(confirm('Esto borra TODO (perfil, entrenamientos, comida
 function modal(html){document.getElementById('modalBox').innerHTML=html;document.getElementById('modalBg').classList.add('open')}
 function closeModal(){document.getElementById('modalBg').classList.remove('open')}
 document.getElementById('modalBg').onclick=e=>{if(e.target.id==='modalBg')closeModal()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('modalBg').classList.contains('open'))closeModal()});
 
 /* ---------- ONBOARDING ---------- */
 function setupOptGroup(id){const g=document.getElementById(id);g.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{g.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));b.classList.add('on');g.dataset.val=b.dataset.v})}
@@ -1231,7 +1242,7 @@ function pinSectionHTML(){const has=!!pinCfg();
         :`<button class="btn btn-primary btn-block" onclick="openPinModal('on')">Activar PIN de bloqueo</button>`}
     <div class="hint mt">Es una barrera local contra miradas ajenas. El PIN se guarda como hash (no en claro), pero los datos del navegador siguen sin cifrar — el cifrado llegará con la nube en la fase 2.</div></div>`}
 function openPinModal(mode){const needCur=mode!=='on'&&pinCfg();
-  modal(`<div class="modal-head"><span class="label">${mode==='on'?'Activar PIN':mode==='change'?'Cambiar PIN':'Desactivar PIN'}</span><button class="btn-ghost" onclick="closeModal()">✕</button></div>
+  modal(`<div class="modal-head"><span class="label">${mode==='on'?'Activar PIN':mode==='change'?'Cambiar PIN':'Desactivar PIN'}</span><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
     ${needCur?'<div class="field mb"><label>PIN actual</label><input class="input" id="pinCur" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div>':''}
     ${mode!=='off'?`<div class="field mb"><label>Nuevo PIN (4–6 dígitos)</label><input class="input" id="pinNew" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div>
     <div class="field mb"><label>Repite el PIN</label><input class="input" id="pinNew2" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div>`:''}
