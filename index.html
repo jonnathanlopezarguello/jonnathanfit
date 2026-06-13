@@ -92,9 +92,19 @@ input::placeholder{color:var(--text-3);opacity:1}
 
 /* ============================================================ TOP BAR */
 .topbar{position:sticky;top:0;z-index:50;background:var(--glass);border-bottom:1px solid var(--line)}
-.topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-.brand{font-family:var(--f-ui);font-weight:400;letter-spacing:.42em;font-size:12px;text-transform:uppercase;color:var(--text);padding-left:.42em}
-.brand b{font-weight:400}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;position:relative}
+.brand{display:inline-flex;align-items:center;gap:11px;font-family:var(--f-ui);font-weight:500;letter-spacing:.42em;font-size:12px;text-transform:uppercase;color:var(--text);padding-left:2px}
+.brand b{font-weight:500}
+.brand-dot{width:6px;height:6px;background:var(--text);flex:none;animation:pulse 2.4s var(--ease) infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.brand-anim{animation:brandIn 1s var(--ease) both}
+@keyframes brandIn{from{letter-spacing:.72em;opacity:0}to{letter-spacing:.42em;opacity:1}}
+.brand-meta{display:flex;align-items:center;gap:18px}
+.clock{font-family:var(--f-ui);font-variant-numeric:tabular-nums;font-size:11px;font-weight:400;letter-spacing:.22em;color:var(--text-3)}
+/* HUD: línea fina de progreso de kcal del día, integrada en el borde inferior */
+.hud{position:absolute;left:0;right:0;bottom:-1px;height:1px;overflow:hidden;pointer-events:none}
+.hud-fill{display:block;height:100%;width:0;background:var(--text);transition:width .7s var(--ease)}
+@media(max-width:430px){.clock{display:none}.brand{letter-spacing:.3em;gap:9px}}
 /* segmentado estilo iOS con pastilla deslizante */
 .toggle{position:relative;display:inline-flex;background:color-mix(in srgb,var(--line) 60%,transparent);border-radius:var(--r-pill);padding:3px;gap:0}
 .toggle::before{content:"";position:absolute;top:3px;left:3px;width:calc(50% - 3px);height:calc(100% - 6px);background:var(--surface-2);border-radius:var(--r-pill);box-shadow:var(--sh-1);transition:transform .35s var(--spring)}
@@ -325,10 +335,16 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 </div></div>
 
 <!-- ============ TOP BAR ============ -->
-<header class="topbar"><div class="wrap">
-  <span class="brand">Jonnathan&nbsp;<b>Fit</b></span>
-  <div class="toggle" id="modeToggle"><button data-mode="dark" class="on">Dark</button><button data-mode="light">Light</button></div>
-</div></header>
+<header class="topbar">
+  <div class="wrap">
+    <span class="brand brand-anim"><span class="brand-dot" aria-hidden="true"></span>Jonnathan&nbsp;<b>Fit</b></span>
+    <div class="brand-meta">
+      <time class="clock" id="topClock" aria-hidden="true">00:00:00</time>
+      <div class="toggle" id="modeToggle"><button data-mode="dark" class="on">Dark</button><button data-mode="light">Light</button></div>
+    </div>
+  </div>
+  <div class="hud"><span class="hud-fill" id="hudFill"></span></div>
+</header>
 
 <!-- ============ TABS ============ -->
 <nav class="tabs" aria-label="Secciones"><div class="wrap" role="tablist">
@@ -865,6 +881,10 @@ function applyMode(mode){const light=mode==='light';document.body.classList.togg
   localStorage.setItem('jfit.mode',mode)}
 modeToggle.onclick=e=>{const b=e.target.closest('button');if(!b)return;applyMode(b.dataset.mode)};
 applyMode(localStorage.getItem('jfit.mode')==='dark'?'dark':'light');
+/* reloj en vivo + HUD de kcal del día en la barra superior */
+function tickClock(){const el=document.getElementById('topClock');if(el)el.textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function updateHud(){const el=document.getElementById('hudFill');if(!el)return;const t=calc(),tot=dayTotals(todayISO());const pct=t.kcal>0?Math.min(100,Math.round(tot.kcal/t.kcal*100)):0;el.style.width=pct+'%';el.style.background=tot.kcal>t.kcal?'var(--over)':'var(--text)'}
+tickClock();setInterval(tickClock,1000);
 
 /* ============ HELPERS UI ============ */
 function bar(val,target,tone){const pct=target>0?Math.min(100,Math.round(val/target*100)):0;const over=val>target;
@@ -910,6 +930,7 @@ function renderHoy(){
   renderSuppHoy();
   // ---- Actividad ----
   renderActHoy();
+  updateHud();
 }
 function renderSuppHoy(){const el=document.getElementById('hoySupps');if(!el)return;const tk=S.suppLog[todayISO()]||[];
   el.innerHTML=SUPPS.map(s=>{const on=tk.includes(s.id);return `<button class="opt ${on?'on':''}" style="display:flex;justify-content:space-between;align-items:center;gap:12px" onclick="toggleSupp('${s.id}')"><div><div class="t">${s.n}</div><div class="d">${s.dose}</div></div><span class="set-done ${on?'done':''}" style="pointer-events:none">✓</span></button>`}).join('');}
@@ -1034,6 +1055,7 @@ function renderComida(){
     const items=list.map((it,gi)=>({it,gi})).filter(o=>o.it.meal===m),sub=items.reduce((a,o)=>a+o.it.kcal,0);
     const rows=items.map(o=>`<div class="row" style="cursor:pointer" onclick="editFood(${o.gi})"><div><div>${esc(o.it.food)}</div><div class="meta">${o.it.grams} g · P${o.it.p} C${o.it.c} G${o.it.f}${o.it.fb?` · Fib${o.it.fb}`:''}</div></div><div class="flex center gapsm"><span class="num" style="font-size:16px">${o.it.kcal}</span><button class="set-x" onclick="event.stopPropagation();delFood(${o.gi})" aria-label="Quitar alimento">✕</button></div></div>`).join('')||'<div class="meta" style="padding:12px 0">—</div>';
     return `<div class="section-title flex"><span>${m}</span><span class="dim num" style="margin-left:auto;font-size:15px">${sub} kcal</span></div>${rows}<div class="flex gapsm mt wrapf"><button class="btn btn-ghost btn-sm" onclick="openFoodPicker('${m}')">+ Añadir alimento</button>${items.length?`<button class="btn btn-ghost btn-sm" onclick="saveMealAsRecipe('${m}')">★ Guardar como receta</button>`:''}</div>`}).join('');
+  updateHud();
 }
 function editFood(gi){const it=(S.nutrition[foodDate]||[])[gi];if(!it)return;const f=findFood(it.food);
   modal(`<div class="modal-head"><div><span class="label">${esc(it.meal)} · editar</span><div class="serif" style="font-size:24px">${esc(it.food)}</div></div><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
