@@ -187,6 +187,13 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 .train-layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:var(--s-xl);align-items:start}
 .tech{position:sticky;top:132px;border:1px solid var(--line);padding:var(--s-lg);background:var(--surface)}
 .tech svg{display:block;width:100%;height:auto;background:var(--surface-2);margin-top:6px}
+.demo-photo{position:relative;width:100%;aspect-ratio:1/1;background:var(--surface-2);overflow:hidden;margin-top:6px;border:1px solid var(--line)}
+.demo-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.04) brightness(1.02)}
+body.light .demo-photo img{filter:grayscale(1) contrast(1.02)}
+.demo-photo img.f1{opacity:0;animation:exswap 2.6s var(--ease) infinite}
+@keyframes exswap{0%,12%{opacity:0}50%,62%{opacity:1}100%{opacity:0}}
+.demo-photo .rep{position:absolute;left:0;bottom:0;height:2px;background:var(--text);width:0;animation:repbar 2.6s linear infinite}
+@keyframes repbar{0%{width:0}50%{width:100%}100%{width:0}}
 .tech .fig line{stroke:var(--text);stroke-width:4;stroke-linecap:round;fill:none}
 .tech .fig line.lt{stroke:var(--text-2)}
 .tech .fig line.eq{stroke:var(--text-3);stroke-width:3}
@@ -228,8 +235,13 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
 .modal-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--s-lg)}
 .search-list{display:flex;flex-direction:column}
-.search-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.search-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;gap:12px}
 .search-item .nm{transition:color .2s}
+/* ilustración monocroma de alimento (line-art por categoría) */
+.fic-box{width:38px;height:38px;border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;flex:none;background:var(--surface-2)}
+.fic-box.sm{width:32px;height:32px}
+.fic{width:21px;height:21px;color:var(--text-2)}
+.fic-box.sm .fic{width:18px;height:18px}
 .search-item:hover .nm{color:var(--accent)}
 
 .empty{text-align:center;padding:var(--s-3xl) var(--s-md);color:var(--text-3)}
@@ -808,6 +820,52 @@ const POSES={
   a:{E:[82,222],W:[108,222],S:[88,196],hd:[72,186],K:[160,212],A:[186,222],T:[196,222],H:[134,202]},
   b:{E:[82,222],W:[108,222],S:[88,196],hd:[72,186],K:[160,212],A:[186,222],T:[196,222],H:[134,206]}}
 };
+/* fotos reales de demostración (free-exercise-db, dominio público) */
+const EXIMG={
+  'Elevación lateral en polea':'elevacion-lateral-en-polea',
+  'Sentadilla libre':'sentadilla-libre',
+  'Prensa 45°':'prensa-45',
+  'Hack squat o Búlgara':'hack-squat-o-bulgara',
+  'Extensión de cuádriceps':'extension-de-cuadriceps',
+  'Press militar de pie':'press-militar-de-pie',
+  'Elevación lateral mancuerna':'elevacion-lateral-mancuerna',
+  'Face pull / posterior polea':'face-pull-posterior-polea',
+  'Elevación de piernas colgado':'elevacion-de-piernas-colgado',
+  'Crunch en polea arrodillado':'crunch-en-polea-arrodillado',
+  'Rueda abdominal':'rueda-abdominal',
+  'Crunch inverso':'crunch-inverso',
+  'Gemelo de pie':'gemelo-de-pie',
+  'Gemelo en prensa':'gemelo-en-prensa',
+  'Dominadas o Jalón al pecho':'dominadas-o-jalon-al-pecho',
+  'Remo con barra':'remo-con-barra',
+  'Remo sentado en máquina':'remo-sentado-en-maquina',
+  'Jalón brazo recto / Pullover':'jalon-brazo-recto-pullover',
+  'Curl con barra':'curl-con-barra',
+  'Curl inclinado mancuerna':'curl-inclinado-mancuerna',
+  'Curl martillo':'curl-martillo',
+  'Curl predicador o en polea':'curl-predicador-o-en-polea',
+  'Peso muerto rumano':'peso-muerto-rumano',
+  'Hip thrust':'hip-thrust',
+  'Curl femoral tumbado':'curl-femoral-tumbado',
+  'Curl femoral sentado':'curl-femoral-sentado',
+  'Press hombro sentado / Arnold':'press-hombro-sentado-arnold',
+  'Reverse pec deck':'reverse-pec-deck',
+  'Crunch lastrado en polea':'crunch-lastrado-en-polea',
+  'Rotación / Pallof press':'rotacion-pallof-press',
+  'Gemelo sentado':'gemelo-sentado',
+  'Gemelo de pie en máquina':'gemelo-de-pie-en-maquina',
+  'Press inclinado con mancuerna':'press-inclinado-con-mancuerna',
+  'Press plano máquina o barra':'press-plano-maquina-o-barra',
+  'Aperturas / Pec deck':'aperturas-pec-deck',
+  'Cruces en polea / Fondos':'cruces-en-polea-fondos',
+  'Press francés':'press-frances',
+  'Extensión en polea (cuerda)':'extension-en-polea-cuerda',
+  'Fondos o press cerrado':'fondos-o-press-cerrado',
+  'Extensión sobre la cabeza':'extension-sobre-la-cabeza',
+  'Crunch en polea':'crunch-en-polea',
+  'Elevación de piernas':'elevacion-de-piernas',
+  'Plancha lastrada':'plancha-lastrada'
+};
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function _anim(attr,v1,v2){if(REDUCED||v1===v2)return '';
   return `<animate attributeName="${attr}" values="${v1};${v2};${v1}" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/>`}
@@ -1002,14 +1060,20 @@ function activeHTML(){const a=S.active;
     ${ex||'<div class="empty"><div class="muted">Añade tu primer ejercicio.</div></div>'}
     <button class="btn btn-secondary btn-block mt" onclick="openExercisePicker()">+ Añadir ejercicio</button>`;
   return `<div class="train-layout"><div>${left}</div>${techPanelHTML()}</div>`}
+function demoMedia(name){const sl=EXIMG[name];
+  if(sl)return `<div class="demo-photo" role="img" aria-label="Demostración del ejercicio: ${esc(name)}">
+    <img src="assets/ex/${sl}/0.jpg" alt="" loading="lazy" decoding="async">
+    <img class="f1" src="assets/ex/${sl}/1.jpg" alt="" loading="lazy" decoding="async">
+    <span class="rep" aria-hidden="true"></span></div>`;
+  return demoSVG(name)}
 function techPanelHTML(){const a=S.active;
   if(!a||!a.exercises.length)return '<div class="tech"><div class="label">Técnica</div><div class="hint mt">Añade un ejercicio para ver su demostración.</div></div>';
-  const e=a.exercises[selEx],m=e.plan||exMeta(e.name)||{};
+  const e=a.exercises[selEx],m=e.plan||exMeta(e.name)||{},real=!!EXIMG[e.name];
   return `<div class="tech"><div class="label">Técnica — ${esc(e.name)}</div>
-    ${demoSVG(e.name)}
+    ${demoMedia(e.name)}
     <div class="hint mt">${m.foco?esc(m.foco)+'. ':''}${m.reps?`Objetivo ${m.s}×${m.reps}${m.rir&&m.rir!=='-'?` · RIR ${m.rir}`:''} · descanso ${m.rest}.`:''}</div>
-    <a class="btn btn-secondary btn-sm btn-block mt" href="${vidShakil(e.name)}" target="_blank" rel="noopener">Ver vídeo de Shakil Ahmed ↗</a>
-    <div class="hint mt" style="font-size:9px">Animación: recreación esquemática del patrón de movimiento, basada en la técnica de los vídeos de Shakil Ahmed.</div></div>`}
+    <a class="btn btn-secondary btn-sm btn-block mt" href="${vidShakil(e.name)}" target="_blank" rel="noopener">Ver vídeo en YouTube ↗</a>
+    <div class="hint mt" style="font-size:9px">${real?'Demostración: fotografías reales (free-exercise-db, dominio público).':'Demostración: recreación esquemática del patrón de movimiento.'}</div></div>`}
 let elapsedTimer=null;
 function bindActive(){clearInterval(elapsedTimer);const tick=()=>{const el=document.getElementById('elapsed');if(!el||!S.active){clearInterval(elapsedTimer);return}
   const s=Math.floor((Date.now()-S.active.start)/1000);el.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};tick();elapsedTimer=setInterval(tick,1000)}
@@ -1053,7 +1117,7 @@ function renderComida(){
   const meals=ORDER.filter(m=>['Desayuno','Almuerzo','Merienda','Cena'].includes(m)||present.includes(m));
   document.getElementById('mealsBody').innerHTML=meals.map(m=>{
     const items=list.map((it,gi)=>({it,gi})).filter(o=>o.it.meal===m),sub=items.reduce((a,o)=>a+o.it.kcal,0);
-    const rows=items.map(o=>`<div class="row" style="cursor:pointer" onclick="editFood(${o.gi})"><div><div>${esc(o.it.food)}</div><div class="meta">${o.it.grams} g · P${o.it.p} C${o.it.c} G${o.it.f}${o.it.fb?` · Fib${o.it.fb}`:''}</div></div><div class="flex center gapsm"><span class="num" style="font-size:16px">${o.it.kcal}</span><button class="set-x" onclick="event.stopPropagation();delFood(${o.gi})" aria-label="Quitar alimento">✕</button></div></div>`).join('')||'<div class="meta" style="padding:12px 0">—</div>';
+    const rows=items.map(o=>`<div class="row" style="cursor:pointer" onclick="editFood(${o.gi})"><div class="flex center gapsm"><span class="fic-box sm">${FOODICON((findFood(o.it.food)||{}).cat)}</span><div><div>${esc(o.it.food)}</div><div class="meta">${o.it.grams} g · P${o.it.p} C${o.it.c} G${o.it.f}${o.it.fb?` · Fib${o.it.fb}`:''}</div></div></div><div class="flex center gapsm"><span class="num" style="font-size:16px">${o.it.kcal}</span><button class="set-x" onclick="event.stopPropagation();delFood(${o.gi})" aria-label="Quitar alimento">✕</button></div></div>`).join('')||'<div class="meta" style="padding:12px 0">—</div>';
     return `<div class="section-title flex"><span>${m}</span><span class="dim num" style="margin-left:auto;font-size:15px">${sub} kcal</span></div>${rows}<div class="flex gapsm mt wrapf"><button class="btn btn-ghost btn-sm" onclick="openFoodPicker('${m}')">+ Añadir alimento</button>${items.length?`<button class="btn btn-ghost btn-sm" onclick="saveMealAsRecipe('${m}')">★ Guardar como receta</button>`:''}</div>`}).join('');
   updateHud();
 }
@@ -1073,7 +1137,23 @@ document.getElementById('dayPrev').onclick=()=>{foodDate=shiftDate(foodDate,-1);
 document.getElementById('dayNext').onclick=()=>{foodDate=shiftDate(foodDate,1);renderComida()};
 function shiftDate(d,n){const x=new Date(d+'T00:00');x.setDate(x.getDate()+n);return x.toLocaleDateString('en-CA')}
 function delFood(gi){S.nutrition[foodDate].splice(gi,1);save();renderComida()}
-function foodItemHTML(f){return `<div class="search-item" onclick="pickFood('${jsAttr(f.n)}','${jsAttr(currentMeal)}')"><span class="nm">${esc(f.n)}${f.custom?' <span class="dim" style="font-size:10px">· propio</span>':''}</span><span class="dim num">${f.k} · P${f.p}</span></div>`}
+function FOODICON(cat){const I={
+ 'Carne y aves':'<circle cx="9" cy="12" r="5"/><path d="M13 12h7M17 9l3 3-3 3"/>',
+ 'Pescado y marisco':'<path d="M3 12c4-5 11-5 14 0-3 5-10 5-14 0Z"/><path d="M17 12l4-3v6Z"/><circle cx="8" cy="11" r=".6"/>',
+ 'Huevos y lácteos':'<path d="M12 3c4 0 6 6 6 10a6 6 0 0 1-12 0c0-4 2-10 6-10Z"/>',
+ 'Legumbres':'<ellipse cx="9" cy="10" rx="3" ry="2"/><ellipse cx="14" cy="14.5" rx="3" ry="2"/>',
+ 'Cereales y tubérculos':'<path d="M12 21V6"/><path d="M12 6c2-2 5-2 6-4-3 0-5 1-6 3M12 6c-2-2-5-2-6-4 3 0 5 1 6 3M12 12c2-2 5-2 6-4-3 0-5 1-6 3M12 12c-2-2-5-2-6-4 3 0 5 1 6 3"/>',
+ 'Frutas':'<path d="M12 8a5 6 0 1 0 .01 0Z"/><path d="M12 8V4M12 6c2-2 4-1.5 5-3"/>',
+ 'Verduras':'<path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14Z"/><path d="M5 19 16 8"/>',
+ 'Grasas y frutos secos':'<path d="M12 3c3 5 6 8 6 11a6 6 0 0 1-12 0c0-3 3-6 6-11Z"/>',
+ 'Snacks y dulces':'<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M4 12l3-3v6ZM20 12l-3 3v-6Z"/>',
+ 'Bebidas':'<path d="M6 5h12l-1.5 14h-9z"/><path d="M7 10h10"/>',
+ 'Suplementos':'<rect x="3" y="9" width="18" height="6" rx="3"/><path d="M12 9v6"/>',
+ 'Colombianos':'<path d="M4 12a8 7 0 0 0 16 0M3 12h2M19 12h2"/><path d="M9 8c-1-1 0-2 0-3M13 8c-1-1 0-2 0-3"/>',
+ 'Mis alimentos':'<path d="M7 4h10v16l-5-4-5 4z"/>'};
+ const p=I[cat]||'<circle cx="12" cy="12" r="7"/>';
+ return `<svg class="fic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`}
+function foodItemHTML(f){return `<div class="search-item" onclick="pickFood('${jsAttr(f.n)}','${jsAttr(currentMeal)}')"><span class="fic-box">${FOODICON(f.cat)}</span><span class="nm" style="flex:1">${esc(f.n)}${f.custom?' <span class="dim" style="font-size:10px">· propio</span>':''}</span><span class="dim num">${f.k} · P${f.p}</span></div>`}
 function recipeItemHTML(r,i){const kc=r.items.reduce((a,it)=>{const f=findFood(it.food);return a+(f?macrosFor(f,it.grams).kcal:0)},0);
   return `<div class="search-item" onclick="addRecipe(${i},'${currentMeal}')"><span class="nm">★ ${esc(r.name)} <span class="dim" style="font-size:10px">· ${r.items.length} ítems</span></span><span class="dim num">${kc} · +1 toque</span></div>`}
 function foodListHTML(q){q=(q||'').toLowerCase().trim();

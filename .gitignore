@@ -17,3 +17,5 @@ stitch-*.png
 Thumbs.db
 .DS_Store
 desktop.ini
+_*.py
+_*.json

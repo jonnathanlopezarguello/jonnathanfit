@@ -1,7 +1,7 @@
 /* JONNATHAN FIT — service worker
    Cachea el shell de la app para que funcione sin conexión.
    Sube CACHE al cambiar archivos para forzar actualización. */
-const CACHE = 'jfit-v1';
+const CACHE = 'jfit-v2';
 const ASSETS = [
   './',
   './index.html',
