@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <!-- Seguridad: Content-Security-Policy. Bloquea scripts externos e impide enviar datos a dominios ajenos (anti-XSS/robo de datos). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-src https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'" />
 <meta name="referrer" content="no-referrer" />
 <title>JONNATHAN FIT — Diario de entrenamiento y nutrición</title>
 <meta name="description" content="Diario personal de entrenamiento y alimentación basado en evidencia." />
@@ -200,6 +200,8 @@ body.light .demo-photo img{filter:grayscale(1) contrast(1.02)}
 .tech .fig line.prop{stroke:var(--line-2);stroke-width:2;stroke-linecap:butt}
 .tech .fig circle.head{fill:none;stroke:var(--text);stroke-width:4}
 .tech .fig circle.eqc{fill:var(--text-3)}
+.yt-embed{position:relative;width:100%;margin-top:var(--s-md);aspect-ratio:16/9;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.yt-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 @media(max-width:920px){.train-layout{grid-template-columns:1fr}.tech{position:static}}
 .ex-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:var(--s-md)}
 .ex-head h4{font-family:var(--f-ui);font-weight:500;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
@@ -1069,10 +1071,11 @@ function demoMedia(name){const sl=EXIMG[name];
 function techPanelHTML(){const a=S.active;
   if(!a||!a.exercises.length)return '<div class="tech"><div class="label">Técnica</div><div class="hint mt">Añade un ejercicio para ver su demostración.</div></div>';
   const e=a.exercises[selEx],m=e.plan||exMeta(e.name)||{},real=!!EXIMG[e.name];
+  const ytQ=encodeURIComponent(e.name+' técnica hipertrofia Shakil Ahmed');
   return `<div class="tech"><div class="label">Técnica — ${esc(e.name)}</div>
     ${demoMedia(e.name)}
+    <div class="yt-embed mt" aria-label="Videos de técnica"><iframe src="https://www.youtube-nocookie.com/embed?listType=search&list=${ytQ}" allowfullscreen loading="lazy" title="Vídeos de técnica: ${esc(e.name)}"></iframe></div>
     <div class="hint mt">${m.foco?esc(m.foco)+'. ':''}${m.reps?`Objetivo ${m.s}×${m.reps}${m.rir&&m.rir!=='-'?` · RIR ${m.rir}`:''} · descanso ${m.rest}.`:''}</div>
-    <a class="btn btn-secondary btn-sm btn-block mt" href="${vidShakil(e.name)}" target="_blank" rel="noopener">Ver vídeo en YouTube ↗</a>
     <div class="hint mt" style="font-size:9px">${real?'Demostración: fotografías reales (free-exercise-db, dominio público).':'Demostración: recreación esquemática del patrón de movimiento.'}</div></div>`}
 let elapsedTimer=null;
 function bindActive(){clearInterval(elapsedTimer);const tick=()=>{const el=document.getElementById('elapsed');if(!el||!S.active){clearInterval(elapsedTimer);return}
