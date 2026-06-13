@@ -19,46 +19,45 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
-/* ============================================================ TOKENS — editorial cálido + pulido Apple */
+/* ============================================================ TOKENS — minimalismo monocromo (ref. mikiyakobayashi.com) */
 :root{
-  --bg:#1F1F18;          /* olivo casi negro, un punto más profundo */
-  --surface:#2A2A21;     /* panel */
-  --surface-2:#33332A;   /* elevado */
-  --glass:rgba(42,42,33,.62); /* vidrio esmerilado */
-  --line:#3A3A30;        /* hairline */
-  --line-2:#4C4B3F;      /* línea visible */
-  --text:#F4EEE0;        /* crema brillante */
-  --text-2:#D2CAB6;      /* secundario legible */
-  --text-3:#A39B85;      /* terciario / rótulos */
-  --accent:#D29453;      /* ámbar / caléndula (un toque más vivo) */
-  --accent-soft:rgba(210,148,83,.14);
-  --accent-2:#8A6A45;    /* marrón */
-  --sand:#BCA98C;        /* taupe muro */
-  --good:#7FB07A;        /* verde salvia (objetivo cumplido) */
-  --over:#D26A45;        /* terracota (exceso) — AA sobre --bg */
-  /* radios estilo Apple */
-  --r:12px;              /* base */
-  --r-sm:9px;
-  --r-card:20px;
-  --r-pill:980px;
-  /* sombras suaves en capas */
-  --sh-1:0 1px 2px rgba(0,0,0,.18);
-  --sh-2:0 8px 28px -8px rgba(0,0,0,.42);
-  --sh-3:0 20px 60px -16px rgba(0,0,0,.55);
+  --bg:#121211;          /* modo oscuro: negro cálido neutro */
+  --surface:#121211;     /* sin paneles rellenos: separación por línea y aire */
+  --surface-2:#1C1C1A;
+  --glass:rgba(18,18,17,.92);
+  --line:#2A2A28;        /* hairline */
+  --line-2:#3D3D3A;
+  --text:#F2F2EE;
+  --text-2:#B9B9B2;
+  --text-3:#8A8A82;
+  --accent:#F2F2EE;      /* monocromo: lo interactivo es tinta, no color */
+  --accent-soft:rgba(242,242,238,.08);
+  --accent-2:#8A8A82;
+  --sand:#8A8A82;
+  --good:#7FB07A;        /* funcional: objetivo cumplido */
+  --over:#D26A45;        /* funcional: exceso/alerta */
+  /* plano: sin radios ni sombras */
+  --r:0px;
+  --r-sm:0px;
+  --r-card:0px;
+  --r-pill:0px;
+  --sh-1:none;
+  --sh-2:none;
+  --sh-3:0 18px 50px -20px rgba(0,0,0,.4);
   --s-xs:4px;--s-sm:8px;--s-md:16px;--s-lg:24px;--s-xl:36px;--s-2xl:56px;--s-3xl:80px;
   --ease:cubic-bezier(.22,.61,.36,1);
-  --spring:cubic-bezier(.34,1.56,.64,1);   /* rebote sutil Apple */
-  --f-disp:"Cormorant Garamond",Georgia,serif;
-  --f-ui:"Jost",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --spring:cubic-bezier(.25,.46,.45,.94);  /* sereno, sin rebote */
+  --f-disp:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --f-ui:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
   --maxw:1120px;
 }
 body.light{
-  --bg:#EDE7DA;--surface:#FAF7EF;--surface-2:#FFFFFF;--glass:rgba(250,247,239,.7);--line:#E0D9C9;--line-2:#CBC2AD;
-  --text:#23231B;--text-2:#5A5648;--text-3:#6E6754;--accent:#8F551E;--accent-soft:rgba(166,106,40,.12);--sand:#7A6A50;--good:#3A7237;--over:#A84A28;
-  --sh-1:0 1px 2px rgba(60,52,38,.08);--sh-2:0 10px 30px -10px rgba(60,52,38,.18);--sh-3:0 24px 60px -18px rgba(60,52,38,.22);
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface-2:#FAFAF8;--glass:rgba(255,255,255,.92);--line:#E9E9E5;--line-2:#D6D6D0;
+  --text:#161616;--text-2:#5F5F5C;--text-3:#6F6F68;--accent:#161616;--accent-soft:rgba(22,22,22,.05);--accent-2:#85857E;--sand:#8C8C86;--good:#3A7237;--over:#A84A28;
+  --sh-1:none;--sh-2:none;--sh-3:0 18px 50px -22px rgba(0,0,0,.18);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -92,7 +91,7 @@ input::placeholder{color:var(--text-3);opacity:1}
 .rule:first-child{margin-top:0}
 
 /* ============================================================ TOP BAR */
-.topbar{position:sticky;top:0;z-index:50;background:var(--glass);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--line)}
+.topbar{position:sticky;top:0;z-index:50;background:var(--glass);border-bottom:1px solid var(--line)}
 .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
 .brand{font-family:var(--f-ui);font-weight:400;letter-spacing:.42em;font-size:12px;text-transform:uppercase;color:var(--text);padding-left:.42em}
 .brand b{font-weight:400}
@@ -104,11 +103,11 @@ input::placeholder{color:var(--text-3);opacity:1}
 .toggle button.on{color:var(--text)}
 
 /* ============================================================ TABS */
-.tabs{position:sticky;top:64px;z-index:40;background:var(--glass);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--line)}
+.tabs{position:sticky;top:64px;z-index:40;background:var(--glass);border-bottom:1px solid var(--line)}
 .tabs .wrap{display:flex;gap:var(--s-2xl);overflow-x:auto;scrollbar-width:none}
 .tabs .wrap::-webkit-scrollbar{display:none}
 .tab{font-family:var(--f-ui);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);background:none;border:0;padding:18px 0;white-space:nowrap;position:relative;transition:color .25s var(--ease)}
-.tab::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);border-radius:2px;transform:scaleX(0);transform-origin:center;transition:transform .3s var(--spring)}
+.tab::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:center;transition:transform .3s var(--ease)}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--text)}
 .tab.active::after{transform:scaleX(1)}
@@ -118,8 +117,8 @@ input::placeholder{color:var(--text-3);opacity:1}
 .view.active{display:block;animation:fade .5s var(--ease)}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .page-head{margin-bottom:var(--s-2xl)}
-.page-head h1{font-family:var(--f-disp);font-weight:300;font-size:clamp(40px,7vw,76px);line-height:1;letter-spacing:-.01em;margin-top:var(--s-md);color:var(--text)}
-.page-head h1 em{font-style:italic;color:var(--accent)}
+.page-head h1{font-family:var(--f-disp);font-weight:400;font-size:clamp(22px,4vw,36px);line-height:1.2;letter-spacing:.14em;text-transform:uppercase;margin-top:var(--s-md);color:var(--text)}
+.page-head h1 em{font-style:normal;color:var(--text-3)}
 .section-title{font-family:var(--f-ui);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin:var(--s-2xl) 0 var(--s-lg);display:flex;align-items:center;gap:var(--s-md)}
 .section-title::after{content:"";flex:1;height:1px;background:var(--line)}
 .section-title.flex span:first-child{flex:none}
@@ -134,8 +133,8 @@ input::placeholder{color:var(--text-3);opacity:1}
 /* botones */
 .btn{font-family:var(--f-ui);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;min-height:46px;padding:13px 26px;display:inline-flex;align-items:center;justify-content:center;gap:var(--s-sm);border-radius:var(--r);border:1px solid transparent;transition:transform .25s var(--spring),background .3s var(--ease),border-color .3s var(--ease),color .3s var(--ease),box-shadow .3s var(--ease)}
 .btn:active{transform:scale(.96)}
-.btn-primary{background:var(--text);color:var(--bg);box-shadow:var(--sh-1)}
-.btn-primary:hover{background:var(--accent);color:#1F1F18;box-shadow:0 6px 20px -6px color-mix(in srgb,var(--accent) 70%,transparent)}
+.btn-primary{background:var(--text);color:var(--bg)}
+.btn-primary:hover{opacity:.82}
 .btn-secondary{background:color-mix(in srgb,var(--line) 45%,transparent);color:var(--text);border-color:transparent}
 .btn-secondary:hover{background:color-mix(in srgb,var(--line) 75%,transparent)}
 .btn-ghost{background:transparent;color:var(--text-3);border:0;letter-spacing:.14em;min-height:40px}
@@ -159,7 +158,7 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 .kpi .l{margin-top:var(--s-md)}
 
 /* barra de progreso redondeada estilo Apple */
-.track{height:6px;background:color-mix(in srgb,var(--line-2) 70%,transparent);border-radius:var(--r-pill);margin-top:var(--s-sm);position:relative;overflow:hidden}
+.track{height:3px;background:color-mix(in srgb,var(--line-2) 70%,transparent);border-radius:var(--r-pill);margin-top:var(--s-sm);position:relative;overflow:hidden}
 .track .fill{position:absolute;inset:0 auto 0 0;height:100%;border-radius:var(--r-pill);background:var(--accent);transition:width .5s var(--ease)}
 .macro-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
 .macro-row .v{font-family:var(--f-disp);font-size:18px;color:var(--text);font-variant-numeric:tabular-nums}
@@ -172,8 +171,21 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 
 /* tabla de series */
 .ex{border:1px solid var(--line);border-radius:var(--r-card);padding:var(--s-lg);margin-bottom:var(--s-md);background:var(--surface);box-shadow:var(--sh-1)}
+.ex.sel{border-color:var(--text)}
+
+/* panel de técnica: animación del ejercicio al lado derecho */
+.train-layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:var(--s-xl);align-items:start}
+.tech{position:sticky;top:132px;border:1px solid var(--line);padding:var(--s-lg);background:var(--surface)}
+.tech svg{display:block;width:100%;height:auto;background:var(--surface-2);margin-top:6px}
+.tech .fig line{stroke:var(--text);stroke-width:4;stroke-linecap:round;fill:none}
+.tech .fig line.lt{stroke:var(--text-2)}
+.tech .fig line.eq{stroke:var(--text-3);stroke-width:3}
+.tech .fig line.prop{stroke:var(--line-2);stroke-width:2;stroke-linecap:butt}
+.tech .fig circle.head{fill:none;stroke:var(--text);stroke-width:4}
+.tech .fig circle.eqc{fill:var(--text-3)}
+@media(max-width:920px){.train-layout{grid-template-columns:1fr}.tech{position:static}}
 .ex-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:var(--s-md)}
-.ex-head h4{font-family:var(--f-disp);font-weight:400;font-size:24px;color:var(--text)}
+.ex-head h4{font-family:var(--f-ui);font-weight:500;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
 .set-grid{display:grid;grid-template-columns:32px 1fr 1fr 48px 40px;gap:var(--s-sm);align-items:center}
 .set-grid .h{font-family:var(--f-ui);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);text-align:center;padding-bottom:4px}
 .set-grid .sn{font-family:var(--f-disp);font-size:16px;color:var(--text-2);text-align:center}
@@ -224,8 +236,8 @@ body:not(.light) select.input option{background:#2A2A21;color:#EAE4D6}
 .onb.open{display:block;animation:fade .6s var(--ease)}
 .onb-inner{max-width:680px;margin:0 auto;padding:var(--s-3xl) var(--s-xl) var(--s-2xl)}
 .onb-brand{font-family:var(--f-ui);font-weight:400;letter-spacing:.5em;font-size:12px;text-transform:uppercase;color:var(--text-2);text-align:center;padding-left:.5em}
-.onb h2{font-family:var(--f-disp);font-weight:300;font-size:clamp(40px,8vw,68px);line-height:1.02;text-align:center;margin:var(--s-md) 0 var(--s-sm)}
-.onb h2 em{font-style:italic;color:var(--accent)}
+.onb h2{font-family:var(--f-disp);font-weight:400;font-size:clamp(20px,5vw,30px);line-height:1.35;letter-spacing:.12em;text-transform:uppercase;text-align:center;margin:var(--s-md) 0 var(--s-sm)}
+.onb h2 em{font-style:normal;color:var(--text-3)}
 .onb .sub{text-align:center;color:var(--text-2);max-width:42ch;margin:0 auto var(--s-3xl);font-size:15px}
 .onb-step{font-family:var(--f-ui);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:var(--s-md);margin:var(--s-2xl) 0 var(--s-lg)}
 .onb-step::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -692,6 +704,114 @@ const TEMPLATES={
 function currentSplit(){return PLAN_DAYS}
 function exMeta(name){for(const d of PLAN_DAYS){const e=TEMPLATES[d].find(x=>x.n===name);if(e)return e}return null}
 function vidUrl(e){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(e.n+' técnica hipertrofia'+(e.c?' '+e.c:''))}
+const vidShakil=n=>'https://www.youtube.com/results?search_query='+encodeURIComponent(n+' técnica Shakil Ahmed');
+
+/* ============ DEMOS DE TÉCNICA — recreación esquemática animada (basada en la técnica de los vídeos de Shakil Ahmed) ============ */
+/* Arquetipo de movimiento por ejercicio */
+const ARCH={};
+[['squat',['Sentadilla libre','Hack squat o Búlgara','Sentadilla','Zancadas con mancuernas']],
+ ['legpress',['Prensa 45°','Prensa de piernas']],
+ ['legext',['Extensión de cuádriceps']],
+ ['legcurl',['Curl femoral tumbado','Curl femoral sentado']],
+ ['hinge',['Peso muerto rumano','Peso muerto convencional']],
+ ['hipthrust',['Hip thrust']],
+ ['calf',['Gemelo de pie','Gemelo de pie en máquina','Gemelo sentado','Gemelo en prensa','Elevación de gemelos']],
+ ['vpress',['Press militar de pie','Press hombro sentado / Arnold','Press militar','Press militar con mancuernas']],
+ ['latraise',['Elevación lateral mancuerna','Elevación lateral en polea','Elevaciones laterales']],
+ ['row',['Remo con barra','Remo sentado en máquina','Remo en polea baja','Face pull / posterior polea','Reverse pec deck']],
+ ['hpress',['Press inclinado con mancuerna','Press plano máquina o barra','Press de banca','Press inclinado con mancuernas','Fondos o press cerrado']],
+ ['fly',['Aperturas / Pec deck','Cruces en polea / Fondos']],
+ ['vpull',['Dominadas o Jalón al pecho','Jalón al pecho','Dominadas','Jalón brazo recto / Pullover']],
+ ['curl',['Curl con barra','Curl inclinado mancuerna','Curl martillo','Curl predicador o en polea','Curl de bíceps con barra']],
+ ['triext',['Press francés','Extensión en polea (cuerda)','Extensión sobre la cabeza','Extensión de tríceps en polea','Rotación / Pallof press']],
+ ['crunch',['Crunch en polea arrodillado','Crunch inverso','Crunch lastrado en polea','Crunch en polea','Crunch']],
+ ['legraise',['Elevación de piernas colgado','Elevación de piernas']],
+ ['abwheel',['Rueda abdominal']],
+ ['plank',['Plancha lastrada','Plancha abdominal']]
+].forEach(([k,list])=>list.forEach(n=>ARCH[n]=k));
+
+/* Poses A→B por arquetipo. Articulaciones: S hombro, H cadera, K rodilla, A tobillo, T punta pie, E codo, W muñeca, hd cabeza. */
+const GROUND=[[20,226,200,226]];
+const STAND={S:[105,82],H:[105,140],K:[105,184],A:[105,222],T:[127,222],hd:[105,64]};
+const POSES={
+ squat:{props:GROUND,eq:'barS',
+  a:{...STAND,E:[97,106],W:[93,96]},
+  b:{S:[88,122],H:[118,176],K:[97,192],A:[105,222],T:[127,222],E:[82,142],W:[78,130],hd:[80,103]}},
+ hinge:{props:GROUND,eq:'barW',
+  a:{...STAND,E:[105,112],W:[107,144]},
+  b:{S:[72,118],H:[122,152],K:[110,190],A:[105,222],T:[127,222],E:[74,144],W:[76,168],hd:[57,108]}},
+ legpress:{props:[[62,200,92,142],[150,142,180,100]],eq:null,
+  a:{S:[80,142],H:[100,178],K:[132,144],A:[158,116],T:[167,105],E:[92,162],W:[100,178],hd:[68,128]},
+  b:{S:[80,142],H:[100,178],K:[117,151],A:[133,131],T:[142,121],E:[92,162],W:[100,178],hd:[68,128]}},
+ legext:{props:[[75,164,130,164],[85,164,85,212]],eq:null,
+  a:{S:[100,100],H:[100,160],K:[133,160],A:[136,196],T:[143,194],E:[100,126],W:[98,148],hd:[100,82]},
+  b:{S:[100,100],H:[100,160],K:[133,160],A:[170,158],T:[178,152],E:[100,126],W:[98,148],hd:[100,82]}},
+ legcurl:{props:[[40,172,170,172],[60,172,60,212],[150,172,150,212]],eq:null,
+  a:{S:[62,166],H:[118,166],K:[148,168],A:[183,172],T:[190,168],E:[64,186],W:[58,200],hd:[46,162]},
+  b:{S:[62,166],H:[118,166],K:[148,168],A:[152,132],T:[148,120],E:[64,186],W:[58,200],hd:[46,162]}},
+ hipthrust:{props:GROUND.concat([[40,152,80,152],[44,152,44,202],[76,152,76,202]]),eq:'barH',
+  a:{S:[70,150],H:[114,194],K:[146,170],A:[150,222],T:[168,222],E:[84,172],W:[98,190],hd:[55,146]},
+  b:{S:[70,150],H:[124,156],K:[150,170],A:[150,222],T:[168,222],E:[88,160],W:[104,158],hd:[55,146]}},
+ calf:{props:GROUND,eq:'dbW',
+  a:{...STAND,E:[105,110],W:[107,134]},
+  b:{S:[105,68],H:[105,126],K:[105,170],A:[103,206],T:[127,222],E:[105,96],W:[107,120],hd:[105,50]}},
+ vpress:{props:GROUND,eq:'barW',
+  a:{...STAND,E:[121,96],W:[117,78]},
+  b:{...STAND,E:[109,56],W:[107,30]}},
+ latraise:{props:GROUND,eq:'dbW',
+  a:{...STAND,E:[107,110],W:[109,134]},
+  b:{...STAND,E:[131,82],W:[157,84]}},
+ row:{props:GROUND,eq:'barW',
+  a:{S:[75,120],H:[120,152],K:[110,190],A:[105,222],T:[127,222],E:[80,142],W:[84,164],hd:[60,112]},
+  b:{S:[75,120],H:[120,152],K:[110,190],A:[105,222],T:[127,222],E:[94,132],W:[100,148],hd:[60,112]}},
+ hpress:{props:[[40,172,150,172],[55,172,55,212],[135,172,135,212]],eq:'barW',
+  a:{S:[64,168],H:[120,168],K:[146,196],A:[160,222],T:[176,222],E:[82,152],W:[68,140],hd:[46,158]},
+  b:{S:[64,168],H:[120,168],K:[146,196],A:[160,222],T:[176,222],E:[64,128],W:[62,104],hd:[46,158]}},
+ fly:{props:[[40,172,150,172],[55,172,55,212],[135,172,135,212]],eq:'dbW',
+  a:{S:[64,168],H:[120,168],K:[146,196],A:[160,222],T:[176,222],E:[96,148],W:[114,132],hd:[46,158]},
+  b:{S:[64,168],H:[120,168],K:[146,196],A:[160,222],T:[176,222],E:[68,128],W:[66,108],hd:[46,158]}},
+ vpull:{props:[[80,162,130,162]],eq:'barW',
+  a:{S:[103,98],H:[100,160],K:[134,160],A:[136,198],T:[148,196],E:[118,68],W:[124,40],hd:[103,80]},
+  b:{S:[103,98],H:[100,160],K:[134,160],A:[136,198],T:[148,196],E:[122,108],W:[110,100],hd:[103,80]}},
+ curl:{props:GROUND,eq:'dbW',
+  a:{...STAND,E:[106,110],W:[108,134]},
+  b:{...STAND,E:[106,110],W:[124,98]}},
+ triext:{props:GROUND,eq:'dbW',
+  a:{...STAND,E:[108,108],W:[118,86]},
+  b:{...STAND,E:[108,108],W:[112,134]}},
+ crunch:{props:GROUND,eq:null,
+  a:{S:[60,206],H:[112,212],K:[140,182],A:[158,212],T:[170,208],E:[68,198],W:[78,192],hd:[44,200]},
+  b:{S:[74,182],H:[112,212],K:[140,182],A:[158,212],T:[170,208],E:[80,176],W:[90,172],hd:[62,170]}},
+ legraise:{props:[[70,28,140,28]],eq:null,
+  a:{S:[105,88],H:[105,150],K:[105,186],A:[107,220],T:[117,216],E:[105,58],W:[105,30],hd:[116,84]},
+  b:{S:[105,88],H:[105,150],K:[133,148],A:[162,154],T:[172,146],E:[105,58],W:[105,30],hd:[116,84]}},
+ abwheel:{props:GROUND,eq:'wheelW',
+  a:{K:[85,212],A:[60,222],T:[50,216],H:[92,182],S:[118,152],hd:[130,142],E:[132,172],W:[142,196]},
+  b:{K:[85,212],A:[60,222],T:[50,216],H:[108,176],S:[140,160],hd:[152,152],E:[158,176],W:[170,196]}},
+ plank:{props:GROUND,eq:null,
+  a:{E:[82,222],W:[108,222],S:[88,196],hd:[72,186],K:[160,212],A:[186,222],T:[196,222],H:[134,202]},
+  b:{E:[82,222],W:[108,222],S:[88,196],hd:[72,186],K:[160,212],A:[186,222],T:[196,222],H:[134,206]}}
+};
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function _anim(attr,v1,v2){if(REDUCED||v1===v2)return '';
+  return `<animate attributeName="${attr}" values="${v1};${v2};${v1}" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/>`}
+function _aline(a,b,k1,k2,cls){if(!a[k1]||!a[k2])return '';
+  return `<line ${cls?`class="${cls}"`:''} x1="${a[k1][0]}" y1="${a[k1][1]}" x2="${a[k2][0]}" y2="${a[k2][1]}">${_anim('x1',a[k1][0],b[k1][0])}${_anim('y1',a[k1][1],b[k1][1])}${_anim('x2',a[k2][0],b[k2][0])}${_anim('y2',a[k2][1],b[k2][1])}</line>`}
+function _acirc(a,b,k,r,cls){return `<circle class="${cls}" r="${r}" cx="${a[k][0]}" cy="${a[k][1]}">${_anim('cx',a[k][0],b[k][0])}${_anim('cy',a[k][1],b[k][1])}</circle>`}
+function demoSVG(name){
+  const arch=ARCH[name]||'curl',P=POSES[arch],a=P.a,b=P.b;
+  const props=(P.props||[]).map(p=>`<line class="prop" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}"/>`).join('');
+  let eq='';
+  if(P.eq==='barW')eq=`<line class="eq" x1="${a.W[0]-16}" y1="${a.W[1]}" x2="${a.W[0]+16}" y2="${a.W[1]}">${_anim('x1',a.W[0]-16,b.W[0]-16)}${_anim('y1',a.W[1],b.W[1])}${_anim('x2',a.W[0]+16,b.W[0]+16)}${_anim('y2',a.W[1],b.W[1])}</line>`;
+  else if(P.eq==='dbW')eq=_acirc(a,b,'W',5,'eqc');
+  else if(P.eq==='barS')eq=_acirc(a,b,'S',5,'eqc');
+  else if(P.eq==='barH')eq=_acirc(a,b,'H',5,'eqc');
+  else if(P.eq==='wheelW')eq=_acirc(a,b,'W',8,'eqc');
+  return `<svg class="fig" viewBox="0 0 220 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Demostración esquemática: ${esc(name)}">
+    ${props}
+    ${_aline(a,b,'S','H')}${_aline(a,b,'H','K')}${_aline(a,b,'K','A')}${_aline(a,b,'A','T')}
+    ${_aline(a,b,'S','E','lt')}${_aline(a,b,'E','W','lt')}
+    ${_acirc(a,b,'hd',10,'head')}${eq}</svg>`}
 const EXERCISE_LIB=[...new Set(Object.values(TEMPLATES).flat().map(e=>e.n))].sort();
 
 /* grupo muscular por ejercicio + rangos de volumen semanal (Q17, según tu plan) */
@@ -744,7 +864,7 @@ function applyMode(mode){const light=mode==='light';document.body.classList.togg
   modeToggle.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.mode===mode));
   localStorage.setItem('jfit.mode',mode)}
 modeToggle.onclick=e=>{const b=e.target.closest('button');if(!b)return;applyMode(b.dataset.mode)};
-applyMode(localStorage.getItem('jfit.mode')==='light'?'light':'dark');
+applyMode(localStorage.getItem('jfit.mode')==='dark'?'dark':'light');
 
 /* ============ HELPERS UI ============ */
 function bar(val,target,tone){const pct=target>0?Math.min(100,Math.round(val/target*100)):0;const over=val>target;
@@ -835,8 +955,11 @@ function startWorkout(name){let ex=[];
     for(let i=0;i<count;i++){const p=prev&&prev[i];sets.push({kg:p?p.kg:'',reps:p?p.reps:'',done:false})}
     return{name:t.n,plan:{s:t.s,reps:t.reps,rir:t.rir,rest:t.rest,foco:t.foco,c:t.c,g:t.g},prefilled:!!prev,sets};
   });}
-  S.active={id:'w'+Date.now(),name:name||'Entrenamiento',day:name||'',date:new Date().toISOString(),start:Date.now(),exercises:ex};save();renderEntreno()}
+  selEx=0;S.active={id:'w'+Date.now(),name:name||'Entrenamiento',day:name||'',date:new Date().toISOString(),start:Date.now(),exercises:ex};save();renderEntreno()}
+let selEx=0;
+function selectEx(i){selEx=i;renderEntreno()}
 function activeHTML(){const a=S.active;
+  if(selEx>=a.exercises.length)selEx=Math.max(0,a.exercises.length-1);
   const ex=a.exercises.map((e,ei)=>{const rows=e.sets.map((s,si)=>`
     <div class="set-grid set-row ${s.done?'done':''}"><div class="sn">${si+1}</div>
       <input class="input" inputmode="decimal" placeholder="0" value="${s.kg}" oninput="setVal(${ei},${si},'kg',this.value)">
@@ -844,23 +967,34 @@ function activeHTML(){const a=S.active;
       <button class="set-done ${s.done?'done':''}" onclick="toggleSet(${ei},${si})">✓</button>
       <button class="set-x" onclick="delSet(${ei},${si})" aria-label="Quitar serie ${si+1}">✕</button></div>`).join('');
     const m=e.plan||exMeta(e.name);
-    const presc=m?`<div class="hint mb" style="margin-top:-2px">Objetivo <b style="color:var(--text-2)">${m.s}×${m.reps}${m.rir&&m.rir!=='-'?' · RIR '+m.rir:''}</b> · descanso ${m.rest} · ${m.foco} · <a href="${vidUrl(m)}" target="_blank" rel="noopener" style="color:var(--accent)">Ver técnica ↗</a></div>`:'';
+    const presc=m?`<div class="hint mb" style="margin-top:-2px">Objetivo <b style="color:var(--text-2)">${m.s}×${m.reps}${m.rir&&m.rir!=='-'?' · RIR '+m.rir:''}</b> · descanso ${m.rest} · ${m.foco}</div>`:'';
     const lp=lastPerf(e.name,a.id),sg=suggestNext(e.name);
-    const hint=lp?`<div class="hint mb" style="margin-top:-4px">${e.prefilled?'✓ Pesos de la última sesión cargados (edítalos). ':''}Última vez: <b style="color:var(--text-2)">${lp.kg} kg × ${lp.reps}</b>${sg?` · hoy intenta <b style="color:var(--accent)">${sg.kg} kg × ${sg.reps}</b> (${sg.why})`:''}</div>`:'';
-    return `<div class="ex"><div class="ex-head"><h4>${esc(e.name)}</h4><button class="btn-ghost btn-sm" onclick="delEx(${ei})">Quitar</button></div>${presc}${hint}
+    const hint=lp?`<div class="hint mb" style="margin-top:-4px">${e.prefilled?'✓ Pesos de la última sesión cargados (edítalos). ':''}Última vez: <b style="color:var(--text-2)">${lp.kg} kg × ${lp.reps}</b>${sg?` · hoy intenta <b>${sg.kg} kg × ${sg.reps}</b> (${sg.why})`:''}</div>`:'';
+    return `<div class="ex ${ei===selEx?'sel':''}"><div class="ex-head"><h4>${esc(e.name)}</h4><div class="flex gapsm">
+      <button class="btn-ghost btn-sm" onclick="selectEx(${ei})" ${ei===selEx?'style="color:var(--text)"':''}>Técnica</button>
+      <button class="btn-ghost btn-sm" onclick="delEx(${ei})">Quitar</button></div></div>${presc}${hint}
       <div class="set-grid"><div class="h">Set</div><div class="h">Kg</div><div class="h">Reps</div><div class="h">OK</div><div class="h"></div></div>${rows}
       <button class="btn btn-ghost btn-sm mt" onclick="addSet(${ei})">+ Serie</button></div>`}).join('');
-  return `<div class="card mb2 flex between center">
-      <div><input class="input" style="border:0;font-family:var(--f-disp);font-size:26px;padding:0" value="${esc(a.name)}" oninput="S.active.name=this.value;save()"><div class="timer mt" id="elapsed">00:00</div></div>
+  const left=`<div class="card mb2 flex between center">
+      <div><input class="input" style="border:0;background:transparent;font-family:var(--f-ui);font-size:15px;letter-spacing:.12em;text-transform:uppercase;padding:0" value="${esc(a.name)}" oninput="S.active.name=this.value;save()" aria-label="Nombre de la sesión"><div class="timer mt" id="elapsed">00:00</div></div>
       <div class="flex col gapsm"><button class="btn btn-primary btn-sm" onclick="finishWorkout()">Terminar</button><button class="btn btn-ghost btn-sm" onclick="discardWorkout()">Descartar</button></div></div>
     ${ex||'<div class="empty"><div class="muted">Añade tu primer ejercicio.</div></div>'}
-    <button class="btn btn-secondary btn-block mt" onclick="openExercisePicker()">+ Añadir ejercicio</button>`}
+    <button class="btn btn-secondary btn-block mt" onclick="openExercisePicker()">+ Añadir ejercicio</button>`;
+  return `<div class="train-layout"><div>${left}</div>${techPanelHTML()}</div>`}
+function techPanelHTML(){const a=S.active;
+  if(!a||!a.exercises.length)return '<div class="tech"><div class="label">Técnica</div><div class="hint mt">Añade un ejercicio para ver su demostración.</div></div>';
+  const e=a.exercises[selEx],m=e.plan||exMeta(e.name)||{};
+  return `<div class="tech"><div class="label">Técnica — ${esc(e.name)}</div>
+    ${demoSVG(e.name)}
+    <div class="hint mt">${m.foco?esc(m.foco)+'. ':''}${m.reps?`Objetivo ${m.s}×${m.reps}${m.rir&&m.rir!=='-'?` · RIR ${m.rir}`:''} · descanso ${m.rest}.`:''}</div>
+    <a class="btn btn-secondary btn-sm btn-block mt" href="${vidShakil(e.name)}" target="_blank" rel="noopener">Ver vídeo de Shakil Ahmed ↗</a>
+    <div class="hint mt" style="font-size:9px">Animación: recreación esquemática del patrón de movimiento, basada en la técnica de los vídeos de Shakil Ahmed.</div></div>`}
 let elapsedTimer=null;
 function bindActive(){clearInterval(elapsedTimer);const tick=()=>{const el=document.getElementById('elapsed');if(!el||!S.active){clearInterval(elapsedTimer);return}
   const s=Math.floor((Date.now()-S.active.start)/1000);el.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};tick();elapsedTimer=setInterval(tick,1000)}
 function setVal(ei,si,k,v){S.active.exercises[ei].sets[si][k]=v;save()}
-function toggleSet(ei,si){const s=S.active.exercises[ei].sets[si];s.done=!s.done;save();renderEntreno()}
-function addSet(ei){const ss=S.active.exercises[ei].sets,l=ss[ss.length-1]||{};ss.push({kg:l.kg||'',reps:l.reps||'',done:false});save();renderEntreno()}
+function toggleSet(ei,si){const s=S.active.exercises[ei].sets[si];s.done=!s.done;selEx=ei;save();renderEntreno()}
+function addSet(ei){const ss=S.active.exercises[ei].sets,l=ss[ss.length-1]||{};ss.push({kg:l.kg||'',reps:l.reps||'',done:false});selEx=ei;save();renderEntreno()}
 function delSet(ei,si){S.active.exercises[ei].sets.splice(si,1);if(!S.active.exercises[ei].sets.length)S.active.exercises[ei].sets.push({kg:'',reps:'',done:false});save();renderEntreno()}
 function delEx(ei){S.active.exercises.splice(ei,1);save();renderEntreno()}
 function discardWorkout(){if(confirm('¿Descartar este entrenamiento?')){S.active=null;clearInterval(elapsedTimer);save();renderEntreno()}}

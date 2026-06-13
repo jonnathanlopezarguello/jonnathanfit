@@ -14,13 +14,14 @@ Diario personal de entrenamiento y nutrición basado en evidencia. Registra seri
 
 ## Brand Personality
 
-Sereno, premium, cálido. "Apple sobre identidad cálida": la calma y el pulido del lenguaje de diseño de Apple aplicados sobre una identidad editorial propia de olivo oscuro, crema y ámbar. Voz cercana en español, basada en evidencia científica citada, sin gritos ni gamificación barata.
+Sereno, preciso, silencioso. Minimalismo monocromo de inspiración japonesa (referencia explícita del usuario: mikiyakobayashi.com): blanco, tinta, mayúsculas con tracking, hairlines y mucho aire. La "calidez" la ponen el idioma cercano en español y la evidencia científica citada, no el color. Decisión del 2026-06-12 que sustituye la dirección anterior "Apple sobre identidad cálida" (olivo/ámbar).
 
 ## Anti-references
 
-- Apple blanco minimal genérico: NO convertir la app en grises del sistema + SF Pro + fondo blanco. La paleta olivo/ámbar es la identidad y manda.
+- La dirección anterior olivo/crema/ámbar: ya no; el usuario pidió el lenguaje de mikiyakobayashi.com.
 - Apps de fitness agresivas (neón, negro+verde eléctrico, badges y confeti, "BEAST MODE"): nada de estética de pre-entreno.
-- SaaS genérico de dashboards: tarjetas idénticas con icono+título+texto, hero-metrics con degradados.
+- SaaS genérico de dashboards: tarjetas redondeadas con sombras, icono+título+texto, hero-metrics con degradados.
+- Color decorativo de cualquier tipo: solo verde (logrado) y terracota (alerta), siempre con significado.
 - Cualquier rediseño que un tercero pueda señalar como "hecho por IA sin criterio".
 
 ## Design Principles

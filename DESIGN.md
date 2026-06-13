@@ -1,65 +1,59 @@
 # JONNATHAN FIT — Design System
 
-"Apple sobre identidad cálida": pulido y calma de iOS sobre una identidad editorial propia de olivo, crema y ámbar. Tema oscuro por defecto con modo claro cálido. Una sola página (`index.html`), CSS en variables custom, sin frameworks.
+Minimalismo monocromo de inspiración japonesa (referencia elegida por el usuario: mikiyakobayashi.com). Blanco, tinta, hairlines y aire; sin radios, sin sombras, sin color decorativo. Modo claro por defecto; modo oscuro = mismo sistema en negro cálido. Una sola página (`index.html`), CSS en variables custom, sin frameworks.
 
 ## Color
 
-Tokens reales (CSS custom properties en `:root` / `body.light`):
-
-| Token | Dark | Light | Uso |
+| Token | Light (defecto) | Dark | Uso |
 |---|---|---|---|
-| `--bg` | `#1F1F18` | `#EDE7DA` | fondo de página (olivo casi negro / crema) |
-| `--surface` | `#2A2A21` | `#FAF7EF` | tarjetas |
-| `--surface-2` | `#33332A` | `#FFFFFF` | superficie elevada |
-| `--glass` | `rgba(42,42,33,.62)` | `rgba(250,247,239,.7)` | barras con blur 20px + saturate 160% |
-| `--line` / `--line-2` | `#3A3A30` / `#4C4B3F` | `#E0D9C9` / `#CBC2AD` | hairlines |
-| `--text` | `#F4EEE0` | `#23231B` | texto principal (contraste AA mínimo) |
-| `--text-2` | `#D2CAB6` | `#5A5648` | secundario |
-| `--text-3` | `#A39B85` | `#857E6B` | rótulos; nunca más oscuro |
-| `--accent` | `#D29453` | `#A66A28` | ámbar: acciones, objetivos de sobrecarga, énfasis itálico |
-| `--accent-soft` | ámbar al 14% | ámbar al 12% | relleno de pastillas/opciones activas |
-| `--sand` | `#BCA98C` | `#7A6A50` | secundario taupe (carbos, gráfico cintura) |
-| `--good` | `#7FB07A` | `#4E8A4A` | SOLO objetivos cumplidos (proteína/fibra ✓, series OK) |
-| `--over` | `#C7603C` | — | SOLO exceso/alerta (kcal pasadas, volumen corto) |
+| `--bg` / `--surface` | `#FFFFFF` | `#121211` | fondo y tarjetas (planos; separación por hairline) |
+| `--surface-2` | `#FAFAF8` | `#1C1C1A` | fondo de la animación de técnica |
+| `--line` / `--line-2` | `#E9E9E5` / `#D6D6D0` | `#2A2A28` / `#3D3D3A` | hairlines |
+| `--text` | `#161616` | `#F2F2EE` | tinta principal |
+| `--text-2` | `#5F5F5C` | `#B9B9B2` | secundario |
+| `--text-3` | `#6F6F68` | `#8A8A82` | rótulos (AA ≥4.5:1) |
+| `--accent` | = `--text` | = `--text` | **monocromo**: lo interactivo es tinta |
+| `--good` | `#3A7237` | `#7FB07A` | SOLO objetivo cumplido (funcional) |
+| `--over` | `#A84A28` | `#D26A45` | SOLO exceso/alerta (funcional) |
 
-Regla: el color es semántico, nunca decorativo. Ámbar = acción/objetivo, salvia = logrado, terracota = aviso.
+Regla: cero color decorativo. Verde y terracota son los únicos colores y siempre significan estado.
 
 ## Typography
 
-- Display/serif: **Cormorant Garamond** (300–500, itálicas para el acento ámbar: "Buenos *días*"). H1 fluido `clamp(40px, 7vw, 76px)`.
-- UI/sans: **Jost** (300–500). Cuerpo 15–16px, line-height 1.6, peso 400.
-- Rótulos: 11px, peso 500, mayúsculas, tracking ≤ .16em, color `--text-3`.
-- Números: `font-variant-numeric: tabular-nums`, en serif para KPIs grandes.
+- Una sola familia: **Inter** (300/400/500), stack `"Inter","Helvetica Neue",Helvetica,Arial`.
+- Titulares de página: MAYÚSCULAS, peso 400, `clamp(22px,4vw,36px)`, tracking `.14em`. El `em` del saludo va en `--text-3` (no itálica).
+- Nombres de ejercicio (h4): mayúsculas 13px, peso 500, tracking `.12em`.
+- Rótulos: 11px, peso 500, mayúsculas, tracking ≤`.16em`, `--text-3`.
+- KPIs numéricos: Inter 300 grande, `tabular-nums`.
 
 ## Shape & Elevation
 
-- Radios: base 12px (`--r`), tarjetas 20px (`--r-card`), pastillas full (`--r-pill`), inputs 9px (`--r-sm`).
-- Sombras en capas suaves (`--sh-1/2/3`), nunca borde duro + sombra ancha a la vez.
-- Vidrio esmerilado solo en topbar, tabs y fondo de modal.
+- **Radios 0 en todo** (tokens `--r*: 0`). Plano absoluto.
+- **Sin sombras** (`--sh-1/2: none`); solo el modal conserva una sombra difusa.
+- Sin vidrio/blur: barras con fondo casi sólido (`--glass` ≈ 92% opacidad) + hairline.
+- Separación por espacio en blanco y líneas de 1px, no por relleno.
 
 ## Motion
 
-- Easing estándar `cubic-bezier(.22,.61,.36,1)` (`--ease`); spring sutil `cubic-bezier(.34,1.56,.64,1)` (`--spring`) para toques (botones :active scale .96, check de serie, pastilla del segmentado, barras de progreso).
-- Modal: fade + pop (translateY 16px, scale .97). Vistas: fade 0.5s.
-- Pendiente conocido: bloque `@media (prefers-reduced-motion: reduce)`.
+- Sereno: `--ease cubic-bezier(.22,.61,.36,1)`; `--spring` ya NO rebota (`.25,.46,.45,.94`).
+- Subrayado de tab activo: 1px, scaleX.
+- Demos de técnica: animaciones SMIL (2.6s, spline suave, alterna A↔B); estáticas si `prefers-reduced-motion`.
 
 ## Components
 
-- **Topbar**: marca con tracking .42em + segmentado iOS Dark/Light con pastilla deslizante.
-- **Tabs**: subrayado ámbar 2px animado con spring (Hoy · Entreno · Comida · Plan · Progreso · Perfil).
-- **Card**: superficie + hairline + radio 20px + sh-1; interactiva eleva a sh-2.
-- **Botones**: primario crema sólido (hover ámbar), secundario relleno línea 45%, ghost, danger terracota; sm 38px, normal 46px.
-- **Track**: barra de progreso pill 6px; relleno ámbar/salvia/terracota según semántica.
-- **Set-grid**: filas de series (set/kg/reps/check); check verde salvia al completar.
-- **Opt**: opciones seleccionables con borde, activa = borde ámbar + relleno accent-soft.
-- **Pill**: etiquetas pequeñas uppercase; `.on` ámbar, `.good` salvia.
-- **Modal**: 520px máx, vidrio de fondo, pop spring.
-- **Sparkline**: SVG línea + área degradada (ámbar peso, taupe cintura).
-- **Onboarding/Lock**: pantalla completa sobre `--bg`, serif display + pasos numerados.
+- **Tech panel** (`.tech` en `.train-layout`): columna derecha sticky de 360px en ≥920px (debajo en móvil). Contiene la animación esquemática del ejercicio (figura de líneas, `viewBox 0 0 220 240`), indicaciones del plan y enlace al vídeo real (búsqueda de Shakil Ahmed). 19 arquetipos de movimiento en `POSES`, mapeo en `ARCH`.
+- **Card**: blanco + hairline, radio 0, sin sombra.
+- **Botones**: primario tinta sólida (hover opacity .82), secundario relleno gris línea, cuadrados.
+- **Track**: barra de progreso de 3px.
+- **Segmentado Dark/Light**: cuadrado, pastilla deslizante plana.
+- **Modal**: cuadrado, hairline, sombra difusa única, Escape cierra, `role=dialog`.
+- **Sparklines**: línea tinta con área degradada sutil.
 
 ## Layout
 
-- Contenedor `--maxw: 1120px`, padding lateral 36px (24px <560px).
-- Escala de espaciado: 4/8/16/24/36/56/80.
-- Secciones con `.section-title` (rótulo + hairline que llena el resto).
-- Grids: g2/g3/g4 colapsan en móvil (820px y 560px).
+- Contenedor 1120px; espaciado 4/8/16/24/36/56/80; secciones con rótulo + hairline.
+- `.train-layout`: `minmax(0,1fr) 360px` (≥920px) / una columna (<920px).
+
+## Accesibilidad (mantener)
+
+AA ≥4.5:1 en todo texto; `:focus-visible` tinta; objetivos táctiles ≥44px en controles de serie; `prefers-reduced-motion` respetado (CSS y SMIL); ARIA en tabs/modal/botones de icono.
