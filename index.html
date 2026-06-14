@@ -1035,18 +1035,44 @@ function volumeHTML(){const m=weeklySetsByMuscle(),any=Object.values(m).some(v=>
     return `<div class="mb"><div class="macro-row"><span class="label" style="${short?'color:var(--over)':''}">${g}${short?' ⚠':' ✓'}</span><span class="v">${v}<span> / ${min}-${rng[1]} series</span></span></div><div class="track"><div class="fill" style="width:${pct}%;background:${short?'var(--over)':'var(--good)'}"></div></div></div>`}).join('');
   const lows=MUSCLE_GROUPS.filter(g=>m[g]<volMin(g));
   return `<div class="card">${rows}${lows.length?`<div class="hint mt" style="color:var(--over)">Te quedas corto en: ${lows.join(', ')}. Añade series esta semana para asegurar el estímulo de hipertrofia.</div>`:'<div class="hint mt" style="color:var(--good)">Buen volumen en todos los grupos esta semana.</div>'}</div>`}
+function programInfo(){
+  const ps=S.profile.programStart;
+  if(!ps)return null;
+  const startMs=new Date(ps+'T00:00')-0,nowMs=Date.now(),diffDays=Math.floor((nowMs-startMs)/864e5);
+  if(diffDays<0)return{upcoming:true,date:ps,daysLeft:-diffDays};
+  const week=Math.floor(diffDays/7)+1,mes=Math.ceil(week/4);
+  return{week,mes,totalDays:S.workouts.length,sessionToday:S.workouts.some(w=>w.date.startsWith(todayISO()))};
+}
+function initProgram(date){
+  const d=date||shiftDate(todayISO(),1);
+  const label=new Date(d+'T00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  if(!confirm(`¿Iniciar el programa el ${label}?\n\nEsto borrará el historial de entrenamientos actual.`))return;
+  S.profile.programStart=d;S.workouts=[];S.active=null;clearInterval(elapsedTimer);save();renderEntreno();
+  alert(`¡Listo! El programa arranca el ${label} como Semana 1 · Día 1.`);}
 function renderEntreno(){
   const el=document.getElementById('entrenoBody');
   if(S.active){el.innerHTML=activeHTML();bindActive();return}
+  const pi=programInfo();
+  let progBanner='';
+  if(!pi){
+    progBanner=`<div class="banner mb2"><div class="dot"></div><div style="flex:1"><div style="font-size:13px">Sin inicio registrado</div><div class="hint" style="margin-top:2px">Fija el arranque del programa para llevar el conteo de semanas y días.</div></div><button class="btn btn-primary btn-sm" onclick="initProgram()">Iniciar mañana →</button></div>`;
+  }else if(pi.upcoming){
+    const label=new Date(pi.date+'T00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+    progBanner=`<div class="banner mb2"><div class="dot"></div><div style="flex:1"><div style="font-size:13px">El programa arranca el <b>${label}</b></div><div class="hint" style="margin-top:2px">Faltan ${pi.daysLeft} día${pi.daysLeft!==1?'s':''} para el Día 1 · ${PLAN_LABEL}</div></div></div>`;
+  }else{
+    progBanner=`<div class="banner mb2"><div class="dot"></div><div style="flex:1"><div class="label">Semana ${pi.week} · Mes ${pi.mes} · ${PLAN_LABEL}</div><div class="num mt" style="font-size:22px">${pi.totalDays} <span class="dim" style="font-size:13px">sesiones completadas</span></div></div><button class="btn btn-ghost btn-sm" onclick="initProgram()" title="Reiniciar programa">↺</button></div>`;
+  }
   const split=currentSplit();
   const tpl=split.map(n=>`<button class="btn btn-secondary btn-block mb" style="justify-content:space-between;text-align:left;height:auto;padding:14px 18px" onclick="startWorkout('${n}')"><span><span style="display:block">${n}</span><span class="dim" style="font-size:10px;letter-spacing:.04em;text-transform:none">${DAY_TITLE[n]}</span></span><span class="dim" style="white-space:nowrap">${TEMPLATES[n].length} ej →</span></button>`).join('');
-  const hist=S.workouts.length?S.workouts.map(histRow).join(''):`<div class="empty"><div class="big">Aún sin entrenamientos</div><div class="muted">Empieza tu primera sesión arriba.</div></div>`;
-  el.innerHTML=`<div class="section-title flex"><span>Tu división</span><span class="dim" style="margin-left:auto;font-size:11px;letter-spacing:.04em;text-transform:none">4 días · ${PLAN_LABEL}</span></div>${tpl}<button class="btn btn-secondary btn-block" onclick="startWorkout(null)" style="border-style:dashed">+ Sesión vacía</button>
+  const hist=S.workouts.length?S.workouts.map((w,i)=>histRow(w,i)).join(''):`<div class="empty"><div class="big">Aún sin entrenamientos</div><div class="muted">Mañana arranca el Día 1. ¡A por ello!</div></div>`;
+  el.innerHTML=`${progBanner}<div class="section-title flex"><span>Tu división</span><span class="dim" style="margin-left:auto;font-size:11px;letter-spacing:.04em;text-transform:none">4 días · ${PLAN_LABEL}</span></div>${tpl}<button class="btn btn-secondary btn-block" onclick="startWorkout(null)" style="border-style:dashed">+ Sesión vacía</button>
     <div class="section-title">Series semanales por grupo</div>${volumeHTML()}
     <div class="section-title">Historial</div>${hist}`;
 }
-function histRow(w){const vol=vol_(w),sets=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
-  return `<div class="row" style="cursor:pointer" onclick="showWorkout('${w.id}')"><div><div class="serif" style="font-size:20px">${esc(w.name)}</div><div class="meta">${new Date(w.date).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div></div><div style="text-align:right"><div class="num" style="font-size:20px">${vol.toLocaleString()} kg</div><div class="meta">${sets} series · ${w.exercises.length} ej</div></div></div>`}
+function histRow(w,idx){const vol=vol_(w),sets=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
+  const pi=programInfo();
+  const dayLabel=pi&&!pi.upcoming?`S${Math.floor((new Date(w.date.split('T')[0]+'T00:00')-new Date(S.profile.programStart+'T00:00'))/864e5/7)+1}·D${(S.workouts.length-(idx||0))}`:new Date(w.date).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});
+  return `<div class="row" style="cursor:pointer" onclick="showWorkout('${w.id}')"><div><div class="serif" style="font-size:20px">${esc(w.name)}</div><div class="meta">${dayLabel} · ${new Date(w.date).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</div></div><div style="text-align:right"><div class="num" style="font-size:20px">${vol.toLocaleString()} kg</div><div class="meta">${sets} series · ${w.exercises.length} ej</div></div></div>`}
 function vol_(w){return w.exercises.reduce((a,e)=>a+e.sets.reduce((x,s)=>x+(s.done?(+s.kg||0)*(+s.reps||0):0),0),0)}
 function lastSets(name){ /* series (kg/reps) de la última sesión con ese ejercicio */
   for(const w of S.workouts){const e=w.exercises.find(x=>x.name===name);if(!e)continue;
@@ -1501,6 +1527,15 @@ function renderPerfil(){const p=S.profile,t=calc();
       <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(this)">
       <div id="installRow"></div>
       <div class="hint">El respaldo en la nube con sincronización automática llegará en una fase 2.</div></div>
+    <div class="section-title">Programa de entrenamiento</div>
+    <div class="card mb2">${(()=>{const pi=programInfo();const ps=S.profile.programStart;
+      if(!ps)return `<div class="muted" style="font-size:13px;margin-bottom:var(--s-md)">Sin fecha de inicio registrada.</div>
+        <div class="flex gapsm wrapf"><button class="btn btn-primary btn-sm" onclick="initProgram()">Iniciar desde mañana</button><button class="btn btn-secondary btn-sm" onclick="(()=>{const d=prompt('Fecha de inicio (YYYY-MM-DD):',new Date().toLocaleDateString('en-CA'));if(d&&/\\d{4}-\\d{2}-\\d{2}/.test(d))initProgram(d)})()">Elegir fecha</button></div>`;
+      const label=new Date(ps+'T00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      const status=pi&&!pi.upcoming?`<span class="pill good">Semana ${pi.week} · Mes ${pi.mes} activos</span>`:`<span class="pill">Arranca en ${pi&&pi.daysLeft} días</span>`;
+      return `<div class="flex between center mb"><div><div style="font-size:13px">Inicio: <b>${label}</b></div><div class="meta">${S.workouts.length} sesiones completadas</div></div>${status}</div>
+        <div class="flex gapsm wrapf"><button class="btn btn-secondary btn-sm" onclick="(()=>{const d=prompt('Nueva fecha de inicio (YYYY-MM-DD):','${ps}');if(d&&/\\d{4}-\\d{2}-\\d{2}/.test(d))initProgram(d)})()">Cambiar fecha</button><button class="btn btn-ghost btn-sm" onclick="initProgram()">Reiniciar desde mañana</button></div>`;
+    })()}</div>
     <div class="section-title">Zona de riesgo</div>
     <button class="btn btn-danger btn-block" onclick="resetData()">Borrar todos los datos</button>`;
   renderInstall();}
