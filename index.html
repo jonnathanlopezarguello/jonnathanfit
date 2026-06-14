@@ -292,6 +292,13 @@ body.light .demo-photo img{filter:grayscale(1) contrast(1.02)}
 .macro-n{display:block;font-family:var(--f-disp);font-variant-numeric:tabular-nums;font-size:14px;font-weight:300;color:var(--text)}
 .macro-l{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-top:1px}
 .meal-plate-head{display:flex;align-items:center;gap:var(--s-md);margin-bottom:var(--s-md);padding-bottom:var(--s-md);border-bottom:1px solid var(--line)}
+.meal-block{padding:var(--s-lg) 0;border-bottom:1px solid var(--line)}
+.meal-block:last-of-type{border-bottom:none}
+/* comparativa plan vs realidad */
+.cmp-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}
+.cmp-row:last-child{border-bottom:none}
+.cmp-ok{color:var(--good)}.cmp-miss{color:var(--text-3)}.cmp-over{color:var(--over)}
+.cmp-status{font-size:11px;letter-spacing:.06em;font-family:var(--f-ui);white-space:nowrap}
 @media(max-width:820px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr}}
 @media(max-width:560px){.wrap{padding:0 var(--s-lg)}.g2,.g4{grid-template-columns:1fr 1fr}.opts.two{grid-template-columns:1fr}.set-grid{grid-template-columns:16px 1fr 1fr 38px 28px}.train-layout{grid-template-columns:minmax(0,1fr) 150px;gap:6px}.tech{padding:var(--s-sm)}.tech .demo-photo{display:none}}
 </style>
@@ -1147,7 +1154,7 @@ function renderComida(){
   const mealsHTML=meals.map(m=>{
     const items=list.map((it,gi)=>({it,gi})).filter(o=>o.it.meal===m),sub=items.reduce((a,o)=>a+o.it.kcal,0);
     const rows=items.length?items.map(o=>`<div class="food-card" onclick="editFood(${o.gi})"><div class="food-card-top"><span class="fic-box sm">${FOODICON((findFood(o.it.food)||{}).cat)}</span><div class="food-card-info"><div class="fc-nm">${esc(o.it.food)}</div><div class="fc-g">${o.it.grams} g</div></div><button class="set-x" onclick="event.stopPropagation();delFood(${o.gi})" aria-label="Quitar alimento">✕</button></div><div class="macro-strip"><div class="macro-cell"><span class="macro-n">${o.it.kcal}</span><span class="macro-l">kcal</span></div><div class="macro-cell"><span class="macro-n">${o.it.p}g</span><span class="macro-l">Prot</span></div><div class="macro-cell"><span class="macro-n">${o.it.c}g</span><span class="macro-l">Carbs</span></div><div class="macro-cell"><span class="macro-n">${o.it.f}g</span><span class="macro-l">Grasa</span></div></div></div>`).join(''):'<div class="meta" style="padding:12px 0">—</div>';
-    return `<div class="meal-plate-head">${mealPlateSVG(items)}<div style="flex:1"><div class="label">${m}</div><div class="num" style="font-size:22px">${sub} kcal</div></div></div>${rows}<div class="flex gapsm mt wrapf"><button class="btn btn-ghost btn-sm" onclick="openFoodPicker('${m}')">+ Añadir alimento</button>${items.length?`<button class="btn btn-ghost btn-sm" onclick="saveMealAsRecipe('${m}')">★ Guardar como receta</button>`:''}</div>`}).join('');
+    return `<div class="meal-block"><div class="meal-plate-head">${mealPlateSVG(items)}<div style="flex:1"><div class="label">${m}</div><div class="num" style="font-size:22px">${sub} kcal</div></div></div>${rows}<div class="flex gapsm mt wrapf"><button class="btn btn-ghost btn-sm" onclick="openFoodPicker('${jsAttr(m)}')">+ Añadir alimento</button>${items.length?`<button class="btn btn-ghost btn-sm" onclick="saveMealAsRecipe('${jsAttr(m)}')">★ Guardar como receta</button>`:''}</div></div>`}).join('');
   document.getElementById('mealsBody').innerHTML=`<div class="section-title">Tu plato del día</div>${dishHTML(list)}${mealsHTML}`;
   updateHud();
 }
@@ -1174,27 +1181,63 @@ function dishData(items){const z={veg:0,pro:0,carb:0,fat:0},fruits=[],drinks=[];
     if(zo==='fruit')fruits.push(it.food);else if(zo==='drink')drinks.push(it.food);else z[zo]+=g;});
   const lvl=g=>g<=0?0:g<120?1:g<320?2:3;
   return{veg:lvl(z.veg),pro:lvl(z.pro),carb:lvl(z.carb),fat:z.fat>0,fruits,drinks};}
-function _veg(n){if(!n)return '';let s='<ellipse cx="100" cy="58" rx="13" ry="9" fill="#6FB23F"/><ellipse cx="120" cy="52" rx="13" ry="10" fill="#7FC24A"/>';
-  if(n>=2)s+='<ellipse cx="140" cy="59" rx="12" ry="8" fill="#5FA437"/><circle cx="148" cy="69" r="5" fill="#D7ECC2" stroke="#2E7D32" stroke-width="1"/><circle cx="104" cy="71" r="4.5" fill="#D7ECC2" stroke="#2E7D32" stroke-width="1"/><path d="M138 50 l16 -7" stroke="#4E8A2E" stroke-width="3" stroke-linecap="round"/>';
-  if(n>=3)s+='<ellipse cx="118" cy="71" rx="12" ry="8" fill="#6FB23F"/><ellipse cx="133" cy="67" rx="10" ry="7" fill="#7FC24A"/>';
-  return s;}
-function _pro(n){if(!n)return '';const sc=[0,.82,1,1.16][n];
-  return `<g transform="translate(92,134) scale(${sc})"><path d="M-16 -8 q-5 14 9 20 q18 6 25 -6 q4 -16 -12 -20 q-15 -4 -22 6Z" fill="#9C5A3C"/><path d="M-9 -2 l16 14 M-1 -7 l15 15 M-14 5 l14 12" stroke="#5E3A26" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;}
-function _carb(n){if(!n)return '';const t=[[150,124,20],[164,128,-14],[150,138,44],[166,140,6],[177,130,24],[158,150,-20],[176,149,40]],k=[0,3,5,7][n];
-  let s='<g fill="#E8C98A" stroke="#C9A24A" stroke-width="1">';for(let i=0;i<k;i++){const c=t[i];s+=`<rect x="${c[0]-7}" y="${c[1]-3.5}" width="15" height="7" rx="3.5" transform="rotate(${c[2]} ${c[0]} ${c[1]})"/>`;}return s+'</g>';}
-function _glass(x){return `<path d="M${x} 40 h26 l-3.5 60 h-19 Z" fill="#DCEEFB" stroke="#4A90D9" stroke-width="2"/><path d="M${x+2} 58 h22 l-2.5 40 h-17 Z" fill="#A9D5F2"/>`;}
-function _apple(x,y){return `<path d="M${x} ${y} c-6 -7 -18 -3 -18 9 0 12 9 24 18 24 s18 -12 18 -24 c0 -12 -12 -16 -18 -9Z" fill="#D8453C"/><path d="M${x} ${y} v-11" stroke="#6B4A2B" stroke-width="2.6"/><path d="M${x} ${y-6} q9 -7 16 -3 q-2 9 -16 3Z" fill="#5FA84A"/><circle cx="${x-7}" cy="${y+9}" r="3.4" fill="#fff" opacity="0.45"/>`;}
+function _veg(n){if(!n)return '';
+  const pos=n===1?[[120,84]]:n===2?[[106,74],[136,84]]:[[120,67],[100,82],[140,82]];
+  const em=['🥦','🥕','🥗'];
+  return pos.map((p,i)=>`<text x="${p[0]}" y="${p[1]}" font-size="26" text-anchor="middle">${em[i%em.length]}</text>`).join('');}
+function _pro(n){if(!n)return '';
+  return `<text x="82" y="150" font-size="${[0,28,32,34][n]||28}" text-anchor="middle">🍗</text>${n>=2?'<text x="77" y="132" font-size="20" text-anchor="middle">🥚</text>':''}${n>=3?'<text x="96" y="160" font-size="18" text-anchor="middle">🥩</text>':''}`;}
+function _carb(n){if(!n)return '';
+  const pos=n===1?[[158,150]]:n===2?[[150,138],[164,154]]:[[157,133],[145,151],[170,151]];
+  const em=['🍚','🥔','🍞'];
+  return pos.map((p,i)=>`<text x="${p[0]}" y="${p[1]}" font-size="${26-i*2}" text-anchor="middle">${em[i%em.length]}</text>`).join('');}
+function _glass(x){return `<text x="${x+14}" y="115" font-size="38" text-anchor="middle">🥛</text>`;}
+function _apple(x,y){return `<text x="${x}" y="${y+10}" font-size="34" text-anchor="middle">🍎</text>`;}
 function plateSVG(d){
-  const empty=!d.veg&&!d.pro&&!d.carb&&!d.fruits.length&&!d.drinks.length;
-  let side='';d.drinks.slice(0,3).forEach((dr,i)=>side+=_glass(246+i*30));
-  if(d.fruits.length)side+=_apple(282,150);
-  const fat=d.fat?'<circle cx="120" cy="99" r="3" fill="#3A6B2E"/><circle cx="131" cy="105" r="2.6" fill="#3A6B2E"/><circle cx="112" cy="107" r="2.4" fill="#5E3A26"/>':'';
+  const empty=!d.veg&&!d.pro&&!d.carb&&!d.fruits.length&&!d.drinks.length&&!d.fat;
+  let side='';d.drinks.slice(0,2).forEach((dr,i)=>side+=_glass(250+i*46));
+  if(d.fruits.length)side+=_apple(296,140);
+  const fat=d.fat?'<text x="120" y="108" font-size="16" text-anchor="middle">🫒</text>':'';
   return `<svg width="100%" viewBox="0 0 360 200" role="img" aria-label="Plato compuesto con tu comida">
-    <circle cx="120" cy="100" r="86" fill="#F5F6F4" stroke="#2F6FB0" stroke-width="4"/>
-    <circle cx="120" cy="100" r="70" fill="#FCFCFB" stroke="#2F6FB0" stroke-width="1.2"/>
-    <path d="M44 100 H196 M120 100 V186" fill="none" stroke="#3FA85A" stroke-width="1.8" stroke-dasharray="6 5"/>
-    ${empty?'<text x="120" y="62" text-anchor="middle" font-size="9" fill="#9AA0A6">verduras</text><text x="88" y="152" text-anchor="middle" font-size="9" fill="#9AA0A6">proteína</text><text x="152" y="152" text-anchor="middle" font-size="9" fill="#9AA0A6">cereal</text>':''}
-    ${_veg(d.veg)}${_pro(d.pro)}${_carb(d.carb)}${fat}${side}
+    <defs>
+      <radialGradient id="pRim" cx="38%" cy="32%" r="68%">
+        <stop offset="0%" stop-color="#EAEAE6"/><stop offset="100%" stop-color="#C8C9C3"/>
+      </radialGradient>
+      <radialGradient id="pSurf" cx="38%" cy="32%" r="68%">
+        <stop offset="0%" stop-color="#FFFFFF"/><stop offset="70%" stop-color="#F7F8F5"/><stop offset="100%" stop-color="#EAEAE6"/>
+      </radialGradient>
+    </defs>
+    <!-- sombra -->
+    <ellipse cx="124" cy="105" rx="86" ry="82" fill="#00000018"/>
+    <!-- aro exterior del plato -->
+    <circle cx="120" cy="100" r="87" fill="url(#pRim)"/>
+    <!-- borde azul decorativo (plato del buen comer) -->
+    <circle cx="120" cy="100" r="86" fill="none" stroke="#2B68AD" stroke-width="4"/>
+    <circle cx="120" cy="100" r="81" fill="none" stroke="#4A8DD4" stroke-width="0.9" stroke-dasharray="3 5"/>
+    <!-- superficie interior -->
+    <circle cx="120" cy="100" r="74" fill="url(#pSurf)"/>
+    <!-- reflejo de luz (brillo) -->
+    <ellipse cx="97" cy="74" rx="16" ry="10" fill="#fff" opacity="0.35"/>
+    <!-- divisores de zonas (plato del buen comer) -->
+    <path d="M46 100 H194 M120 100 V186" fill="none" stroke="#3FA85A" stroke-width="1.8" stroke-dasharray="5 4.5" opacity="0.65"/>
+    <!-- etiquetas de zona siempre visibles -->
+    <text x="120" y="63" text-anchor="middle" font-size="8" fill="#8FA08A" font-family="Inter,sans-serif" letter-spacing="1.2" font-weight="500">VERDURAS</text>
+    <text x="82"  y="162" text-anchor="middle" font-size="8" fill="#9AA0A6" font-family="Inter,sans-serif" letter-spacing="1" font-weight="500">PROTEÍNA</text>
+    <text x="158" y="162" text-anchor="middle" font-size="8" fill="#9AA0A6" font-family="Inter,sans-serif" letter-spacing="1" font-weight="500">CEREAL</text>
+    <!-- alimentos -->
+    ${_veg(d.veg)}${_pro(d.pro)}${_carb(d.carb)}${fat}
+    <!-- tenedor (izquierda) -->
+    <g transform="translate(24,36)" fill="#B4B5AF" stroke="#989994" stroke-width="0.7">
+      <rect x="-2.5" y="28" width="5" height="72" rx="2.5"/>
+      <line x1="-5" y1="2" x2="-5" y2="24" stroke-width="1.5"/><line x1="0" y1="1" x2="0" y2="26" stroke-width="1.5"/><line x1="5" y1="2" x2="5" y2="24" stroke-width="1.5"/>
+      <path d="M-5 22 q0 7 5 7 q5 0 5-7" fill="none" stroke-width="1.5"/>
+    </g>
+    <!-- cuchillo (derecha, entre plato y bebidas) -->
+    <g transform="translate(213,36)" fill="#B4B5AF" stroke="#989994" stroke-width="0.7">
+      <rect x="-2.5" y="32" width="5" height="68" rx="2.5"/>
+      <path d="M2.5 1 q10 6 10 31 q0 6 -15 6 L-2.5 32 Z" fill="#C8C9C3" stroke="#A0A19C"/>
+    </g>
+    ${side}
   </svg>`;}
 function dishHTML(items){return `<div class="dish">${plateSVG(dishData(items))}</div>`}
 function FOODICON(cat){const I={
@@ -1346,6 +1389,54 @@ function prsHTML(){const ex=allTrainedExercises();if(!ex.length)return `<div cla
   const rows=ex.map(n=>({n,pr:exercisePR(n)})).filter(o=>o.pr).sort((a,b)=>b.pr.v-a.pr.v)
     .map(o=>`<div class="row"><div><div>${esc(o.n)}</div><div class="meta">mejor serie: ${o.pr.kg} kg × ${o.pr.reps} · ${new Date(o.pr.date).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</div></div><div style="text-align:right"><div class="num accent" style="font-size:22px">${o.pr.v}<span class="dim" style="font-size:11px"> kg</span></div><div class="meta">1RM est.</div></div></div>`).join('');
   return `<div class="card">${rows}<div class="hint mt">1RM estimado con la fórmula de Epley (peso × (1 + reps/30)).</div></div>`}
+function compareCell(label,val,target,unit){const pct=target>0?Math.min(100,Math.round(val/target*100)):0;const over=val>target*1.05,ok=val>=target*0.9;const color=over?'var(--over)':ok?'var(--good)':'var(--text-2)';
+  return `<div style="text-align:center"><div class="num" style="font-size:16px;color:${color}">${Math.round(val)}<span class="dim" style="font-size:10px">/${Math.round(target)}${unit}</span></div><div class="label" style="font-size:8px;margin-top:2px">${label}</div>${bar(val,target,color)}</div>`}
+function dayCompareHTML(){try{
+  const today=todayISO();
+  const DAY_ES=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const todayName=DAY_ES[new Date().getDay()];
+  const planEx=TEMPLATES[todayName];
+  /* -- entrenamiento -- */
+  let trainHTML;
+  if(planEx){
+    const todayW=S.workouts.find(w=>w.date===today);
+    const doneExs=todayW?todayW.exercises:(S.active&&S.active.exercises)||[];
+    const rows=planEx.map(p=>{
+      const done=doneExs.find(e=>e.name===p.n);
+      const doneSets=done?done.sets.filter(s=>s.done).length:0;
+      const ok=doneSets>=p.s,partial=doneSets>0&&!ok;
+      const tag=ok?`<span class="cmp-status cmp-ok">${doneSets}/${p.s} series ✓</span>`:
+        partial?`<span class="cmp-status cmp-over">${doneSets}/${p.s} series</span>`:
+        `<span class="cmp-status cmp-miss">0/${p.s} pendiente</span>`;
+      return `<div class="cmp-row"><div><div style="font-size:13px">${esc(p.n)}</div><div class="meta">${p.s}×${p.reps} · ${esc(p.g)}</div></div>${tag}</div>`;}).join('');
+    const done=planEx.filter(p=>doneExs.find(e=>e.name===p.n&&e.sets.filter(s=>s.done).length>=p.s)).length;
+    trainHTML=`<div class="section-title">Entrenamiento hoy · ${todayName}</div><div class="card mb2">
+      <div class="flex between center mb">${done===planEx.length?'<span class="pill good">¡Sesión completa! ✓</span>':`<span class="dim" style="font-size:13px">${done} de ${planEx.length} ejercicios completados</span><span class="pill" style="color:var(--over)">${planEx.length-done} pendientes</span>`}</div>${rows}</div>`;
+  } else {
+    trainHTML=`<div class="section-title">Entrenamiento hoy · ${todayName}</div><div class="card mb2"><div class="muted" style="font-size:13px">Día de descanso — entrenas ${PLAN_DAYS.join(', ')}. Aprovecha para recuperar.</div></div>`;
+  }
+  /* -- nutrición -- */
+  const plan=buildMealPlan();
+  const logged=S.nutrition[today]||[];
+  const planTot=plan.reduce((a,m)=>a+m.tot.kcal,0);
+  const logTot=logged.reduce((a,it)=>a+it.kcal,0);
+  const logP=logged.reduce((a,it)=>a+it.p,0),planP=plan.reduce((a,m)=>a+m.tot.p,0);
+  const logC=logged.reduce((a,it)=>a+it.c,0),planC=plan.reduce((a,m)=>a+m.tot.c,0);
+  const logF=logged.reduce((a,it)=>a+it.f,0),planF=plan.reduce((a,m)=>a+m.tot.f,0);
+  const kcalLeft=Math.round(planTot-logTot);
+  const mealRows=plan.map(meal=>{
+    const logMeal=logged.filter(it=>it.meal===meal.name),logKcal=logMeal.reduce((a,it)=>a+it.kcal,0);
+    const diff=Math.round(meal.tot.kcal-logKcal),done=logMeal.length>0;
+    const tag=done?(diff<=0?`<span class="cmp-status cmp-ok">✓ completado</span>`:`<span class="cmp-status cmp-over">faltan ${diff} kcal</span>`):
+      `<span class="cmp-status cmp-miss">sin registrar · ${Math.round(meal.tot.kcal)} kcal</span>`;
+    return `<div class="cmp-row"><div><div style="font-size:13px">${meal.name}${meal.hora?` <span class="dim">${meal.hora}</span>`:''}</div><div class="meta">${Math.round(meal.tot.kcal)} kcal · P${Math.round(meal.tot.p)} C${Math.round(meal.tot.c)} G${Math.round(meal.tot.f)}</div></div>${tag}</div>`;}).join('');
+  return trainHTML+`<div class="section-title">Nutrición hoy</div><div class="card mb2">
+    <div class="flex between center mb2"><div class="kpi"><div class="n" style="font-size:28px">${Math.round(logTot)}<small>/${Math.round(planTot)}</small></div><div class="l label">kcal registradas</div></div>
+    ${kcalLeft>0?`<span class="pill" style="color:var(--text-2)">${kcalLeft} kcal restantes</span>`:'<span class="pill good">Objetivo alcanzado ✓</span>'}</div>
+    ${bar(logTot,planTot,'var(--text)')}
+    <div class="grid g3 mt2">${compareCell('Proteína',logP,planP,'g')}${compareCell('Carbos',logC,planC,'g')}${compareCell('Grasa',logF,planF,'g')}</div>
+    <div class="hint mt2">Estado por comida:</div>${mealRows}</div>`;
+  }catch(e){return `<div class="card mb2"><div class="muted" style="font-size:13px">Completa tu perfil para ver la comparativa del día.</div></div>`}}
 function renderProgreso(){
   const bw=S.bodyweight.slice().sort((a,b)=>a.date<b.date?-1:1),last=bw[bw.length-1],first=bw[0],delta=last&&first?(last.kg-first.kg):0;
   const chart=bw.length>1?spark(bw.map(x=>x.kg)):'<div class="meta">Registra al menos 2 pesos para ver la tendencia.</div>';
@@ -1353,6 +1444,7 @@ function renderProgreso(){
   const wchart=ws.length>1?spark(ws.map(x=>x.cm),'var(--sand)'):'<div class="meta">Registra al menos 2 medidas para ver la tendencia.</div>';
   const vols=S.workouts.slice(0,8).reverse().map(vol_),vc=vols.length>1?spark(vols):'<div class="meta">Sin datos suficientes.</div>';
   document.getElementById('progresoBody').innerHTML=`
+    ${dayCompareHTML()}
     <div class="section-title">Resumen de la semana</div>${summaryHTML()}
     <div class="section-title">Ajuste de calorías por tendencia</div>${adjustHTML()}
     <div class="section-title">Peso corporal</div>
