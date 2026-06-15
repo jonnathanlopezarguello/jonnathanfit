@@ -1,377 +1,380 @@
 from openpyxl import Workbook
-from openpyxl.styles import (PatternFill, Font, Alignment, Border, Side,
-                              GradientFill)
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 wb = Workbook()
 
 # ─── PALETA TIERRA ────────────────────────────────────────────────────────────
-SAND     = "F5ECD7"   # arena clara  (fondo general)
-LINEN    = "FAF3E8"   # lino         (filas alternas)
-TERR     = "C98B6B"   # terracota    (headers)
-CLAY     = "A0634A"   # arcilla oscura (títulos)
-SAGE     = "9DAD8E"   # salvia       (barra fase 1)
-WARM     = "C4A882"   # arena dorada (barra fase 2)
-RUST     = "C07B5A"   # óxido        (barra fase 3)
-MOSS     = "7E9B7B"   # musgo        (barra fase 4)
-DUST     = "B89F88"   # polvo        (barra fase 5)
-TEXT_D   = "3C2F22"   # texto oscuro
-TEXT_L   = "FFFFFF"   # blanco
-MUTED    = "8C7B6E"   # gris tierra
+SAND  = "F5ECD7"; LINEN = "FAF3E8"; TERR  = "C98B6B"; CLAY  = "A0634A"
+SAGE  = "9DAD8E"; WARM  = "C4A882"; RUST  = "C07B5A"; MOSS  = "7E9B7B"
+DUST  = "B89F88"; TEXT_D= "3C2F22"; TEXT_L= "FFFFFF"; MUTED = "8C7B6E"
+GREEN = "7A9B6A"; RED   = "C07070"
 
-def side(style="thin", color="E8DDD0"):
-    return Side(style=style, color=color)
+RATE  = 4400   # 1 USD ≈ 4 400 COP (junio 2026 estimado)
 
-def border(all_sides="thin"):
-    s = side(all_sides)
-    return Border(left=s, right=s, top=s, bottom=s)
-
-def fill(hex_color):
-    return PatternFill("solid", fgColor=hex_color)
-
-def font(bold=False, size=10, color=TEXT_D, italic=False):
-    return Font(name="Calibri", bold=bold, size=size, color=color, italic=italic)
-
+def cop(usd): return f"$ {usd*RATE:,.0f}" if usd else "GRATIS"
+def side(s="thin", c="E8DDD0"): return Side(style=s, color=c)
+def fill(h): return PatternFill("solid", fgColor=h)
+def font(bold=False, sz=10, color=TEXT_D, italic=False):
+    return Font(name="Calibri", bold=bold, size=sz, color=color, italic=italic)
 def align(h="left", v="center", wrap=False):
     return Alignment(horizontal=h, vertical=v, wrap_text=wrap)
+def border(s="thin"):
+    t = side(s); return Border(left=t, right=t, top=t, bottom=t)
+def thin_border():
+    return Border(left=side("thin"), right=side("thin"),
+                  top=side("hair"), bottom=side("hair"))
 
-# ══════════════════════════════════════════════════════════════════════════════
-# HOJA 1 — RESUMEN
-# ══════════════════════════════════════════════════════════════════════════════
-ws1 = wb.active
-ws1.title = "Hoja de Ruta"
+def sec_hdr(ws, row, txt):
+    ws.merge_cells(f"A{row}:F{row}")
+    c = ws[f"A{row}"]; c.value = txt.upper()
+    c.font = font(True, 9, TEXT_L); c.fill = fill(TERR)
+    c.alignment = align("left","center"); ws.row_dimensions[row].height = 22
 
-ws1.sheet_view.showGridLines = False
-ws1.column_dimensions["A"].width = 28
-ws1.column_dimensions["B"].width = 42
-ws1.column_dimensions["C"].width = 18
-ws1.column_dimensions["D"].width = 18
-
-# Fondo general
-for row in ws1.iter_rows(min_row=1, max_row=80, min_col=1, max_col=8):
-    for cell in row:
-        cell.fill = fill(LINEN)
-
-# ── Título principal ──
-ws1.merge_cells("A1:D1")
-c = ws1["A1"]
-c.value = "JONNATHAN FIT — Hoja de Ruta hacia App Real"
-c.font = font(bold=True, size=15, color=CLAY)
-c.fill = fill(SAND)
-c.alignment = align("left", "center")
-ws1.row_dimensions[1].height = 36
-
-ws1.merge_cells("A2:D2")
-c = ws1["A2"]
-c.value = "Plan de desarrollo para App Store + Play Store con backend y personalización científica"
-c.font = font(size=10, color=MUTED, italic=True)
-c.fill = fill(SAND)
-c.alignment = align("left", "center")
-ws1.row_dimensions[2].height = 20
-
-ws1.row_dimensions[3].height = 10
-
-# ── Sección: Componentes Necesarios ──
-def section_header(ws, row, text, col_span="A:D"):
-    ws.merge_cells(f"A{row}:D{row}")
-    c = ws[f"A{row}"]
-    c.value = text.upper()
-    c.font = font(bold=True, size=9, color=TEXT_L)
-    c.fill = fill(TERR)
-    c.alignment = align("left", "center")
-    ws.row_dimensions[row].height = 22
-
-def col_headers(ws, row, cols, fills=None):
-    for i, (col, text) in enumerate(cols.items()):
-        c = ws[f"{col}{row}"]
-        c.value = text
-        c.font = font(bold=True, size=9, color=TEXT_D)
-        c.fill = fill(fills[i] if fills else SAND)
-        c.alignment = align("center", "center")
-        c.border = border()
+def hdr_row(ws, row, cols, bg=SAND):
+    keys = list(cols.keys()); letters = list("ABCDEF")
+    for i,(col,txt) in enumerate(cols.items()):
+        c = ws[f"{col}{row}"]; c.value = txt
+        c.font = font(True, 9); c.fill = fill(bg)
+        c.alignment = align("center","center"); c.border = border()
     ws.row_dimensions[row].height = 18
 
-def data_row(ws, row, vals, alt=False):
-    bg = SAND if alt else LINEN
-    cols = list("ABCD")[:len(vals)]
+def dat(ws, row, vals, alt=False):
+    bg = SAND if alt else LINEN; cols = list("ABCDEF")[:len(vals)]
     for col, val in zip(cols, vals):
-        c = ws[f"{col}{row}"]
-        c.value = val
-        c.font = font(size=9)
-        c.fill = fill(bg)
-        c.alignment = align("left", "center", wrap=True)
-        c.border = Border(
-            left=side("thin"),  right=side("thin"),
-            top=side("hair"),   bottom=side("hair"))
-    ws.row_dimensions[row].height = 30
+        c = ws[f"{col}{row}"]; c.value = val
+        c.font = font(sz=9); c.fill = fill(bg)
+        c.alignment = align("left","center",wrap=True); c.border = thin_border()
+    ws.row_dimensions[row].height = 28
 
-section_header(ws1, 4, "1. Backend y Base de Datos")
-col_headers(ws1, 5, {"A":"Componente","B":"Descripción","C":"Tecnología","D":"Costo Estimado"})
-backend = [
-    ("Base de datos",    "Usuarios, workouts, comidas, perfiles",       "PostgreSQL / Supabase",  "Gratis hasta 500 MB"),
-    ("API / Servidor",   "Lógica de negocio, cálculos científicos",     "Node.js / FastAPI",      "$20–100 / mes"),
-    ("Autenticación",    "Email, Google, Apple ID con JWT tokens",       "Supabase Auth",          "Incluido"),
-    ("Hosting",          "Infraestructura en la nube",                   "AWS / Google Cloud",     "$20–50 / mes"),
-]
-for i, row_data in enumerate(backend):
-    data_row(ws1, 6+i, row_data, alt=bool(i%2))
+# ══════════════════════════════════════════════════════════════════════════════
+# HOJA 1 — COSTOS EN COP + QUIÉN / CÓMO PAGAR
+# ══════════════════════════════════════════════════════════════════════════════
+ws1 = wb.active; ws1.title = "Costos COP"
+ws1.sheet_view.showGridLines = False
+for row in ws1.iter_rows(min_row=1, max_row=90, min_col=1, max_col=8):
+    for cell in row: cell.fill = fill(LINEN)
 
-ws1.row_dimensions[10].height = 8
-section_header(ws1, 11, "2. App Store y Play Store")
-col_headers(ws1, 12, {"A":"Plataforma","B":"Tecnología Recomendada","C":"Tiempo","D":"Costo"})
-stores = [
-    ("Play Store (Android)", "TWA (Trusted Web Activity) — usa la PWA actual",     "1–2 semanas",  "$25 único"),
-    ("App Store (iOS)",      "React Native (una base de código para ambas plat.)",  "3–6 meses",    "$99 / año"),
-    ("Alternativa rápida",   "Flutter — Dart, alto rendimiento nativo",             "3–6 meses",    "Desarrollador"),
-]
-for i, row_data in enumerate(stores):
-    data_row(ws1, 13+i, row_data, alt=bool(i%2))
+ws1.column_dimensions["A"].width = 22
+ws1.column_dimensions["B"].width = 28
+ws1.column_dimensions["C"].width = 14
+ws1.column_dimensions["D"].width = 16
+ws1.column_dimensions["E"].width = 22
+ws1.column_dimensions["F"].width = 26
 
-ws1.row_dimensions[16].height = 8
-section_header(ws1, 17, "3. Personalización Científica")
-col_headers(ws1, 18, {"A":"Módulo","B":"Descripción","C":"Modelo Científico","D":"Fuente"})
-science = [
-    ("Calorías TDEE",     "Gasto calórico total según perfil y actividad",        "Mifflin-St Jeor",       "Harris & Benedict 1919"),
-    ("Proteína óptima",   "Rango recomendado para hipertrofia o pérdida de grasa","1.6–2.2 g/kg corporal", "Morton et al. 2018"),
-    ("Volumen entreno",   "Series semanales por grupo muscular (MEV/MAV/MRV)",    "Modelo Israetel",       "Renaissance Periodization"),
-    ("Progresión cargas", "Sube peso cuando RIR real > RIR objetivo 2 sesiones",  "Doble progresión",      "Israetel & Hoffman"),
-    ("Periodización",     "Deload automático cada 4–6 semanas",                   "Mesociclo estándar",    "Helms, Morgan & Valdez"),
-    ("IA coaching",       "Respuestas personalizadas basadas en historial",        "Claude API (LLM)",      "Anthropic"),
-]
-for i, row_data in enumerate(science):
-    data_row(ws1, 19+i, row_data, alt=bool(i%2))
+# Título
+ws1.merge_cells("A1:F1"); c = ws1["A1"]
+c.value = "JONNATHAN FIT — Costos en Pesos Colombianos (COP)"; c.font = font(True, 15, CLAY)
+c.fill = fill(SAND); c.alignment = align("left","center"); ws1.row_dimensions[1].height = 36
 
-ws1.row_dimensions[25].height = 8
-section_header(ws1, 26, "4. Costos Totales Estimados (Inicio)")
-col_headers(ws1, 27, {"A":"Ítem","B":"Detalle","C":"Costo","D":"Tipo"})
-costs = [
-    ("Supabase Backend",     "Auth + DB hasta 500 MB",            "Gratis",         "Mensual"),
-    ("Dominio propio",       "jonnathanfit.com o similar",         "$12",            "Anual"),
-    ("Play Store",           "Cuenta desarrollador Google",        "$25",            "Único"),
-    ("App Store",            "Cuenta desarrollador Apple",         "$99",            "Anual"),
-    ("Hosting escalable",    "Cuando superes el plan gratuito",    "$20–100",        "Mensual"),
-    ("Desarrollador",        "React Native (depende del país)",    "$3,000–15,000",  "Por proyecto"),
+ws1.merge_cells("A2:F2"); c = ws1["A2"]
+c.value = f"Tasa de cambio estimada: 1 USD ≈ $ {RATE:,} COP (junio 2026)  ·  Todos los precios son aproximados"
+c.font = font(sz=9, color=MUTED, italic=True); c.fill = fill(SAND)
+c.alignment = align("left","center"); ws1.row_dimensions[2].height = 18
+ws1.row_dimensions[3].height = 8
+
+# ── SECCIÓN 1: PAGOS A PLATAFORMAS ──
+sec_hdr(ws1, 4, "1. Pagos a plataformas (costos fijos)")
+hdr_row(ws1, 5, {"A":"Servicio","B":"Qué es","C":"USD","D":"COP","E":"Dónde pagar","F":"Método de pago Colombia"})
+plataformas = [
+    ("Supabase (plan gratuito)",
+     "Backend, base de datos y autenticación",
+     "GRATIS","GRATIS",
+     "supabase.com",
+     "No requiere pago inicial"),
+    ("Google Play Console",
+     "Publicar app en Play Store (pago único)",
+     "USD 25", cop(25),
+     "play.google.com/console",
+     "Tarjeta débito/crédito Visa o Mastercard con cupo internacional (Bancolombia, Davivienda, Nequi Virtual)"),
+    ("Apple Developer Program",
+     "Publicar en App Store (anual)",
+     "USD 99/año", cop(99)+"/año",
+     "developer.apple.com",
+     "Tarjeta de crédito internacional con cupo en USD (Bancolombia, Scotiabank, Falabella)"),
+    ("Dominio .com o .fit",
+     "Nombre propio ej. jonnathanfit.com",
+     "USD 12/año", cop(12)+"/año",
+     "namecheap.com / porkbun.com",
+     "Tarjeta débito internacional o PayPal · También GoDaddy Colombia acepta PSE"),
+    ("Supabase Pro (si escala)",
+     "Más almacenamiento y funciones avanzadas",
+     "USD 25/mes", cop(25)+"/mes",
+     "supabase.com/pricing",
+     "Tarjeta débito/crédito con cupo internacional"),
+    ("Hosting adicional (AWS/GCP)",
+     "Cuando la app crezca más de 500 usuarios activos",
+     "USD 20–100/mes", f"$ {20*RATE:,}–{100*RATE:,}/mes",
+     "aws.amazon.com / cloud.google.com",
+     "Tarjeta internacional o cuenta AWS con factura en COP"),
 ]
-for i, row_data in enumerate(costs):
-    data_row(ws1, 28+i, row_data, alt=bool(i%2))
+for i, r in enumerate(plataformas):
+    dat(ws1, 6+i, r, alt=bool(i%2))
+
+ws1.row_dimensions[12].height = 8
+
+# ── SECCIÓN 2: DESARROLLADOR ──
+sec_hdr(ws1, 13, "2. Desarrollador React Native — opciones en Colombia y Latinoamérica")
+hdr_row(ws1, 14, {"A":"Opción","B":"Perfil","C":"Tarifa/hora","D":"Costo estimado","E":"Dónde encontrar","F":"Cómo pagar"})
+devs = [
+    ("Freelancer Colombia Jr",
+     "1–2 años experiencia React Native",
+     "USD 10–15/h", f"$ {10*160*RATE:,.0f}–{15*160*RATE:,.0f}\npor mes",
+     "Workana.com · Freelancer.com",
+     "Transferencia Bancolombia, Nequi, Daviplata o Efecty"),
+    ("Freelancer Colombia Mid",
+     "3–5 años, entrega más rápido y con menos errores",
+     "USD 20–30/h", f"$ {20*160*RATE:,.0f}–{30*160*RATE:,.0f}\npor mes",
+     "Workana.com · LinkedIn Colombia",
+     "Transferencia bancaria, Nequi o PayPal"),
+    ("Agencia Colombia (MVP)",
+     "Empresa local, incluye diseño y QA",
+     "USD 5,000–15,000",f"$ {5000*RATE:,.0f}–\n$ {15000*RATE:,.0f}\ntotal",
+     "Medellín/Bogotá Digital, Koombea, Yuxi Global",
+     "Factura en COP, transferencia bancaria, pago por hitos"),
+    ("Freelancer Latam Senior",
+     "Argentina, México, Chile — experiencia en apps fitness",
+     "USD 30–50/h", f"$ {30*160*RATE:,.0f}–{50*160*RATE:,.0f}\npor mes",
+     "Toptal · Upwork · LinkedIn",
+     "PayPal, Wise, o tarjeta de crédito"),
+    ("Desarrollador propio",
+     "Aprender React Native (cursos Udemy/Platzi)",
+     "Cursos: USD 20–200",f"$ {20*RATE:,.0f}–\n$ {200*RATE:,.0f}\ncursos",
+     "Platzi.com · Udemy.com",
+     "Tarjeta débito/crédito · Nequi · PSE en Platzi"),
+]
+for i, r in enumerate(devs):
+    dat(ws1, 15+i, r, alt=bool(i%2))
+
+ws1.row_dimensions[20].height = 8
+
+# ── SECCIÓN 3: RESUMEN TOTAL ──
+sec_hdr(ws1, 21, "3. Resumen total del proyecto — presupuesto mínimo y máximo")
+hdr_row(ws1, 22, {"A":"Fase","B":"Descripción","C":"Mín COP","D":"Máx COP","E":"Cuándo se paga","F":"Notas"})
+resumen = [
+    ("Fase 1 – Backend",    "Supabase + configuración",                  "GRATIS",                    "GRATIS",                     "Semanas 1–2",     "Solo tiempo, cero costo"),
+    ("Fase 2 – Play Store", "Google Play Console + TWA",                  cop(25),                     cop(25),                      "Semanas 3–4",     "Pago único, nunca más"),
+    ("Fase 3 – App nativa", "Desarrollador React Native (2 meses)",       f"$ {5000*RATE:,.0f}",       f"$ {15000*RATE:,.0f}",       "Meses 2–3",       "Pago por hitos: 30/40/30 %"),
+    ("Fase 4 – Ciencia",    "Motor personalización (adicional o incluido)",f"$ {500*RATE:,.0f}",        f"$ {3000*RATE:,.0f}",        "Meses 4–5",       "Suele incluirse en Fase 3"),
+    ("Fase 5 – App Store",  "Apple Developer Program",                    cop(99)+"/año",              cop(99)+"/año",               "Mes 6+",          "Renovar cada año"),
+    ("Hosting recurrente",  "Supabase Pro + dominio (anual)",             f"$ {(25*12+12)*RATE:,.0f}/año",f"$ {(100*12+12)*RATE:,.0f}/año","Mensual/Anual","Crece con usuarios"),
+    ("TOTAL PROYECTO",      "Lanzamiento completo (sin dev propio)",      f"$ {(25+99+500)*RATE:,.0f}",f"$ {(25+99+15000+3000)*RATE:,.0f}","—",          "Rango según desarrollador elegido"),
+]
+for i, r in enumerate(resumen):
+    if i == len(resumen)-1:
+        # fila total en negrita
+        bg = TERR
+        for j, (col, val) in enumerate(zip("ABCDEF", r)):
+            c = ws1[f"{col}{23+i}"]; c.value = val
+            c.font = font(True, 9, TEXT_L); c.fill = fill(bg)
+            c.alignment = align("center","center",wrap=True); c.border = border()
+        ws1.row_dimensions[23+i].height = 28
+    else:
+        dat(ws1, 23+i, r, alt=bool(i%2))
+
+# ── SECCIÓN 4: MÉTODOS DE PAGO INTERNACIONALES DESDE COLOMBIA ──
+ws1.row_dimensions[30].height = 8
+sec_hdr(ws1, 31, "4. Cómo pagar servicios internacionales desde Colombia")
+hdr_row(ws1, 32, {"A":"Método","B":"Cómo funciona","C":"Límite aprox.","D":"Costo","E":"Ideal para","F":"Banco / App"})
+pagos = [
+    ("Tarjeta débito virtual Nequi",
+     "Genera tarjeta Visa virtual con cupo en COP para pagar en USD",
+     "USD 1,500/mes","Gratis",
+     "Play Store, dominios, Supabase",
+     "Nequi (Bancolombia)"),
+    ("Tarjeta crédito internacional",
+     "Tarjeta Visa/Mastercard con cupo en USD habilitado",
+     "Según cupo","Comisión ~3% TRM",
+     "Todo: Apple, Google, AWS, Supabase",
+     "Bancolombia, Davivienda, Scotiabank, Falabella"),
+    ("Tarjeta Nu (Nubank Colombia)",
+     "Tarjeta crédito Mastercard sin comisión por uso internacional",
+     "Según cupo","Sin comisión",
+     "Todo — la más conveniente en Colombia",
+     "Nubank Colombia (app)"),
+    ("Wise (Transferwise)",
+     "Cuenta en USD, envía y recibe en múltiples monedas",
+     "Sin límite","~0.5–1% conversión",
+     "Pagar freelancers internacionales, AWS",
+     "wise.com"),
+    ("PayPal",
+     "Cuenta vinculada a banco colombiano para pagos internacionales",
+     "USD 10,000/año","~3.5% conversión",
+     "Freelancers, Namecheap, Udemy",
+     "paypal.com"),
+    ("PSE / transferencia COP",
+     "Pago directo en pesos en sitios con convenio Colombia",
+     "Sin límite","Según banco",
+     "GoDaddy Colombia, Platzi, algunas agencias locales",
+     "Cualquier banco colombiano"),
+]
+for i, r in enumerate(pagos):
+    dat(ws1, 33+i, r, alt=bool(i%2))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# HOJA 2 — GANTT MINIMALISTA
+# HOJA 2 — GANTT CON PRESUPUESTO POR FASE
 # ══════════════════════════════════════════════════════════════════════════════
 ws2 = wb.create_sheet("Gantt")
 ws2.sheet_view.showGridLines = False
+for row in ws2.iter_rows(min_row=1, max_row=60, min_col=1, max_col=13):
+    for cell in row: cell.fill = fill(LINEN)
 
-# Ancho columnas
-ws2.column_dimensions["A"].width = 32   # nombre fase
-ws2.column_dimensions["B"].width = 14   # duración
+ws2.column_dimensions["A"].width = 30
+ws2.column_dimensions["B"].width = 13
+ws2.column_dimensions["C"].width = 18
 
 MONTHS = ["Sem 1–2","Sem 3–4","Mes 2","Mes 3","Mes 4","Mes 5","Mes 6","Mes 7+"]
-BAR_COLS = list("CDEFGHIJ")  # 8 columnas para los meses
+BAR_COLS = list("DEFGHIJK")
 
-for i, col in enumerate(BAR_COLS):
-    ws2.column_dimensions[col].width = 10
+for col in BAR_COLS:
+    ws2.column_dimensions[col].width = 9
 
-# Fondo
-for row in ws2.iter_rows(min_row=1, max_row=40, min_col=1, max_col=12):
-    for cell in row:
-        cell.fill = fill(LINEN)
+# Título
+ws2.merge_cells("A1:K1"); c = ws2["A1"]
+c.value = "GANTT — JONNATHAN FIT · Presupuesto por Fase (COP)"; c.font = font(True, 14, CLAY)
+c.fill = fill(SAND); c.alignment = align("left","center"); ws2.row_dimensions[1].height = 34
 
-# ── Título Gantt ──
-ws2.merge_cells("A1:J1")
-c = ws2["A1"]
-c.value = "DIAGRAMA DE GANTT — JONNATHAN FIT"
-c.font = font(bold=True, size=14, color=CLAY)
-c.fill = fill(SAND)
-c.alignment = align("left", "center")
-ws2.row_dimensions[1].height = 34
-
-ws2.merge_cells("A2:J2")
-c = ws2["A2"]
-c.value = "Hoja de ruta de desarrollo · Tonos tierra · Mínimo viable → App real"
-c.font = font(size=9, color=MUTED, italic=True)
-c.fill = fill(SAND)
-c.alignment = align("left", "center")
-ws2.row_dimensions[2].height = 18
-
+ws2.merge_cells("A2:K2"); c = ws2["A2"]
+c.value = f"Tasa estimada: 1 USD ≈ $ {RATE:,} COP  ·  Tonos tierra  ·  Mínimo viable → App Store + Play Store"
+c.font = font(sz=9, color=MUTED, italic=True); c.fill = fill(SAND)
+c.alignment = align("left","center"); ws2.row_dimensions[2].height = 18
 ws2.row_dimensions[3].height = 8
 
-# ── Encabezados columnas ──
-ws2["A4"].value = "FASE"
-ws2["A4"].font = font(bold=True, size=9, color=TEXT_L)
-ws2["A4"].fill = fill(CLAY)
-ws2["A4"].alignment = align("left", "center")
-ws2["A4"].border = border()
+# Encabezados
+for cell_ref, txt, bg in [("A4","FASE",CLAY),("B4","PRESUPUESTO COP",CLAY),("C4","QUIÉN PAGAR",CLAY)]:
+    c = ws2[cell_ref]; c.value = txt
+    c.font = font(True, 9, TEXT_L); c.fill = fill(bg)
+    c.alignment = align("center","center"); c.border = border()
 
-ws2["B4"].value = "DURACIÓN"
-ws2["B4"].font = font(bold=True, size=9, color=TEXT_L)
-ws2["B4"].fill = fill(CLAY)
-ws2["B4"].alignment = align("center", "center")
-ws2["B4"].border = border()
-
-for i, (col, month) in enumerate(zip(BAR_COLS, MONTHS)):
-    c = ws2[f"{col}4"]
-    c.value = month
-    c.font = font(bold=True, size=8, color=TEXT_D)
-    c.fill = fill(SAND)
-    c.alignment = align("center", "center")
-    c.border = border()
+for i,(col,month) in enumerate(zip(BAR_COLS, MONTHS)):
+    c = ws2[f"{col}4"]; c.value = month
+    c.font = font(True, 8); c.fill = fill(SAND)
+    c.alignment = align("center","center"); c.border = border()
 ws2.row_dimensions[4].height = 22
 
-# ── Datos de las fases ──
-# (nombre, detalle, duración_texto, color_bar, col_inicio, col_fin)
+# Fases: (nombre, presupuesto_texto, quien_pagar, color, col_s, col_e)
 phases = [
-    ("01  Supabase + Auth",
-     "Backend, cuentas, sincronización de datos con la PWA actual",
-     "2 semanas", SAGE, "C", "D"),
-    ("02  Play Store (TWA)",
-     "Publicar la PWA en Google Play sin reescribir código",
-     "2 semanas", WARM, "D", "E"),
-    ("03  React Native",
-     "App nativa para iOS y Android con la misma lógica",
-     "2 meses", RUST, "E", "G"),
-    ("04  Motor Científico",
-     "TDEE, macros, progresión, periodización automática por usuario",
-     "2 meses", MOSS, "G", "I"),
-    ("05  App Store (iOS)",
-     "Publicación en Apple App Store (requiere cuenta $99/año)",
-     "1 mes", DUST, "I", "J"),
+    ("01  Supabase + Auth\nConectar backend a la PWA actual",
+     "GRATIS",
+     "supabase.com\n(tarjeta, plan free)",
+     SAGE, "D", "F"),
+    ("02  Play Store vía TWA\nPublicar sin reescribir código",
+     cop(25)+"\n(pago único)",
+     "Google Play Console\nTarjeta Nequi / Nubank",
+     WARM, "F", "H"),
+    ("03  React Native\nApp nativa iOS + Android",
+     f"$ {5000*RATE:,.0f} – $ {15000*RATE:,.0f}\n(dev 2 meses · pago por hitos)",
+     "Workana.com / Agencia\nTransferencia bancaria",
+     RUST, "H", "J"),
+    ("04  Motor Científico\nPersonalización por usuario",
+     f"$ {500*RATE:,.0f} – $ {3000*RATE:,.0f}\n(incluido en dev o adicional)",
+     "Mismo desarrollador\n+ Claude API (Anthropic)",
+     MOSS, "J", "K"),
+    ("05  App Store iOS\nRevisión + publicación Apple",
+     cop(99)+"/año\n(cuenta Apple Developer)",
+     "developer.apple.com\nTarjeta crédito internacional",
+     DUST, "K", "K"),
 ]
 
-colors = [SAGE, WARM, RUST, MOSS, DUST]
+for ri, (name, budget, who, bar_color, col_s, col_e) in enumerate(phases):
+    row = 5 + ri * 4
+    alt_bg = SAND if ri % 2 == 0 else LINEN
 
-for row_idx, (name, detail, dur, bar_color, col_s, col_e) in enumerate(phases):
-    row = 5 + row_idx * 3
+    start_i = BAR_COLS.index(col_s) if col_s in BAR_COLS else 0
+    end_i   = (BAR_COLS.index(col_e) + 1) if col_e in BAR_COLS else len(BAR_COLS)
 
-    # Fondo de la fila
-    alt_bg = SAND if row_idx % 2 == 0 else LINEN
-
-    # Celda nombre
-    ws2.merge_cells(f"A{row}:A{row+1}")
-    c = ws2[f"A{row}"]
-    c.value = name
-    c.font = font(bold=True, size=9, color=TEXT_D)
-    c.fill = fill(alt_bg)
-    c.alignment = align("left", "center", wrap=True)
+    # Nombre fase (3 rows de alto)
+    ws2.merge_cells(f"A{row}:A{row+2}")
+    c = ws2[f"A{row}"]; c.value = name
+    c.font = font(True, 9); c.fill = fill(alt_bg)
+    c.alignment = align("left","center",wrap=True)
     c.border = Border(left=side("thin"), right=side("thin"),
                       top=side("thin"), bottom=side("thin"))
 
-    # Celda duración
-    ws2.merge_cells(f"B{row}:B{row+1}")
-    c = ws2[f"B{row}"]
-    c.value = dur
-    c.font = font(size=8, color=MUTED, italic=True)
-    c.fill = fill(alt_bg)
-    c.alignment = align("center", "center")
+    # Presupuesto
+    ws2.merge_cells(f"B{row}:B{row+2}")
+    c = ws2[f"B{row}"]; c.value = budget
+    c.font = font(True, 9, CLAY); c.fill = fill(alt_bg)
+    c.alignment = align("center","center",wrap=True)
     c.border = Border(left=side("thin"), right=side("thin"),
                       top=side("thin"), bottom=side("thin"))
 
-    # Detalle fila 2
-    # (ya mergeado arriba)
+    # Quién pagar
+    ws2.merge_cells(f"C{row}:C{row+2}")
+    c = ws2[f"C{row}"]; c.value = who
+    c.font = font(sz=8, color=MUTED, italic=True); c.fill = fill(alt_bg)
+    c.alignment = align("left","center",wrap=True)
+    c.border = Border(left=side("thin"), right=side("thin"),
+                      top=side("thin"), bottom=side("thin"))
 
-    # Barras de Gantt
-    start_i = BAR_COLS.index(col_s)
-    end_i   = BAR_COLS.index(col_e)
-
+    # Barras Gantt (3 filas de altura)
     for ci, col in enumerate(BAR_COLS):
-        for ri in [row, row+1]:
-            c = ws2[f"{col}{ri}"]
-            if start_i <= ci < end_i:
-                c.fill = fill(bar_color)
-                if ci == start_i:
-                    c.border = Border(left=side("medium", bar_color),
-                                      top=side("thin", bar_color),
-                                      bottom=side("thin", bar_color),
-                                      right=side("hair", "E8DDD0"))
-                elif ci == end_i - 1:
-                    c.border = Border(right=side("medium", bar_color),
-                                      top=side("thin", bar_color),
-                                      bottom=side("thin", bar_color),
-                                      left=side("hair", "E8DDD0"))
-                else:
-                    c.border = Border(top=side("thin", bar_color),
-                                      bottom=side("thin", bar_color),
-                                      left=side("hair", "E8DDD0"),
-                                      right=side("hair", "E8DDD0"))
-            else:
-                c.fill = fill(alt_bg)
-                c.border = Border(left=side("hair"), right=side("hair"),
-                                  top=side("hair"), bottom=side("hair"))
+        in_bar = start_i <= ci < end_i
+        for sub in range(3):
+            c = ws2[f"{col}{row+sub}"]
+            c.fill = fill(bar_color if in_bar else alt_bg)
+            c.border = Border(
+                top=side("hair", bar_color if in_bar else "E8DDD0"),
+                bottom=side("hair", bar_color if in_bar else "E8DDD0"),
+                left=side("thin" if (in_bar and ci==start_i) else "hair",
+                          bar_color if in_bar else "E8DDD0"),
+                right=side("thin" if (in_bar and ci==end_i-1) else "hair",
+                           bar_color if in_bar else "E8DDD0"))
 
-    # Etiqueta dentro de la barra (fila superior)
-    merge_start = f"{col_s}{row}"
-    merge_end   = f"{BAR_COLS[end_i-1]}{row}"
-    if col_s != BAR_COLS[end_i-1]:
-        ws2.merge_cells(f"{merge_start}:{merge_end}")
-    c = ws2[merge_start]
-    c.value = name.split("  ")[1] if "  " in name else name
-    c.font  = font(bold=True, size=8, color=TEXT_L)
-    c.fill  = fill(bar_color)
-    c.alignment = align("center", "center")
+    # Etiqueta en barra (fila del medio)
+    label_col_s = col_s if col_s in BAR_COLS else BAR_COLS[0]
+    label_col_e = BAR_COLS[min(end_i-1, len(BAR_COLS)-1)]
+    if label_col_s != label_col_e:
+        ws2.merge_cells(f"{label_col_s}{row+1}:{label_col_e}{row+1}")
+    c = ws2[f"{label_col_s}{row+1}"]
+    c.value = name.split("\n")[0].split("  ")[1] if "  " in name else name.split("\n")[0]
+    c.font = font(True, 8, TEXT_L); c.fill = fill(bar_color)
+    c.alignment = align("center","center")
 
-    # Fila de detalle (merge barra)
-    merge_start2 = f"{col_s}{row+1}"
-    merge_end2   = f"{BAR_COLS[end_i-1]}{row+1}"
-    if col_s != BAR_COLS[end_i-1]:
-        ws2.merge_cells(f"{merge_start2}:{merge_end2}")
-    c = ws2[merge_start2]
-    c.value = detail
-    c.font  = font(size=7, color=TEXT_L, italic=True)
-    c.fill  = fill(bar_color)
-    c.alignment = align("center", "center", wrap=True)
+    ws2.row_dimensions[row].height   = 18
+    ws2.row_dimensions[row+1].height = 18
+    ws2.row_dimensions[row+2].height = 18
+    ws2.row_dimensions[row+3].height = 6
 
-    ws2.row_dimensions[row].height   = 20
-    ws2.row_dimensions[row+1].height = 24
-    ws2.row_dimensions[row+2].height = 6  # espacio entre fases
+# ── FILA TOTALES ──
+total_row = 5 + len(phases)*4 + 1
+ws2.merge_cells(f"A{total_row}:K{total_row}")
+c = ws2[f"A{total_row}"]
+c.value = (f"TOTAL ESTIMADO:  mínimo $ {(25+99+500)*RATE:,.0f} COP  ·  "
+           f"máximo $ {(25+99+15000+3000)*RATE:,.0f} COP  "
+           f"(sin contar hosting mensual recurrente)")
+c.font = font(True, 10, TEXT_L); c.fill = fill(CLAY)
+c.alignment = align("center","center"); c.border = border()
+ws2.row_dimensions[total_row].height = 26
 
-# ── Leyenda ──
-legend_row = 5 + len(phases) * 3 + 1
-ws2.merge_cells(f"A{legend_row}:J{legend_row}")
-c = ws2[f"A{legend_row}"]
-c.value = "LEYENDA"
-c.font = font(bold=True, size=8, color=TEXT_L)
-c.fill = fill(TERR)
-c.alignment = align("left", "center")
-ws2.row_dimensions[legend_row].height = 18
+# ── LEYENDA COLORES ──
+leg_row = total_row + 2
+ws2.merge_cells(f"A{leg_row}:C{leg_row}")
+c = ws2[f"A{leg_row}"]; c.value = "LEYENDA"
+c.font = font(True, 8, TEXT_L); c.fill = fill(TERR)
+c.alignment = align("left","center"); ws2.row_dimensions[leg_row].height = 18
 
-legend_items = [
-    (SAGE, "Backend / Auth"),
-    (WARM, "Play Store"),
-    (RUST, "App Nativa"),
-    (MOSS, "Motor Científico"),
-    (DUST, "App Store iOS"),
-]
-lr = legend_row + 1
-for idx, (color, label) in enumerate(legend_items):
-    col_color = BAR_COLS[idx * 2] if idx * 2 < len(BAR_COLS) else "I"
-    col_label_idx = idx * 2 + 1
-    col_label = BAR_COLS[col_label_idx] if col_label_idx < len(BAR_COLS) else "J"
+legend = [(SAGE,"Fase 1 – Gratis"),(WARM,"Fase 2 – $ 110.000"),(RUST,"Fase 3 – $ 22M – 66M"),(MOSS,"Fase 4 – $ 2,2M – 13,2M"),(DUST,"Fase 5 – $ 435.600/año")]
+for idx,(color,lbl) in enumerate(legend):
+    c1 = ws2[f"{BAR_COLS[idx*0]}{leg_row+1}"] if idx==0 else ws2[f"D{leg_row+1}"]
+    # simplificado: usar columnas D..K
+    bcol = BAR_COLS[idx] if idx < len(BAR_COLS) else "K"
+    c = ws2[f"{bcol}{leg_row+1}"]
+    c.value = lbl; c.font = font(True, 8, TEXT_L)
+    c.fill = fill(color); c.alignment = align("center","center"); c.border = border()
+ws2.row_dimensions[leg_row+1].height = 18
 
-    c = ws2[f"{col_color}{lr}"]
-    c.fill = fill(color)
-    c.border = border()
-
-    c2 = ws2[f"{col_label}{lr}"]
-    c2.value = label
-    c2.font = font(size=8, color=TEXT_D)
-    c2.fill = fill(LINEN)
-    c2.alignment = align("left", "center")
-    c2.border = border()
-
-ws2.row_dimensions[lr].height = 18
-
-# ── Notas al pie ──
-note_row = lr + 2
-ws2.merge_cells(f"A{note_row}:J{note_row}")
+# ── NOTA ──
+note_row = leg_row + 3
+ws2.merge_cells(f"A{note_row}:K{note_row}")
 c = ws2[f"A{note_row}"]
-c.value = ("Nota: Los tiempos son estimados. La fase 1 (Supabase) puede iniciarse de inmediato con la PWA actual. "
-           "Play Store vía TWA es el camino más rápido al mercado. La App Store requiere cuenta Apple y revisión (~1–2 semanas extra).")
-c.font = font(size=8, color=MUTED, italic=True)
-c.fill = fill(LINEN)
-c.alignment = align("left", "center", wrap=True)
-ws2.row_dimensions[note_row].height = 30
+c.value = ("Nota: Tasa de cambio referencial (no financiero). Fase 1 puede comenzar de inmediato. "
+           "Para ahorrar, se recomienda contratar desarrollador en Colombia vía Workana o estudiar React Native en Platzi/Udemy. "
+           "Nubank Colombia es la mejor opción para pagos internacionales sin comisión.")
+c.font = font(sz=8, color=MUTED, italic=True); c.fill = fill(LINEN)
+c.alignment = align("left","center",wrap=True); ws2.row_dimensions[note_row].height = 32
 
-# ── Guardar ──
-path = "/home/user/jonnathanfit/JonnathanFit_HojaDeRuta.xlsx"
+path = "/home/user/jonnathanfit/JonnathanFit_HojaDeRuta_COP.xlsx"
 wb.save(path)
 print(f"Guardado: {path}")
