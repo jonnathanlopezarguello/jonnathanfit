@@ -448,8 +448,8 @@ body.light .demo-photo img{filter:grayscale(1) contrast(1.02)}
 const KEY='jfit.v1';
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
 const def={
-  profile:{name:'',sex:'male',age:25,weight:79,height:176,activity:1.55,goal:'bulk',days:4,proteinPerKg:2.0,fatPerKg:1.0,bodyFat:'',yearsTraining:'',calAdjust:0,_set:false},
-  bodyweight:[],waist:[],workouts:[],active:null,nutrition:{},
+  profile:{name:'',sex:'male',age:25,weight:79,height:176,activity:1.55,goal:'bulk',days:4,proteinPerKg:2.0,fatPerKg:1.0,bodyFat:'',yearsTraining:'',calAdjust:0,programStart:'',_set:false},
+  bodyweight:[],waist:[],measurements:[],workouts:[],active:null,nutrition:{},
   customFoods:[],recipes:[],suppLog:{},cardio:{}
 };
 let S=load();
@@ -1345,9 +1345,9 @@ const MEALPLANS={
     {name:'Cena',hora:'21:00',items:[['Carne de res magra 90/10',180],['Quinoa cocida',150],['Aguacate',75],['Brócoli',150]]}
   ]}
 };
-let planType='entreno';
+let planType=null;
 function setPlanType(t){planType=t;renderPlan()}
-function buildMealPlan(){const p=MEALPLANS[planType];
+function buildMealPlan(){if(!planType)planType=autoPlanType();const p=MEALPLANS[planType];
   return p.meals.map(md=>{const items=md.items.map(([food,grams])=>({food,grams}));
     const tot=items.reduce((a,it)=>{const m=macrosFor(findFood(it.food),it.grams);return{kcal:a.kcal+m.kcal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f,fb:a.fb+(m.fb||0)}},{kcal:0,p:0,c:0,f:0,fb:0});
     return{...md,items,tot}})}
@@ -1392,6 +1392,132 @@ function loadPlan(){const plan=buildMealPlan();
   S.nutrition[foodDate]=S.nutrition[foodDate]||[];
   plan.forEach(m=>m.items.forEach(it=>{const mm=macrosFor(findFood(it.food),it.grams);S.nutrition[foodDate].push({food:it.food,grams:it.grams,meal:m.name,...mm})}));save();renderComida()}
 document.getElementById('loadPlanBtn').onclick=loadPlan;
+
+/* ---------- VOLUMEN SEMANAL POR MÚSCULO ---------- */
+function weeklyVolume(){
+  const now=Date.now(),cut=now-7*864e5;
+  const vol={};MUSCLE_GROUPS.forEach(g=>vol[g]=0);
+  S.workouts.filter(w=>new Date(w.date).getTime()>=cut).forEach(w=>
+    w.exercises.forEach(e=>{const g=MUSCLE[e.name];if(g&&vol[g]!==undefined)vol[g]+=e.sets.filter(s=>s.done).length}));
+  if(S.active)S.active.exercises.forEach(e=>{const g=MUSCLE[e.name];if(g&&vol[g]!==undefined)vol[g]+=e.sets.filter(s=>s.done).length});
+  return vol;
+}
+function muscleStatus(){
+  const vol=weeklyVolume();
+  return MUSCLE_GROUPS.map(g=>{const v=vol[g],min=volMin(g),max=(VOL_RANGE[g]||[10,20])[1];
+    return{g,sets:v,min,max,ok:v>=min,pct:min>0?Math.round(v/min*100):0}});
+}
+
+/* SVG figura muscular — colores según cumplimiento semanal
+   Refs: Schoenfeld 2017 (meta: 10+ sets/semana/grupo), Israetel MEV/MAV/MRV */
+function bodyFigureSVG(stats){
+  const c=g=>{const s=stats.find(x=>x.g===g);return s?(s.ok?'#7A9B6A':'#C07B5A'):'#CCC'};
+  const o=g=>{const s=stats.find(x=>x.g===g);return s?`${s.sets}/${s.min}`:''};
+  return `<svg viewBox="0 0 200 400" width="100%" style="max-width:220px;display:block;margin:0 auto">
+    <ellipse cx="100" cy="30" rx="18" ry="22" fill="${c('Abdomen')}" stroke="var(--line)" stroke-width="1"/>
+    <rect x="76" y="52" width="48" height="50" rx="6" fill="${c('Pecho')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="100" y="82" font-size="8" fill="${c('Pecho')=='#7A9B6A'?'#FFF':'#FFF'}" text-anchor="middle" font-family="Jost">Pecho ${o('Pecho')}</text>
+    <rect x="82" y="102" width="36" height="44" rx="4" fill="${c('Abdomen')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="100" y="128" font-size="7" fill="#FFF" text-anchor="middle" font-family="Jost">Abdomen ${o('Abdomen')}</text>
+    <rect x="56" y="55" width="20" height="22" rx="4" fill="${c('Hombro')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="66" y="69" font-size="6" fill="#FFF" text-anchor="middle" font-family="Jost">${o('Hombro')}</text>
+    <rect x="124" y="55" width="20" height="22" rx="4" fill="${c('Hombro')}" stroke="var(--line)" stroke-width="1"/>
+    <rect x="42" y="77" width="16" height="42" rx="4" fill="${c('Bíceps')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="50" y="102" font-size="6" fill="#FFF" text-anchor="middle" font-family="Jost">${o('Bíceps')}</text>
+    <rect x="142" y="77" width="16" height="42" rx="4" fill="${c('Tríceps')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="150" y="102" font-size="6" fill="#FFF" text-anchor="middle" font-family="Jost">${o('Tríceps')}</text>
+    <rect x="36" y="55" width="20" height="55" rx="4" fill="${c('Espalda')}" stroke="var(--line)" stroke-width="1" opacity="0.35"/>
+    <rect x="144" y="55" width="20" height="55" rx="4" fill="${c('Espalda')}" stroke="var(--line)" stroke-width="1" opacity="0.35"/>
+    <text x="46" y="86" font-size="5" fill="#FFF" text-anchor="middle" font-family="Jost" opacity="0.7">Espalda</text>
+    <rect x="76" y="148" width="22" height="60" rx="5" fill="${c('Cuádriceps')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="87" y="182" font-size="6" fill="#FFF" text-anchor="middle" font-family="Jost">${o('Cuádriceps')}</text>
+    <rect x="102" y="148" width="22" height="60" rx="5" fill="${c('Cuádriceps')}" stroke="var(--line)" stroke-width="1"/>
+    <rect x="78" y="150" width="18" height="58" rx="4" fill="${c('Femoral y glúteo')}" stroke="var(--line)" stroke-width="1" opacity="0.3"/>
+    <rect x="104" y="150" width="18" height="58" rx="4" fill="${c('Femoral y glúteo')}" stroke="var(--line)" stroke-width="1" opacity="0.3"/>
+    <text x="100" y="200" font-size="5" fill="var(--text-3)" text-anchor="middle" font-family="Jost">Femoral atrás</text>
+    <rect x="80" y="210" width="16" height="50" rx="4" fill="${c('Gemelo')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="88" y="238" font-size="6" fill="#FFF" text-anchor="middle" font-family="Jost">${o('Gemelo')}</text>
+    <rect x="104" y="210" width="16" height="50" rx="4" fill="${c('Gemelo')}" stroke="var(--line)" stroke-width="1"/>
+    <text x="100" y="280" font-size="7" fill="var(--text-3)" text-anchor="middle" font-family="Jost">series hechas / mínimo semanal</text>
+    <circle cx="30" cy="300" r="5" fill="#7A9B6A"/><text x="40" y="303" font-size="8" fill="var(--text-2)" font-family="Jost">Cumplido</text>
+    <circle cx="30" cy="316" r="5" fill="#C07B5A"/><text x="40" y="319" font-size="8" fill="var(--text-2)" font-family="Jost">Falta volumen</text>
+  </svg>`}
+
+/* Sesión de refuerzo para el fin de semana (Schoenfeld 2017: ≥10 sets/semana por grupo) */
+function weekendReinforceHTML(){
+  const stats=muscleStatus(),weak=stats.filter(s=>!s.ok);
+  if(!weak.length)return '';
+  const exList=[];
+  weak.forEach(w=>{
+    const templateEx=Object.values(TEMPLATES).flat().filter(e=>e.g===w.g);
+    const pick=templateEx.slice(0,2);
+    pick.forEach(e=>{
+      const deficit=w.min-w.sets;
+      const sets=Math.min(deficit,+e.s);
+      if(sets>0)exList.push({name:e.n,g:e.g,sets,reps:e.reps,rir:e.rir,rest:e.rest,foco:e.foco,deficit:w.min-w.sets,done:w.sets,min:w.min});
+    });
+  });
+  if(!exList.length)return '';
+  const rows=exList.map(e=>`<div class="cmp-row"><div><div style="font-size:13px">${esc(e.name)}</div><div class="meta">${e.sets}×${e.reps} · RIR ${e.rir} · ${esc(e.g)} (${e.done}/${e.min} series hechas)</div></div><span class="cmp-status cmp-miss">+${e.sets} series</span></div>`).join('');
+  return `<div class="section-title">Refuerzo de fin de semana</div><div class="card mb2">
+    <div class="hint mb">Estos músculos no alcanzaron el volumen mínimo semanal (MEV, Israetel). Esta sesión extra ayuda a completar el estímulo para hipertrofia (Schoenfeld 2017).</div>
+    ${rows}
+    <button class="btn btn-secondary btn-sm mt" onclick="startReinforce()">Iniciar sesión de refuerzo</button></div>`;
+}
+function startReinforce(){
+  const stats=muscleStatus(),weak=stats.filter(s=>!s.ok);
+  if(!weak.length){alert('¡Todos los músculos están al día!');return}
+  const exs=[];
+  weak.forEach(w=>{
+    const templateEx=Object.values(TEMPLATES).flat().filter(e=>e.g===w.g);
+    templateEx.slice(0,2).forEach(e=>{
+      const sets=Math.min(w.min-w.sets,+e.s);
+      if(sets>0)exs.push({name:e.n,sets:Array.from({length:sets},()=>({kg:'',reps:'',done:false})),plan:e});
+    });
+  });
+  if(!exs.length)return;
+  S.active={id:Date.now(),name:'Refuerzo semanal',date:todayISO(),start:Date.now(),exercises:exs};
+  save();goTab('entreno');
+}
+
+/* Prompt dominical de medidas (cada domingo, una vez al día) */
+function sundayMeasureCheck(){
+  if(new Date().getDay()!==0)return;
+  const lastKey='jfit.lastMeasure';
+  const today=todayISO();
+  if(localStorage.getItem(lastKey)===today)return;
+  setTimeout(()=>{
+    modal(`<div class="modal-head"><span class="label">Medidas semanales · Domingo</span><button class="btn-ghost" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
+      <div class="hint mb2">Registrar medidas cada semana es la forma más precisa de evaluar tu progreso (Lohman & Roche, Anthropometric Standardization Reference Manual).</div>
+      <div class="grid g2 mb2">
+        <div class="field"><label>Peso (kg)</label><input class="input" id="sm-weight" type="number" inputmode="decimal" placeholder="ej. 79"></div>
+        <div class="field"><label>Cintura (cm)</label><input class="input" id="sm-waist" type="number" inputmode="decimal" placeholder="ej. 82"></div>
+        <div class="field"><label>Pecho (cm)</label><input class="input" id="sm-chest" type="number" inputmode="decimal" placeholder="ej. 96"></div>
+        <div class="field"><label>Brazo relajado (cm)</label><input class="input" id="sm-arm" type="number" inputmode="decimal" placeholder="ej. 35"></div>
+        <div class="field"><label>Muslo (cm)</label><input class="input" id="sm-thigh" type="number" inputmode="decimal" placeholder="ej. 56"></div>
+        <div class="field"><label>Cadera (cm)</label><input class="input" id="sm-hip" type="number" inputmode="decimal" placeholder="ej. 95"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveSundayMeasures()">Guardar medidas</button>
+      <button class="btn btn-ghost btn-block mt" onclick="closeModal();localStorage.setItem('${lastKey}','${today}')">Omitir esta semana</button>`);
+  },800);
+}
+function saveSundayMeasures(){
+  const today=todayISO(),get=id=>+document.getElementById(id).value||0;
+  const w=get('sm-weight'),wa=get('sm-waist'),ch=get('sm-chest'),ar=get('sm-arm'),th=get('sm-thigh'),hp=get('sm-hip');
+  if(w){S.bodyweight.push({date:today,kg:w});S.profile.weight=w}
+  if(wa)S.waist.push({date:today,cm:wa});
+  S.measurements=S.measurements||[];
+  if(ch||ar||th||hp)S.measurements.push({date:today,chest:ch,arm:ar,thigh:th,hip:hp});
+  save();localStorage.setItem('jfit.lastMeasure',today);closeModal();
+  alert('¡Medidas registradas! Revisa tu progreso en la pestaña Progreso.');
+  renderProgreso();
+}
+
+/* Auto-detectar tipo de plan de comida según el día */
+function autoPlanType(){
+  const day=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
+  return PLAN_DAYS.includes(day)?'entreno':'descanso';
+}
 
 /* ---------- PROGRESO ---------- */
 function weeklySummary(){const t=calc(),now=Date.now(),cut=now-7*864e5;
@@ -1441,8 +1567,9 @@ function dayCompareHTML(){try{
   } else {
     trainHTML=`<div class="section-title">Entrenamiento hoy · ${todayName}</div><div class="card mb2"><div class="muted" style="font-size:13px">Día de descanso — entrenas ${PLAN_DAYS.join(', ')}. Aprovecha para recuperar.</div></div>`;
   }
-  /* -- nutrición -- */
-  const plan=buildMealPlan();
+  /* -- nutrición (usa el plan del día: entreno o descanso automáticamente) -- */
+  const savedType=planType;planType=planEx?'entreno':'descanso';
+  const plan=buildMealPlan();planType=savedType;
   const logged=S.nutrition[today]||[];
   const planTot=plan.reduce((a,m)=>a+m.tot.kcal,0);
   const logTot=logged.reduce((a,it)=>a+it.kcal,0);
@@ -1469,8 +1596,21 @@ function renderProgreso(){
   const ws=S.waist.slice().sort((a,b)=>a.date<b.date?-1:1),wl=ws[ws.length-1],wf=ws[0],wd=wl&&wf?(wl.cm-wf.cm):0;
   const wchart=ws.length>1?spark(ws.map(x=>x.cm),'var(--sand)'):'<div class="meta">Registra al menos 2 medidas para ver la tendencia.</div>';
   const vols=S.workouts.slice(0,8).reverse().map(vol_),vc=vols.length>1?spark(vols):'<div class="meta">Sin datos suficientes.</div>';
+  const stats=muscleStatus();
+  const volTable=stats.map(s=>`<div class="cmp-row"><div><div style="font-size:13px">${esc(s.g)}</div><div class="meta">Mínimo ${s.min} series/semana (Schoenfeld 2017)</div></div>
+    <span class="cmp-status ${s.ok?'cmp-ok':'cmp-miss'}">${s.sets}/${s.min} ${s.ok?'✓':'faltan '+(s.min-s.sets)}</span></div>`).join('');
+  const reinforce=weekendReinforceHTML();
+  const measList=(S.measurements||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+  const measHTML=measList.length?`<div class="section-title">Medidas corporales</div><div class="card mb2">
+    ${measList.slice(-4).map(m=>`<div class="row"><div class="meta">${new Date(m.date+'T00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</div>
+      <div class="flex gapsm" style="font-size:12px">${m.chest?`<span>Pecho ${m.chest}cm</span>`:''} ${m.arm?`<span>Brazo ${m.arm}cm</span>`:''} ${m.thigh?`<span>Muslo ${m.thigh}cm</span>`:''} ${m.hip?`<span>Cadera ${m.hip}cm</span>`:''}</div></div>`).join('')}
+    <div class="hint mt">Se registran cada domingo automáticamente.</div></div>`:'';
   document.getElementById('progresoBody').innerHTML=`
     ${dayCompareHTML()}
+    <div class="section-title">Volumen semanal por músculo</div>
+    <div class="card mb2"><div class="flex between" style="align-items:start"><div style="flex:1">${volTable}</div><div>${bodyFigureSVG(stats)}</div></div>
+      <div class="hint mt">Volumen mínimo eficaz (MEV) según Israetel (Renaissance Periodization). El color verde indica que alcanzaste el mínimo de series semanales para estimular hipertrofia.</div></div>
+    ${reinforce}
     <div class="section-title">Resumen de la semana</div>${summaryHTML()}
     <div class="section-title">Ajuste de calorías por tendencia</div>${adjustHTML()}
     <div class="section-title">Peso corporal</div>
@@ -1479,6 +1619,7 @@ function renderProgreso(){
     <div class="section-title">Cintura / abdomen</div>
     <div class="card mb2"><div class="flex between center mb2"><div class="kpi"><div class="n">${wl?wl.cm:'—'}<small>cm</small></div><div class="l label">${wd?(wd>0?'+':'')+wd.toFixed(1)+' cm desde el inicio':'Mejor indicador de grasa abdominal'}</div></div>
       <div class="flex center gapsm"><input class="input" id="waistInput" type="number" inputmode="decimal" placeholder="cm" style="width:90px"><button class="btn btn-primary btn-sm" onclick="logWaist()">Registrar</button></div></div>${wchart}</div>
+    ${measHTML}
     <div class="section-title">Récords y 1RM estimado</div>${prsHTML()}
     <div class="section-title">Volumen por sesión (kg)</div><div class="card mb2">${vc}</div>
     <div class="section-title">Histórico total</div><div class="grid g3">
@@ -1685,6 +1826,7 @@ async function confirmPin(mode){const err=document.getElementById('pinErr');
 if(profileIncomplete())openOnboarding();
 renderHoy();
 if(pinCfg())showLock();
+sundayMeasureCheck();
 </script>
 </body>
 </html>
