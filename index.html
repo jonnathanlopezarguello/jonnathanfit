@@ -331,11 +331,18 @@ body.light .demo-photo img{filter:grayscale(1) contrast(1.02)}
     <button class="opt" data-v="female"><div class="t">Mujer</div></button>
   </div>
 
-  <div class="onb-step">02 — Medidas</div>
+  <div class="onb-step">02 — Medidas corporales <span class="dim" style="letter-spacing:0;text-transform:none">(base para medir tu progreso)</span></div>
   <div class="grid g2">
     <div class="field"><label>Peso (kg)</label><input class="input" id="o-weight" type="number" inputmode="decimal" placeholder="ej. 75"></div>
     <div class="field"><label>Altura (cm)</label><input class="input" id="o-height" type="number" inputmode="decimal" placeholder="ej. 175"></div>
+    <div class="field"><label>Cintura (cm)</label><input class="input" id="o-waist" type="number" inputmode="decimal" placeholder="ej. 82"></div>
+    <div class="field"><label>Pecho (cm)</label><input class="input" id="o-chest" type="number" inputmode="decimal" placeholder="ej. 96"></div>
+    <div class="field"><label>Brazo relajado (cm)</label><input class="input" id="o-arm" type="number" inputmode="decimal" placeholder="ej. 35"></div>
+    <div class="field"><label>Muslo (cm)</label><input class="input" id="o-thigh" type="number" inputmode="decimal" placeholder="ej. 56"></div>
+    <div class="field"><label>Cadera (cm)</label><input class="input" id="o-hip" type="number" inputmode="decimal" placeholder="ej. 95"></div>
+    <div class="field"><label>% Grasa corporal <span class="dim">(opcional)</span></label><input class="input" id="o-bf" type="number" inputmode="decimal" placeholder="ej. 18"></div>
   </div>
+  <div class="hint" style="margin-top:6px">Mide con cinta métrica en la mañana, antes de comer. Cada domingo la app te pedirá las medidas para comparar tu progreso (Lohman & Roche).</div>
 
   <div class="onb-step">03 — Nivel de actividad diaria</div>
   <div class="opts" id="o-act" data-val="1.55">
@@ -1807,10 +1814,17 @@ document.getElementById('o-start').onclick=()=>{
   if(!(age>0&&age<120)){err.textContent='Introduce una edad válida.';return}
   if(!(weight>0&&weight<400)){err.textContent='Introduce un peso válido (kg).';return}
   if(!(height>0&&height<260)){err.textContent='Introduce una altura válida (cm).';return}
-  S.profile={...S.profile,name,sex,age,weight,height,
+  const bf=document.getElementById('o-bf').value;
+  S.profile={...S.profile,name,sex,age,weight,height,bodyFat:bf||'',
     activity:+document.getElementById('o-act').dataset.val,goal:document.getElementById('o-goal').dataset.val,
     days:+document.getElementById('o-days').dataset.val,_set:true};
-  if(weight)S.bodyweight.push({date:todayISO(),kg:weight});
+  const today=todayISO();
+  if(weight)S.bodyweight.push({date:today,kg:weight});
+  const waist=+document.getElementById('o-waist').value,chest=+document.getElementById('o-chest').value;
+  const arm=+document.getElementById('o-arm').value,thigh=+document.getElementById('o-thigh').value,hip=+document.getElementById('o-hip').value;
+  if(waist)S.waist.push({date:today,cm:waist});
+  S.measurements=S.measurements||[];
+  if(chest||arm||thigh||hip)S.measurements.push({date:today,chest,arm,thigh,hip});
   save();closeOnboarding();renderHoy();
 };
 document.getElementById('o-skip').onclick=()=>{S.profile._set=true;save();closeOnboarding();renderHoy()};
