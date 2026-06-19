@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.jonnathanfit.app"
@@ -13,7 +13,7 @@
     "android": {
       "package": "com.jonnathanfit.app",
       "adaptiveIcon": {
-        "backgroundColor": "#FAF3E8",
+        "backgroundColor": "#121211",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
