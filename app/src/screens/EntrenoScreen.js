@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
 import { getState, updateState } from '../store';
-import { PLAN_DAYS, DAY_TITLE, TEMPLATES } from '../data/templates';
+import { PLAN_DAYS, DAY_TITLE, TEMPLATES, EXERCISE_LIB } from '../data/templates';
+import { e1rm } from '../data/calc';
+import ExerciseDemo from '../components/ExerciseDemo';
 
 const DAY_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
@@ -17,13 +19,11 @@ function fmtElapsed(ms) {
 export default function EntrenoScreen({ theme }) {
   const [state, setState] = useState(getState());
   const [exIdx, setExIdx] = useState(0);
-  const [sets, setSets] = useState({});
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef(null);
 
   useEffect(() => { setState(getState()); }, []);
 
-  // Timer for active session
   useEffect(() => {
     if (state.active) {
       timerRef.current = setInterval(() => {
@@ -40,12 +40,34 @@ export default function EntrenoScreen({ theme }) {
   const planEx = TEMPLATES[dayName];
   const active = state.active;
 
+  function getLastPerf(exName, excludeId) {
+    for (const w of state.workouts) {
+      if (excludeId && w.id === excludeId) continue;
+      const ex = w.exercises && w.exercises.find(e => e.name === exName);
+      if (ex && ex.sets) {
+        const done = ex.sets.filter(s => s.done && +s.kg > 0 && +s.reps > 0);
+        if (done.length > 0) {
+          const best = done.sort((a, b) => (+b.kg || 0) - (+a.kg || 0))[0];
+          return { kg: +best.kg, reps: +best.reps };
+        }
+      }
+    }
+    return null;
+  }
+
   async function startSession() {
     if (!planEx) return;
-    const exercises = planEx.map(e => ({
-      name: e.n, plan: e,
-      sets: Array.from({ length: e.s }, () => ({ kg: '', reps: '', done: false }))
-    }));
+    const exercises = planEx.map(e => {
+      const last = getLastPerf(e.n);
+      return {
+        name: e.n, plan: e,
+        sets: Array.from({ length: e.s }, () => ({
+          kg: last ? String(last.kg) : '',
+          reps: last ? String(last.reps) : '',
+          done: false,
+        }))
+      };
+    });
     const s = await updateState(s => {
       s.active = {
         id: Date.now(), name: DAY_TITLE[dayName] || dayName,
@@ -55,13 +77,29 @@ export default function EntrenoScreen({ theme }) {
     });
     setState({ ...s });
     setExIdx(0);
-    setSets({});
   }
 
   async function finishWorkout() {
     Alert.alert('Finalizar sesion', 'Guardar este entrenamiento?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Guardar', onPress: async () => {
+        const prs = [];
+        const a = state.active;
+        if (a) {
+          a.exercises.forEach(e => {
+            const doneSets = e.sets.filter(s => s.done && +s.kg > 0 && +s.reps > 0);
+            let bestE1rm = 0;
+            doneSets.forEach(s => {
+              const v = e1rm(+s.kg, +s.reps);
+              if (v > bestE1rm) bestE1rm = v;
+            });
+            if (bestE1rm > 0) {
+              const prior = getLastPerf(e.name, a.id);
+              const priorBest = prior ? e1rm(prior.kg, prior.reps) : 0;
+              if (bestE1rm > priorBest) prs.push(`${e.name} · ${bestE1rm} kg (1RM est.)`);
+            }
+          });
+        }
         const s = await updateState(s => {
           const a = s.active;
           a.exercises = a.exercises.filter(e => e.sets.some(ss => ss.done));
@@ -70,23 +108,98 @@ export default function EntrenoScreen({ theme }) {
           s.active = null;
         });
         setState({ ...s });
-        setSets({});
+        setExIdx(0);
+        if (prs.length > 0) {
+          setTimeout(() => Alert.alert('Nuevo record!', prs.join('\n')), 300);
+        }
+      }}
+    ]);
+  }
+
+  async function discardWorkout() {
+    Alert.alert('Descartar', 'Descartar este entrenamiento?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Descartar', style: 'destructive', onPress: async () => {
+        const s = await updateState(s => { s.active = null; });
+        setState({ ...s });
         setExIdx(0);
       }}
     ]);
   }
 
+  function setVal(ei, si, key, value) {
+    updateState(s => {
+      if (s.active && s.active.exercises[ei]) {
+        s.active.exercises[ei].sets[si][key] = value;
+      }
+    }).then(s => setState({ ...s }));
+  }
+
   function toggleSet(ei, si) {
-    const key = `${ei}-${si}`;
-    const next = { ...sets, [key]: !sets[key] };
-    setSets(next);
-    // Also update store
     updateState(s => {
       if (s.active && s.active.exercises[ei]) {
         s.active.exercises[ei].sets[si].done = !s.active.exercises[ei].sets[si].done;
       }
     }).then(s => setState({ ...s }));
   }
+
+  function addSet(ei) {
+    updateState(s => {
+      if (s.active && s.active.exercises[ei]) {
+        const sets = s.active.exercises[ei].sets;
+        const last = sets[sets.length - 1] || {};
+        sets.push({ kg: last.kg || '', reps: last.reps || '', done: false });
+      }
+    }).then(s => setState({ ...s }));
+  }
+
+  function delSet(ei, si) {
+    updateState(s => {
+      if (s.active && s.active.exercises[ei]) {
+        s.active.exercises[ei].sets.splice(si, 1);
+        if (s.active.exercises[ei].sets.length === 0) {
+          s.active.exercises[ei].sets.push({ kg: '', reps: '', done: false });
+        }
+      }
+    }).then(s => setState({ ...s }));
+  }
+
+  function delExercise(ei) {
+    Alert.alert('Quitar ejercicio', 'Quitar este ejercicio de la sesion?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Quitar', style: 'destructive', onPress: () => {
+        updateState(s => {
+          if (s.active) {
+            s.active.exercises.splice(ei, 1);
+          }
+        }).then(s => {
+          setState({ ...s });
+          if (exIdx >= (s.active ? s.active.exercises.length : 0)) {
+            setExIdx(Math.max(0, (s.active ? s.active.exercises.length : 1) - 1));
+          }
+        });
+      }}
+    ]);
+  }
+
+  function addExercise(name) {
+    updateState(s => {
+      if (s.active) {
+        const last = getLastPerf(name);
+        s.active.exercises.push({
+          name,
+          plan: null,
+          sets: [{ kg: last ? String(last.kg) : '', reps: last ? String(last.reps) : '', done: false }]
+        });
+      }
+    }).then(s => {
+      setState({ ...s });
+      if (s.active) setExIdx(s.active.exercises.length - 1);
+    });
+  }
+
+  const [showPicker, setShowPicker] = useState(false);
+  const [searchQ, setSearchQ] = useState('');
 
   // ─── NO ACTIVE SESSION ───
   if (!active) {
@@ -104,6 +217,7 @@ export default function EntrenoScreen({ theme }) {
               <View key={i} style={[st.exCard, { borderColor: theme.line, backgroundColor: theme.surface }]}>
                 <Text style={[st.exName, { color: theme.text }]}>{e.n}</Text>
                 <Text style={[st.exDetail, { color: theme.text3 }]}>{e.s} x {e.reps} {'·'} RIR {e.rir} {'·'} {e.g}</Text>
+                {e.foco ? <Text style={[st.focoText, { color: theme.text3 }]}>{e.foco}</Text> : null}
               </View>
             ))}
 
@@ -127,23 +241,47 @@ export default function EntrenoScreen({ theme }) {
   const currentEx = exercises[exIdx];
   const currentPlan = currentEx ? currentEx.plan : null;
   const currentSets = currentEx ? currentEx.sets : [];
-  const completedSets = currentSets.filter((_, si) => sets[`${exIdx}-${si}`]).length;
+  const completedSets = currentSets.filter(s => s.done).length;
   const totalSets = currentSets.length;
+  const totalExCompleted = exercises.filter(e => e.sets.some(s => s.done)).length;
 
-  // Find last workout data for the current exercise
-  function getLastData(exName) {
-    for (const w of state.workouts) {
-      const ex = w.exercises && w.exercises.find(e => e.name === exName);
-      if (ex && ex.sets) {
-        const best = ex.sets.filter(ss => ss.done).sort((a, b) => (+b.kg || 0) - (+a.kg || 0))[0];
-        if (best) return `${best.kg} kg x ${best.reps}`;
-      }
-    }
-    return null;
-  }
-
-  const lastStr = currentEx ? getLastData(currentEx.name) : null;
+  const lastPerf = currentEx ? getLastPerf(currentEx.name, active.id) : null;
   const targetStr = currentPlan ? `${currentPlan.s} x ${currentPlan.reps}` : '';
+
+  // Exercise picker overlay
+  if (showPicker) {
+    const q = searchQ.toLowerCase();
+    const filtered = q ? EXERCISE_LIB.filter(n => n.toLowerCase().includes(q)) : EXERCISE_LIB;
+    return (
+      <ScrollView style={[st.container, { backgroundColor: theme.bg }]} contentContainerStyle={st.content}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Text style={[st.headerLabel, { color: theme.text3 }]}>AÑADIR EJERCICIO</Text>
+          <TouchableOpacity onPress={() => { setShowPicker(false); setSearchQ(''); }}>
+            <Text style={{ color: theme.text3, fontSize: 14 }}>{'✕'}</Text>
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={[st.searchInput, { borderColor: theme.line, color: theme.text }]}
+          placeholder="Buscar ejercicio..."
+          placeholderTextColor={theme.text3}
+          value={searchQ}
+          onChangeText={setSearchQ}
+          autoFocus
+        />
+        {filtered.map((name, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[st.pickerItem, { borderColor: theme.line }]}
+            onPress={() => { addExercise(name); setShowPicker(false); setSearchQ(''); }}
+            activeOpacity={0.7}
+          >
+            <Text style={{ color: theme.text, fontSize: 13 }}>{name}</Text>
+            <Text style={{ color: theme.text3, fontSize: 12 }}>+</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView style={[st.container, { backgroundColor: theme.bg }]} contentContainerStyle={st.content}>
@@ -158,10 +296,18 @@ export default function EntrenoScreen({ theme }) {
               </Text>
             </View>
             <Text style={[st.timerText, { color: theme.text }]}>{fmtElapsed(elapsed)}</Text>
+            <Text style={[st.progressText, { color: theme.text3 }]}>
+              {totalExCompleted}/{exercises.length} ejercicios completados
+            </Text>
           </View>
-          <TouchableOpacity style={[st.finishBtn, { backgroundColor: theme.accent }]} onPress={finishWorkout} activeOpacity={0.8}>
-            <Text style={[st.finishBtnText, { color: theme.bg }]}>FINALIZAR</Text>
-          </TouchableOpacity>
+          <View style={{ alignItems: 'flex-end', gap: 8 }}>
+            <TouchableOpacity style={[st.finishBtn, { backgroundColor: theme.accent }]} onPress={finishWorkout} activeOpacity={0.8}>
+              <Text style={[st.finishBtnText, { color: theme.bg }]}>FINALIZAR</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={discardWorkout} activeOpacity={0.7}>
+              <Text style={{ color: theme.text3, fontSize: 10, letterSpacing: 1 }}>DESCARTAR</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -172,49 +318,82 @@ export default function EntrenoScreen({ theme }) {
             <View style={{ flex: 1 }}>
               <Text style={[st.techName, { color: theme.text }]}>{currentEx.name}</Text>
               <Text style={[st.techSub, { color: theme.text3 }]}>
-                {lastStr ? `Ultima ${lastStr}` : 'Sin datos previos'}
-                {' · '}Objetivo {targetStr}
+                {lastPerf ? `Ultima ${lastPerf.kg} kg x ${lastPerf.reps}` : 'Sin datos previos'}
+                {targetStr ? ` · Objetivo ${targetStr}` : ''}
               </Text>
             </View>
-            {currentPlan && currentPlan.foco ? (
-              <View style={[st.techBadge, { borderColor: theme.line }]}>
-                <Text style={[st.techBadgeText, { color: theme.text3 }]}>TECNICA</Text>
-              </View>
-            ) : null}
+            <TouchableOpacity onPress={() => delExercise(exIdx)} activeOpacity={0.7}>
+              <Text style={{ color: theme.text3, fontSize: 10, letterSpacing: 1 }}>QUITAR</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Set chips */}
-          <View style={st.chipRow}>
-            {currentSets.map((set, si) => {
-              const key = `${exIdx}-${si}`;
-              const marked = !!sets[key];
-              return (
-                <TouchableOpacity
-                  key={si}
-                  style={[
-                    st.chip,
-                    { borderColor: marked ? theme.accent : theme.line },
-                    marked && { backgroundColor: theme.accentSoft },
-                  ]}
-                  onPress={() => toggleSet(exIdx, si)}
-                  activeOpacity={0.7}
-                >
-                  {marked ? (
-                    <Text style={[st.chipText, { color: theme.text }]}>
-                      {'✓'} {set.kg || '?'} {'×'} {set.reps || '?'}
-                    </Text>
-                  ) : (
-                    <Text style={[st.chipText, { color: theme.text2 }]}>Serie {si + 1}</Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+          {/* Animated stick figure demo */}
+          <View style={st.demoWrap}>
+            <ExerciseDemo exerciseName={currentEx.name} width={160} height={174} theme={theme} />
           </View>
+
+          {/* Foco text */}
+          {currentPlan && currentPlan.foco ? (
+            <View style={[st.focoCard, { borderColor: theme.line }]}>
+              <Text style={[st.focoLabel, { color: theme.text3 }]}>FOCO T{'É'}CNICO</Text>
+              <Text style={[st.focoContent, { color: theme.text2 }]}>{currentPlan.foco}</Text>
+              {currentPlan.rest ? (
+                <Text style={[st.focoRest, { color: theme.text3 }]}>
+                  Descanso: {currentPlan.rest} {'·'} RIR: {currentPlan.rir}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+
+          {/* Set grid */}
+          <View style={st.setGridHeader}>
+            <Text style={[st.setHeaderText, { color: theme.text3, width: 30 }]}>Set</Text>
+            <Text style={[st.setHeaderText, { color: theme.text3, flex: 1 }]}>Kg</Text>
+            <Text style={[st.setHeaderText, { color: theme.text3, flex: 1 }]}>Reps</Text>
+            <Text style={[st.setHeaderText, { color: theme.text3, width: 36, textAlign: 'center' }]}>OK</Text>
+            <View style={{ width: 28 }} />
+          </View>
+
+          {currentSets.map((set, si) => (
+            <View key={si} style={[st.setRow, set.done && { backgroundColor: theme.accentSoft }]}>
+              <Text style={[st.setNum, { color: theme.text3 }]}>{si + 1}</Text>
+              <TextInput
+                style={[st.setInput, { borderColor: set.done ? theme.accent : theme.line, color: theme.text }]}
+                value={String(set.kg || '')}
+                onChangeText={v => setVal(exIdx, si, 'kg', v)}
+                keyboardType="decimal-pad"
+                placeholder="0"
+                placeholderTextColor={theme.text3}
+              />
+              <TextInput
+                style={[st.setInput, { borderColor: set.done ? theme.accent : theme.line, color: theme.text }]}
+                value={String(set.reps || '')}
+                onChangeText={v => setVal(exIdx, si, 'reps', v)}
+                keyboardType="number-pad"
+                placeholder="0"
+                placeholderTextColor={theme.text3}
+              />
+              <TouchableOpacity
+                style={[st.doneBtn, set.done ? { backgroundColor: theme.accent } : { borderColor: theme.line, borderWidth: 1 }]}
+                onPress={() => toggleSet(exIdx, si)}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: set.done ? theme.bg : theme.text3, fontSize: 14 }}>{'✓'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => delSet(exIdx, si)} activeOpacity={0.7}>
+                <Text style={{ color: theme.text3, fontSize: 12 }}>{'✕'}</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <TouchableOpacity style={[st.addSetBtn, { borderColor: theme.line }]} onPress={() => addSet(exIdx)} activeOpacity={0.7}>
+            <Text style={{ color: theme.text3, fontSize: 11, letterSpacing: 1 }}>+ SERIE</Text>
+          </TouchableOpacity>
 
           <Text style={[st.chipHint, { color: theme.text3 }]}>
             {completedSets > 0
               ? `${completedSets} de ${totalSets} series completadas`
-              : 'Toca una serie para marcarla como completada.'}
+              : 'Ingresa kg y reps, luego marca cada serie.'}
           </Text>
         </View>
       )}
@@ -223,7 +402,7 @@ export default function EntrenoScreen({ theme }) {
       <Text style={[st.exListLabel, { color: theme.text3 }]}>EJERCICIOS</Text>
       {exercises.map((ex, ei) => {
         const isActive = ei === exIdx;
-        const exCompletedSets = ex.sets.filter((_, si) => sets[`${ei}-${si}`]).length;
+        const exCompletedSets = ex.sets.filter(s => s.done).length;
         return (
           <TouchableOpacity
             key={ei}
@@ -237,15 +416,24 @@ export default function EntrenoScreen({ theme }) {
             <View style={{ flex: 1 }}>
               <Text style={[st.exRowName, { color: isActive ? theme.text : theme.text2 }]}>{ex.name}</Text>
               <Text style={[st.exRowSub, { color: theme.text3 }]}>
-                Objetivo {ex.plan ? `${ex.plan.s} x ${ex.plan.reps}` : '?'}
+                {ex.plan ? `Objetivo ${ex.plan.s} x ${ex.plan.reps}` : 'Personalizado'}
               </Text>
             </View>
-            <Text style={[st.exRowCount, { color: exCompletedSets === ex.sets.length ? theme.good : theme.text3 }]}>
+            <Text style={[st.exRowCount, { color: exCompletedSets === ex.sets.length && exCompletedSets > 0 ? theme.good : theme.text3 }]}>
               {exCompletedSets}/{ex.sets.length}
             </Text>
           </TouchableOpacity>
         );
       })}
+
+      {/* Add exercise button */}
+      <TouchableOpacity
+        style={[st.addExBtn, { borderColor: theme.line2 }]}
+        onPress={() => setShowPicker(true)}
+        activeOpacity={0.7}
+      >
+        <Text style={{ color: theme.text3, fontSize: 11, letterSpacing: 1.5 }}>+ A{'Ñ'}ADIR EJERCICIO</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -254,48 +442,59 @@ const st = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 24, paddingBottom: 60 },
 
-  // Header
   headerLabel: { fontSize: 11, letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: '500', marginBottom: 6 },
   headerTitle: { fontSize: 30, fontWeight: '300', marginBottom: 24 },
 
-  // No-session
   dayLabel: { fontSize: 14, marginBottom: 8 },
   hint: { fontSize: 13, marginBottom: 16 },
   exCard: { borderWidth: 1, padding: 16, marginBottom: 8 },
   exName: { fontSize: 13, fontWeight: '500', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
   exDetail: { fontSize: 12 },
+  focoText: { fontSize: 11, marginTop: 4, fontStyle: 'italic' },
   startBtn: { minHeight: 42, justifyContent: 'center', alignItems: 'center', marginTop: 16 },
   startBtnText: { fontSize: 12, fontWeight: '600', letterSpacing: 2.5, textTransform: 'uppercase' },
 
-  // Session banner
   bannerCard: { borderWidth: 1, padding: 16, marginBottom: 16 },
-  bannerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  bannerTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   bannerLeft: { flex: 1 },
   bannerLabelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   blinkDot: { width: 6, height: 6, borderRadius: 3, marginRight: 8 },
   bannerLabel: { fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' },
   timerText: { fontSize: 24, fontWeight: '300', fontVariant: ['tabular-nums'] },
-  finishBtn: { paddingHorizontal: 16, paddingVertical: 10, marginLeft: 12 },
+  progressText: { fontSize: 11, marginTop: 4 },
+  finishBtn: { paddingHorizontal: 16, paddingVertical: 10 },
   finishBtnText: { fontSize: 11, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase' },
 
-  // Technique card
   techCard: { borderWidth: 1, padding: 16, marginBottom: 16 },
-  techHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 },
+  techHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   techName: { fontSize: 13, fontWeight: '500', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
   techSub: { fontSize: 12 },
-  techBadge: { borderWidth: 1, paddingVertical: 6, paddingHorizontal: 9, marginLeft: 8 },
-  techBadgeText: { fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: '500' },
 
-  // Set chips
-  chipRow: { flexDirection: 'row', gap: 8, marginBottom: 10, flexWrap: 'wrap' },
-  chip: { borderWidth: 1, paddingVertical: 10, paddingHorizontal: 14, minWidth: 80, alignItems: 'center' },
-  chipText: { fontSize: 12, fontWeight: '500' },
+  demoWrap: { alignItems: 'center', marginBottom: 12, paddingVertical: 8, backgroundColor: 'rgba(28,28,26,.5)', borderRadius: 0 },
+
+  focoCard: { borderTopWidth: 1, paddingTop: 12, marginBottom: 16 },
+  focoLabel: { fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', fontWeight: '500', marginBottom: 6 },
+  focoContent: { fontSize: 13, lineHeight: 18 },
+  focoRest: { fontSize: 11, marginTop: 6 },
+
+  setGridHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, marginBottom: 2 },
+  setHeaderText: { fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: '500' },
+  setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: 6 },
+  setNum: { width: 30, fontSize: 13, fontWeight: '500' },
+  setInput: { flex: 1, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 8, fontSize: 14, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  doneBtn: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center' },
+  addSetBtn: { borderWidth: 1, borderStyle: 'dashed', paddingVertical: 10, alignItems: 'center', marginTop: 8, marginBottom: 8 },
+
   chipHint: { fontSize: 11, marginTop: 2 },
 
-  // Exercise list
   exListLabel: { fontSize: 11, letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: '500', marginBottom: 12, marginTop: 8 },
   exRow: { borderWidth: 1, padding: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center' },
   exRowName: { fontSize: 12, fontWeight: '500', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 2 },
   exRowSub: { fontSize: 11 },
   exRowCount: { fontSize: 14, fontWeight: '500', marginLeft: 8 },
+
+  addExBtn: { borderWidth: 1, borderStyle: 'dashed', paddingVertical: 14, alignItems: 'center', marginTop: 4 },
+
+  searchInput: { borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, marginBottom: 12 },
+  pickerItem: { borderBottomWidth: 1, paddingVertical: 14, paddingHorizontal: 4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

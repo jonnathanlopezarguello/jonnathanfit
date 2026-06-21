@@ -45,7 +45,7 @@ export default function HoyScreen({ theme, setTab }) {
   const protLogged = Math.round(logged.reduce((a, it) => a + it.p, 0));
   const carbLogged = Math.round(logged.reduce((a, it) => a + (it.c || 0), 0));
   const fatLogged = Math.round(logged.reduce((a, it) => a + (it.f || 0), 0));
-  const fiberLogged = 0;
+  const fiberLogged = Math.round(logged.reduce((a, it) => a + (it.fb || 0), 0));
 
   const kcalRemaining = Math.max(0, t.kcal - kcalLogged);
   const kcalPct = t.kcal > 0 ? Math.min(1, kcalLogged / t.kcal) : 0;
