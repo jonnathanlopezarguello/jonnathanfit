@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert,
 import { getState, updateState } from '../store';
 import { PLAN_DAYS, DAY_TITLE, TEMPLATES, EXERCISE_LIB } from '../data/templates';
 import { e1rm } from '../data/calc';
-import ExerciseDemo from '../components/ExerciseDemo';
+
 import { YOUTUBE_VIDEOS } from '../data/videos';
 
 const DAY_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -426,16 +426,32 @@ export default function EntrenoScreen({ theme }) {
             T{'É'}CNICA {'—'} {currentEx.name.toUpperCase()}
           </Text>
 
-          <View style={st.demoWrap}>
-            <ExerciseDemo exerciseName={currentEx.name} width={220} height={230} theme={theme} />
-          </View>
+          <TouchableOpacity
+            style={st.videoCard}
+            activeOpacity={0.85}
+            onPress={() => {
+              const vid = YOUTUBE_VIDEOS[currentEx.name];
+              const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' tecnica correcta').replace(/%20/g, '+');
+              Linking.openURL('https://www.youtube.com/results?search_query=' + q);
+            }}
+          >
+            <View style={st.videoOverlay}>
+              <View style={st.playCircle}>
+                <Text style={st.playIcon}>{'▶'}</Text>
+              </View>
+              <Text style={st.videoExName}>{currentEx.name}</Text>
+              <Text style={st.videoChannel}>
+                {(YOUTUBE_VIDEOS[currentEx.name] || {}).channel || 'YouTube'} {'·'} T{'é'}cnica correcta
+              </Text>
+            </View>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={st.ytBtn}
             onPress={() => {
               const vid = YOUTUBE_VIDEOS[currentEx.name];
               const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' tecnica correcta').replace(/%20/g, '+');
-              Linking.openURL('https://www.youtube.com/results?search_query=' + q + '+tecnica+correcta');
+              Linking.openURL('https://www.youtube.com/results?search_query=' + q);
             }}
             activeOpacity={0.7}
           >
@@ -492,7 +508,12 @@ const st = StyleSheet.create({
   techSub: { fontSize: 12 },
 
   techTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 },
-  demoWrap: { alignItems: 'center', marginBottom: 0, paddingVertical: 12, backgroundColor: 'rgba(28,28,26,.5)', borderRadius: 0 },
+  videoCard: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#1a1a18', marginBottom: 0, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  videoOverlay: { alignItems: 'center', justifyContent: 'center' },
+  playCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
+  playIcon: { fontSize: 24, color: '#fff', marginLeft: 4 },
+  videoExName: { fontSize: 16, fontWeight: '500', color: '#fff', textAlign: 'center', marginBottom: 4 },
+  videoChannel: { fontSize: 11, color: 'rgba(255,255,255,0.5)', textAlign: 'center' },
   ytBtn: { backgroundColor: 'rgba(28,28,26,.5)', paddingVertical: 14, alignItems: 'center', marginBottom: 12 },
   ytBtnText: { fontSize: 12, letterSpacing: 2, fontWeight: '500' },
   techDesc: { fontSize: 13, lineHeight: 20 },
