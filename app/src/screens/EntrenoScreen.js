@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Linking, Image } from 'react-native';
 import { getState, updateState } from '../store';
 import { PLAN_DAYS, DAY_TITLE, TEMPLATES, EXERCISE_LIB } from '../data/templates';
 import { e1rm } from '../data/calc';
@@ -434,24 +434,14 @@ export default function EntrenoScreen({ theme }) {
               Linking.openURL('https://www.youtube.com/results?search_query=' + q);
             }}
           >
-            <View style={st.vcTop}>
-              <Text style={st.vcLabel}>SHAKIL AHMED {'·'} TONE GARAGE</Text>
-            </View>
-            <View style={st.vcCenter}>
-              <View style={st.vcPlayWrap}>
-                <View style={st.vcPlayBtn}>
-                  <View style={st.vcTriangle} />
-                </View>
-              </View>
-              <Text style={st.vcExName}>{currentEx.name}</Text>
-              <Text style={st.vcHint}>Toca para ver t{'é'}cnica en YouTube</Text>
-            </View>
-            <View style={st.vcBottom}>
-              <View style={st.vcYtBadge}>
-                <View style={st.vcYtIcon}>
-                  <View style={st.vcYtTri} />
-                </View>
-                <Text style={st.vcYtText}>YouTube</Text>
+            <Image
+              source={{ uri: (YOUTUBE_VIDEOS[currentEx.name] || {}).img || '' }}
+              style={st.vcImage}
+              resizeMode="cover"
+            />
+            <View style={st.vcOverlay}>
+              <View style={st.vcPlayBtn}>
+                <View style={st.vcTriangle} />
               </View>
             </View>
           </TouchableOpacity>
@@ -529,20 +519,11 @@ const st = StyleSheet.create({
   techSub: { fontSize: 12 },
 
   techTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 },
-  videoCard: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#0f0f0f', marginBottom: 8, overflow: 'hidden' },
-  vcTop: { paddingHorizontal: 14, paddingTop: 12 },
-  vcLabel: { fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,0.4)', fontWeight: '600' },
-  vcCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  vcPlayWrap: { marginBottom: 14 },
-  vcPlayBtn: { width: 56, height: 40, borderRadius: 8, backgroundColor: '#FF0000', justifyContent: 'center', alignItems: 'center' },
+  videoCard: { width: '100%', aspectRatio: 4 / 3, backgroundColor: '#0f0f0f', marginBottom: 8, overflow: 'hidden', position: 'relative' },
+  vcImage: { width: '100%', height: '100%' },
+  vcOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
+  vcPlayBtn: { width: 56, height: 40, borderRadius: 8, backgroundColor: 'rgba(255,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
   vcTriangle: { width: 0, height: 0, borderLeftWidth: 14, borderTopWidth: 9, borderBottomWidth: 9, borderLeftColor: '#fff', borderTopColor: 'transparent', borderBottomColor: 'transparent', marginLeft: 3 },
-  vcExName: { fontSize: 16, fontWeight: '600', color: '#fff', textAlign: 'center', marginBottom: 4 },
-  vcHint: { fontSize: 11, color: 'rgba(255,255,255,0.35)' },
-  vcBottom: { paddingHorizontal: 14, paddingBottom: 10, alignItems: 'flex-end' },
-  vcYtBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  vcYtIcon: { width: 18, height: 13, borderRadius: 3, backgroundColor: '#FF0000', justifyContent: 'center', alignItems: 'center' },
-  vcYtTri: { width: 0, height: 0, borderLeftWidth: 6, borderTopWidth: 4, borderBottomWidth: 4, borderLeftColor: '#fff', borderTopColor: 'transparent', borderBottomColor: 'transparent', marginLeft: 1 },
-  vcYtText: { fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: '500' },
   linkRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   linkBtn: { flex: 1, borderWidth: 1, paddingVertical: 14, alignItems: 'center', backgroundColor: 'rgba(28,28,26,.5)' },
   linkBtnText: { fontSize: 11, letterSpacing: 2, fontWeight: '500' },
