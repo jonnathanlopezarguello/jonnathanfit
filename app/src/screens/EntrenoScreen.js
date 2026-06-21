@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert,
 import { getState, updateState } from '../store';
 import { PLAN_DAYS, DAY_TITLE, TEMPLATES, EXERCISE_LIB } from '../data/templates';
 import { e1rm } from '../data/calc';
-import { YOUTUBE_VIDEOS } from '../data/videos';
+import { YOUTUBE_VIDEOS, SHAKIL_INSTAGRAM, SHAKIL_YOUTUBE_CHANNEL } from '../data/videos';
 
 const DAY_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
@@ -446,19 +446,30 @@ export default function EntrenoScreen({ theme }) {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={st.ytBtn}
-            onPress={() => {
-              const vid = YOUTUBE_VIDEOS[currentEx.name];
-              const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' shakil ahmed').replace(/%20/g, '+');
-              Linking.openURL('https://www.youtube.com/results?search_query=' + q);
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={[st.ytBtnText, { color: theme.text2 }]}>
-              {'▶'}{'  '}VER T{'É'}CNICA EN YOUTUBE
-            </Text>
-          </TouchableOpacity>
+          <View style={st.linkRow}>
+            <TouchableOpacity
+              style={[st.linkBtn, { borderColor: theme.line }]}
+              onPress={() => {
+                const vid = YOUTUBE_VIDEOS[currentEx.name];
+                const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' shakil ahmed').replace(/%20/g, '+');
+                Linking.openURL('https://www.youtube.com/results?search_query=' + q);
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={[st.linkBtnText, { color: theme.text2 }]}>
+                {'▶'} YOUTUBE
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[st.linkBtn, { borderColor: theme.line }]}
+              onPress={() => Linking.openURL('https://www.instagram.com/' + SHAKIL_INSTAGRAM + '/')}
+              activeOpacity={0.7}
+            >
+              <Text style={[st.linkBtnText, { color: theme.text2 }]}>
+                {'◉'} INSTAGRAM
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {currentPlan ? (
             <Text style={[st.techDesc, { color: theme.text3 }]}>
@@ -516,8 +527,9 @@ const st = StyleSheet.create({
   channelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   channelDot: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#FF0000' },
   videoChannel: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
-  ytBtn: { backgroundColor: 'rgba(28,28,26,.5)', paddingVertical: 14, alignItems: 'center', marginBottom: 12 },
-  ytBtnText: { fontSize: 12, letterSpacing: 2, fontWeight: '500' },
+  linkRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  linkBtn: { flex: 1, borderWidth: 1, paddingVertical: 14, alignItems: 'center', backgroundColor: 'rgba(28,28,26,.5)' },
+  linkBtnText: { fontSize: 11, letterSpacing: 2, fontWeight: '500' },
   techDesc: { fontSize: 13, lineHeight: 20 },
 
   setGridHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, marginBottom: 2 },
