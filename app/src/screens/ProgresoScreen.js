@@ -195,6 +195,22 @@ export default function ProgresoScreen({ theme }) {
     return { total: allExForMuscle.length, doneCount, remaining };
   })();
 
+  const reinforcement = MUSCLE_GROUPS
+    .filter(g => muscleStatus(g) !== 'met')
+    .map(g => {
+      const v = vol[g] || 0;
+      const min = (VOL_RANGE[g] || [10, 20])[0];
+      const remaining = min - v;
+      // Find first exercise for this muscle from any template day
+      let ex = null;
+      for (const [day, exs] of Object.entries(TEMPLATES)) {
+        const found = exs.find(e => e.g === g);
+        if (found) { ex = found; break; }
+      }
+      return { group: g, current: v, min, remaining, exercise: ex };
+    })
+    .filter(r => r.exercise);
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.bg }]} contentContainerStyle={styles.content}>
       {/* Header */}
@@ -323,6 +339,30 @@ export default function ProgresoScreen({ theme }) {
               >
                 <Text style={[styles.recordName, { color: theme.text }]}>{name}</Text>
                 <Text style={[styles.recordVal, { color: theme.text }]}>{best + ' kg'}</Text>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
+
+      {reinforcement.length > 0 && (
+        <>
+          <Text style={[styles.sectionLabel, { color: theme.text3 }]}>REFUERZO DE FIN DE SEMANA</Text>
+          <View style={[styles.card, { borderColor: theme.line }]}>
+            <Text style={[styles.reinforceIntro, { color: theme.text2 }]}>
+              Estos músculos no alcanzaron el volumen mínimo semanal (MEV, Israetel). Esta sesión extra ayuda a completar el estímulo para hipertrofia (Schoenfeld 2017).
+            </Text>
+            {reinforcement.map((r, i) => (
+              <View key={r.group} style={[styles.reinforceRow, i < reinforcement.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.line }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.reinforceName, { color: theme.text }]}>{r.exercise.n}</Text>
+                  <Text style={[styles.reinforceDetail, { color: theme.text2 }]}>
+                    {r.exercise.s + '×' + r.exercise.reps + ' · RIR ' + r.exercise.rir + ' · ' + r.group + ' (' + r.current + '/' + r.min + ' series hechas)'}
+                  </Text>
+                </View>
+                <Text style={[styles.reinforceBadge, { color: theme.over }]}>
+                  {'+' + r.remaining + ' series'}
+                </Text>
               </View>
             ))}
           </View>
@@ -485,4 +525,11 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     fontVariant: ['tabular-nums'],
   },
+
+  /* Reinforcement */
+  reinforceIntro: { fontSize: 13, lineHeight: 20, marginBottom: 16 },
+  reinforceRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+  reinforceName: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  reinforceDetail: { fontSize: 12, lineHeight: 18 },
+  reinforceBadge: { fontSize: 12, fontWeight: '500', marginLeft: 12 },
 });

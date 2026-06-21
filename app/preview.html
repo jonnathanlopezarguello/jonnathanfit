@@ -260,7 +260,11 @@ h+='</div>';
 h+='<div class="dv"><span class="dvl">ENTRENAMIENTO</span><div class="dvln"></div></div><div class="card"><div style="font-size:11px;letter-spacing:2.5px;font-weight:500;color:var(--text3);margin-bottom:6px">SUGERIDO HOY</div><div style="font-size:26px;font-weight:300;line-height:32px;margin-bottom:20px">'+DT.Lunes+'</div><div class="btn1" onclick="go(\'Entreno\')" style="margin-bottom:24px"><span>INICIAR</span></div><div style="font-size:11px;letter-spacing:2.5px;font-weight:500;color:var(--text3);margin-bottom:12px">OBJETIVOS DE SOBRECARGA</div>';
 T.Lunes.slice(0,3).forEach(function(ex){h+='<div style="padding:10px 0;border-top:1px solid var(--line)"><div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:2px">'+ex.n+'</div><div style="font-size:12px;color:var(--text3)">? kg × '+ex.r+'</div></div>'});
 h+='</div>';
+h+='<div class="dv"><span class="dvl">ACTIVIDAD DIARIA</span><div class="dvln"></div></div>';
+var act=L('jfit_act')||{};var ap=act.pasos||'';var ac=act.cardio||'';
+h+='<div class="card"><div style="display:flex;gap:16px"><div style="flex:1"><div style="font-size:10px;letter-spacing:2px;font-weight:500;color:var(--text3);margin-bottom:4px">PASOS DE HOY</div><input type="number" class="sinp" id="inp_pasos" value="'+ap+'" placeholder="ej. 8000" style="margin-bottom:0"></div><div style="flex:1"><div style="font-size:10px;letter-spacing:2px;font-weight:500;color:var(--text3);margin-bottom:4px">CARDIO EXTRA (KCAL)</div><input type="number" class="sinp" id="inp_cardio" value="'+ac+'" placeholder="ej. 200" style="margin-bottom:0"></div></div><div class="btn1" style="margin-top:16px" id="btn_act" onclick="saveAct()"><span>GUARDAR</span></div></div>';
 e.innerHTML=h}
+function saveAct(){var p=document.getElementById('inp_pasos').value;var c=document.getElementById('inp_cardio').value;S('jfit_act',{pasos:p,cardio:c});var b=document.getElementById('btn_act');if(b){b.style.background='var(--good)';b.querySelector('span').textContent='GUARDADO';setTimeout(function(){b.style.background='var(--accent)';b.querySelector('span').textContent='GUARDAR'},1500)}}
 function tsupp(k){var i=supp.indexOf(k);if(i>=0)supp.splice(i,1);else supp.push(k);S('jfit_s',supp);rnd()}
 
 // === ENTRENO ===
@@ -365,7 +369,13 @@ h+='<div class="sl">PESO CORPORAL</div><div class="card"><div style="font-size:3
 h+='<div class="sl">REGISTROS DE FUERZA</div><div class="card">';
 if(!wk.length)h+='<span style="font-size:13px;color:var(--text3)">Completa entrenamientos para ver tus records.</span>';
 else{var rec={};wk.forEach(function(w){(w.ex||[]).forEach(function(x){(x.sets||[]).forEach(function(s){if(!s.d)return;var b=Math.round((+s.kg)*(1+(+s.rp)/30));if(!rec[x.name]||b>rec[x.name])rec[x.name]=b})})});Object.entries(rec).sort(function(a,b){return b[1]-a[1]}).slice(0,8).forEach(function(en){h+='<div style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)"><span style="font-size:13px">'+en[0]+'</span><span style="font-size:14px;font-weight:300;font-variant-numeric:tabular-nums">'+en[1]+' kg</span></div>'})}
-h+='</div>';e.innerHTML=h}
+h+='</div>';
+var vol=wvol(),mm2={};Object.values(T).forEach(function(d){d.forEach(function(e){mm2[e.n]=e.g})});
+var reinf=Object.keys(VR).filter(function(g){var v=vol[g]||0,mn=(VR[g]||[10,20])[0];return mn>0&&v/mn<1}).map(function(g){var v=vol[g]||0,mn=(VR[g]||[10,20])[0],rem=mn-v,ex=null;Object.values(T).forEach(function(d){d.forEach(function(e){if(!ex&&e.g===g)ex=e})});return{g:g,cur:v,min:mn,rem:rem,ex:ex}}).filter(function(r){return r.ex});
+if(reinf.length>0){h+='<div class="sl">REFUERZO DE FIN DE SEMANA</div><div class="card"><div style="font-size:13px;line-height:20px;color:var(--text2);margin-bottom:16px">Estos musculos no alcanzaron el volumen minimo semanal (MEV, Israetel). Esta sesion extra ayuda a completar el estimulo para hipertrofia (Schoenfeld 2017).</div>';
+reinf.forEach(function(r,i){h+='<div style="display:flex;align-items:center;padding:12px 0;'+(i<reinf.length-1?'border-bottom:1px solid var(--line)':'')+'"><div style="flex:1"><div style="font-size:14px;font-weight:500;margin-bottom:4px">'+r.ex.n+'</div><div style="font-size:12px;line-height:18px;color:var(--text2)">'+r.ex.s+'×'+r.ex.r+' · RIR '+r.ex.ri+' · '+r.g+' ('+r.cur+'/'+r.min+' series hechas)</div></div><span style="font-size:12px;font-weight:500;color:var(--over);margin-left:12px;white-space:nowrap">+'+r.rem+' series</span></div>'});
+h+='</div>'}
+e.innerHTML=h}
 function mcol(g){var v=wvol(),s=v[g]||0,mn=(VR[g]||[10,20])[0];if(mn<=0)return'var(--text2)';var p=s/mn;return p>=1?'var(--good)':p>=.5?'var(--text2)':'var(--over)'}
 function wvol(){var vol={};Object.keys(VR).forEach(function(g){vol[g]=0});var mm={};Object.values(T).forEach(function(d){d.forEach(function(e){mm[e.n]=e.g})});wk.forEach(function(w){(w.ex||[]).forEach(function(e){var g=mm[e.name];if(g&&vol[g]!==undefined)vol[g]+=(e.sets||[]).filter(function(s){return s.d}).length})});return vol}
 

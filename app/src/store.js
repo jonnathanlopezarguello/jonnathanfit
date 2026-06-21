@@ -22,7 +22,8 @@ const defaultState = {
   customFoods: [],
   recipes: [],
   suppLog: {},
-  cardio: {}
+  cardio: {},
+  activity: {}
 };
 
 let state = null;

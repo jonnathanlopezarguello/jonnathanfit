@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { getState, updateState } from '../store';
 import { calc, GOAL_LABEL } from '../data/calc';
 import { PLAN_DAYS, DAY_TITLE, TEMPLATES } from '../data/templates';
@@ -32,8 +32,20 @@ function SectionDivider({ label, theme }) {
 
 export default function HoyScreen({ theme, setTab }) {
   const [state, setState] = useState(getState());
+  const [pasos, setPasos] = useState('');
+  const [cardioExtra, setCardioExtra] = useState('');
+  const [activitySaved, setActivitySaved] = useState(false);
 
-  useEffect(() => { setState(getState()); }, []);
+  useEffect(() => {
+    const s = getState();
+    setState(s);
+    const todayKey = new Date().toLocaleDateString('en-CA');
+    const act = (s.activity || {})[todayKey];
+    if (act) {
+      setPasos(act.pasos != null ? String(act.pasos) : '');
+      setCardioExtra(act.cardio != null ? String(act.cardio) : '');
+    }
+  }, []);
 
   const today = new Date();
   const dateStr = `${DAY_SHORT[today.getDay()]} ${today.getDate()} ${MONTH_SHORT[today.getMonth()]}`;
@@ -231,6 +243,57 @@ export default function HoyScreen({ theme, setTab }) {
           </Text>
         )}
       </View>
+
+      {/* Daily Activity section */}
+      <SectionDivider label="ACTIVIDAD DIARIA" theme={theme} />
+
+      <View style={[s.card, { borderColor: theme.line, backgroundColor: theme.surface }]}>
+        <View style={s.activityRow}>
+          <View style={s.activityCol}>
+            <Text style={[s.activityLabel, { color: theme.text3 }]}>PASOS DE HOY</Text>
+            <TextInput
+              style={{ borderBottomWidth: 1, borderColor: theme.line, color: theme.text, fontSize: 16, paddingVertical: 10, minHeight: 44 }}
+              placeholder="ej. 8000"
+              placeholderTextColor={theme.text3}
+              keyboardType="numeric"
+              value={pasos}
+              onChangeText={setPasos}
+            />
+          </View>
+          <View style={s.activityCol}>
+            <Text style={[s.activityLabel, { color: theme.text3 }]}>CARDIO EXTRA (KCAL)</Text>
+            <TextInput
+              style={{ borderBottomWidth: 1, borderColor: theme.line, color: theme.text, fontSize: 16, paddingVertical: 10, minHeight: 44 }}
+              placeholder="ej. 200"
+              placeholderTextColor={theme.text3}
+              keyboardType="numeric"
+              value={cardioExtra}
+              onChangeText={setCardioExtra}
+            />
+          </View>
+        </View>
+        <TouchableOpacity
+          style={{ minHeight: 42, justifyContent: 'center', alignItems: 'center', backgroundColor: activitySaved ? theme.good : theme.accent, marginTop: 16 }}
+          activeOpacity={0.8}
+          onPress={() => {
+            updateState(st => {
+              if (!st.activity) st.activity = {};
+              st.activity[todayISO] = {
+                pasos: pasos ? parseInt(pasos, 10) : 0,
+                cardio: cardioExtra ? parseInt(cardioExtra, 10) : 0
+              };
+            }).then(st => {
+              setState({ ...st });
+              setActivitySaved(true);
+              setTimeout(() => setActivitySaved(false), 1500);
+            });
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: '600', letterSpacing: 2.5, color: theme.bg }}>
+            {activitySaved ? 'GUARDADO' : 'GUARDAR'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -291,4 +354,9 @@ const s = StyleSheet.create({
   overloadRow: { paddingVertical: 10 },
   overloadName: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
   overloadTarget: { fontSize: 12 },
+
+  // Activity
+  activityRow: { flexDirection: 'row', gap: 16 },
+  activityCol: { flex: 1 },
+  activityLabel: { fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', fontWeight: '500', marginBottom: 4 },
 });
