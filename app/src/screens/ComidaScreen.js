@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
-import { Svg, Circle as SvgCircle, Path, Text as SvgText, Line, Ellipse, Rect, G } from 'react-native-svg';
+let SvgLib = null;
+try { SvgLib = require('react-native-svg'); } catch (e) {}
 import { spacing } from '../theme';
 import { getState, updateState } from '../store';
 import { calc } from '../data/calc';
@@ -86,6 +87,8 @@ function getDateLabel(offset) {
 }
 
 function MacroDonut({ totals, target, theme }) {
+  if (!SvgLib) return null;
+  const { Svg, Circle: SvgCircle, Path } = SvgLib;
   const cx = 50, cy = 50, r = 38;
   const total = totals.p * 4 + totals.c * 4 + totals.f * 9;
   if (total <= 0) {
@@ -93,14 +96,13 @@ function MacroDonut({ totals, target, theme }) {
       <Svg width={100} height={100} viewBox="0 0 100 100">
         <SvgCircle cx={cx} cy={cy} r={r + 4} fill="none" stroke={theme.line} strokeWidth={1.5} />
         <SvgCircle cx={cx} cy={cy} r={r} fill={theme.surface2} />
-        <SvgText x={cx} y={cy + 4} textAnchor="middle" fill={theme.text3} fontSize={10}>Sin datos</SvgText>
       </Svg>
     );
   }
   const segments = [
-    { cal: totals.p * 4, color: theme.accent, label: 'P' },
-    { cal: totals.c * 4, color: theme.text2, label: 'C' },
-    { cal: totals.f * 9, color: theme.text3, label: 'G' },
+    { cal: totals.p * 4, color: theme.accent },
+    { cal: totals.c * 4, color: theme.text2 },
+    { cal: totals.f * 9, color: theme.text3 },
   ];
   let angle = -Math.PI / 2;
   const paths = segments.map((seg, i) => {
@@ -133,10 +135,10 @@ function MacroDonut({ totals, target, theme }) {
 }
 
 function FoodPlate({ items, theme }) {
-  const totalKcal = items.reduce((s, it) => s + (it.kcal || 0), 0);
+  if (!SvgLib) return null;
+  const { Svg, Circle: SvgCircle, Path, Text: SvgText, Line, Ellipse, Rect, G } = SvgLib;
   const totalP = items.reduce((s, it) => s + (it.p || 0), 0);
   const totalC = items.reduce((s, it) => s + (it.c || 0), 0);
-  const totalF = items.reduce((s, it) => s + (it.f || 0), 0);
   const pLvl = totalP > 80 ? 3 : totalP > 40 ? 2 : totalP > 0 ? 1 : 0;
   const cLvl = totalC > 150 ? 3 : totalC > 80 ? 2 : totalC > 0 ? 1 : 0;
   const vLvl = items.length > 8 ? 3 : items.length > 4 ? 2 : items.length > 0 ? 1 : 0;
