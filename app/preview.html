@@ -261,7 +261,7 @@ h+='<div class="dv"><span class="dvl">ENTRENAMIENTO</span><div class="dvln"></di
 T.Lunes.slice(0,3).forEach(function(ex){h+='<div style="padding:10px 0;border-top:1px solid var(--line)"><div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:2px">'+ex.n+'</div><div style="font-size:12px;color:var(--text3)">? kg × '+ex.r+'</div></div>'});
 h+='</div>';
 h+='<div class="dv"><span class="dvl">ACTIVIDAD DIARIA</span><div class="dvln"></div></div>';
-var act=L('jfit_act')||{};var ap=act.pasos||'';var ac=act.cardio||'';
+var act=J('jfit_act')||{};var ap=act.pasos||'';var ac=act.cardio||'';
 h+='<div class="card"><div style="display:flex;gap:16px"><div style="flex:1"><div style="font-size:10px;letter-spacing:2px;font-weight:500;color:var(--text3);margin-bottom:4px">PASOS DE HOY</div><input type="number" class="sinp" id="inp_pasos" value="'+ap+'" placeholder="ej. 8000" style="margin-bottom:0"></div><div style="flex:1"><div style="font-size:10px;letter-spacing:2px;font-weight:500;color:var(--text3);margin-bottom:4px">CARDIO EXTRA (KCAL)</div><input type="number" class="sinp" id="inp_cardio" value="'+ac+'" placeholder="ej. 200" style="margin-bottom:0"></div></div><div class="btn1" style="margin-top:16px" id="btn_act" onclick="saveAct()"><span>GUARDAR</span></div></div>';
 e.innerHTML=h}
 function saveAct(){var p=document.getElementById('inp_pasos').value;var c=document.getElementById('inp_cardio').value;S('jfit_act',{pasos:p,cardio:c});var b=document.getElementById('btn_act');if(b){b.style.background='var(--good)';b.querySelector('span').textContent='GUARDADO';setTimeout(function(){b.style.background='var(--accent)';b.querySelector('span').textContent='GUARDAR'},1500)}}
