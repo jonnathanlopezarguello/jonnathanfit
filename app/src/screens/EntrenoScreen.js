@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Linking } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { getState, updateState } from '../store';
 import { PLAN_DAYS, DAY_TITLE, TEMPLATES, EXERCISE_LIB } from '../data/templates';
 import { e1rm } from '../data/calc';
@@ -425,26 +426,15 @@ export default function EntrenoScreen({ theme }) {
             T{'É'}CNICA {'—'} {currentEx.name.toUpperCase()}
           </Text>
 
-          <TouchableOpacity
-            style={st.videoCard}
-            activeOpacity={0.85}
-            onPress={() => {
-              const vid = YOUTUBE_VIDEOS[currentEx.name];
-              const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' shakil ahmed').replace(/%20/g, '+');
-              Linking.openURL('https://www.youtube.com/results?search_query=' + q);
-            }}
-          >
-            <View style={st.videoGradient}>
-              <View style={st.ytPlayBtn}>
-                <View style={st.ytTriangle} />
-              </View>
-              <Text style={st.videoExName}>{currentEx.name}</Text>
-              <View style={st.channelRow}>
-                <View style={st.channelDot} />
-                <Text style={st.videoChannel}>Shakil Ahmed</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+          <View style={st.videoCard}>
+            <WebView
+              style={{ flex: 1 }}
+              source={{ uri: 'https://m.youtube.com/results?search_query=' + (YOUTUBE_VIDEOS[currentEx.name] ? YOUTUBE_VIDEOS[currentEx.name].q : encodeURIComponent(currentEx.name + ' shakil ahmed tone garage').replace(/%20/g, '+')) }}
+              allowsInlineMediaPlayback
+              mediaPlaybackRequiresUserAction={false}
+              javaScriptEnabled
+            />
+          </View>
 
           <View style={st.linkRow}>
             <TouchableOpacity
@@ -519,14 +509,7 @@ const st = StyleSheet.create({
   techSub: { fontSize: 12 },
 
   techTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 },
-  videoCard: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#0f0f0f', marginBottom: 0, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
-  videoGradient: { alignItems: 'center', justifyContent: 'center' },
-  ytPlayBtn: { width: 68, height: 48, borderRadius: 12, backgroundColor: '#FF0000', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
-  ytTriangle: { width: 0, height: 0, borderLeftWidth: 18, borderTopWidth: 11, borderBottomWidth: 11, borderLeftColor: '#fff', borderTopColor: 'transparent', borderBottomColor: 'transparent', marginLeft: 4 },
-  videoExName: { fontSize: 15, fontWeight: '600', color: '#fff', textAlign: 'center', marginBottom: 6 },
-  channelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  channelDot: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#FF0000' },
-  videoChannel: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
+  videoCard: { width: '100%', height: 320, backgroundColor: '#0f0f0f', marginBottom: 8, overflow: 'hidden' },
   linkRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   linkBtn: { flex: 1, borderWidth: 1, paddingVertical: 14, alignItems: 'center', backgroundColor: 'rgba(28,28,26,.5)' },
   linkBtnText: { fontSize: 11, letterSpacing: 2, fontWeight: '500' },
