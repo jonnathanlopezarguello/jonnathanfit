@@ -425,51 +425,25 @@ export default function EntrenoScreen({ theme }) {
             T{'É'}CNICA {'—'} {currentEx.name.toUpperCase()}
           </Text>
 
+          <Image
+            source={{ uri: (YOUTUBE_VIDEOS[currentEx.name] || {}).img || '' }}
+            style={st.vcImage}
+            resizeMode="cover"
+          />
+
           <TouchableOpacity
-            style={st.videoCard}
-            activeOpacity={0.8}
+            style={[st.ytBtn, { backgroundColor: theme.surface2 || 'rgba(28,28,26,.5)' }]}
             onPress={() => {
               const vid = YOUTUBE_VIDEOS[currentEx.name];
               const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' shakil ahmed tone garage').replace(/%20/g, '+');
               Linking.openURL('https://www.youtube.com/results?search_query=' + q);
             }}
+            activeOpacity={0.7}
           >
-            <Image
-              source={{ uri: (YOUTUBE_VIDEOS[currentEx.name] || {}).img || '' }}
-              style={st.vcImage}
-              resizeMode="cover"
-            />
-            <View style={st.vcOverlay}>
-              <View style={st.vcPlayBtn}>
-                <View style={st.vcTriangle} />
-              </View>
-            </View>
+            <Text style={[st.ytBtnText, { color: theme.text2 }]}>
+              {'▶'}{'  '}VER T{'É'}CNICA EN YOUTUBE
+            </Text>
           </TouchableOpacity>
-
-          <View style={st.linkRow}>
-            <TouchableOpacity
-              style={[st.linkBtn, { borderColor: theme.line }]}
-              onPress={() => {
-                const vid = YOUTUBE_VIDEOS[currentEx.name];
-                const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' shakil ahmed').replace(/%20/g, '+');
-                Linking.openURL('https://www.youtube.com/results?search_query=' + q);
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={[st.linkBtnText, { color: theme.text2 }]}>
-                {'▶'} YOUTUBE
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[st.linkBtn, { borderColor: theme.line }]}
-              onPress={() => Linking.openURL('https://www.instagram.com/' + SHAKIL_INSTAGRAM + '/')}
-              activeOpacity={0.7}
-            >
-              <Text style={[st.linkBtnText, { color: theme.text2 }]}>
-                {'◉'} INSTAGRAM
-              </Text>
-            </TouchableOpacity>
-          </View>
 
           {currentPlan ? (
             <Text style={[st.techDesc, { color: theme.text3 }]}>
@@ -480,6 +454,15 @@ export default function EntrenoScreen({ theme }) {
               {'.'}
             </Text>
           ) : null}
+
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://www.instagram.com/' + SHAKIL_INSTAGRAM + '/')}
+            activeOpacity={0.7}
+          >
+            <Text style={[st.igCredit, { color: theme.text3 }]}>
+              {'@' + SHAKIL_INSTAGRAM + ' · Instagram'}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </ScrollView>
@@ -519,15 +502,11 @@ const st = StyleSheet.create({
   techSub: { fontSize: 12 },
 
   techTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 },
-  videoCard: { width: '100%', aspectRatio: 4 / 3, backgroundColor: '#0f0f0f', marginBottom: 8, overflow: 'hidden', position: 'relative' },
-  vcImage: { width: '100%', height: '100%' },
-  vcOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
-  vcPlayBtn: { width: 56, height: 40, borderRadius: 8, backgroundColor: 'rgba(255,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
-  vcTriangle: { width: 0, height: 0, borderLeftWidth: 14, borderTopWidth: 9, borderBottomWidth: 9, borderLeftColor: '#fff', borderTopColor: 'transparent', borderBottomColor: 'transparent', marginLeft: 3 },
-  linkRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  linkBtn: { flex: 1, borderWidth: 1, paddingVertical: 14, alignItems: 'center', backgroundColor: 'rgba(28,28,26,.5)' },
-  linkBtnText: { fontSize: 11, letterSpacing: 2, fontWeight: '500' },
-  techDesc: { fontSize: 13, lineHeight: 20 },
+  vcImage: { width: '100%', aspectRatio: 4 / 3, backgroundColor: '#1a1a18' },
+  ytBtn: { paddingVertical: 14, alignItems: 'center', marginBottom: 12 },
+  ytBtnText: { fontSize: 12, letterSpacing: 2, fontWeight: '500' },
+  techDesc: { fontSize: 13, lineHeight: 20, marginBottom: 8 },
+  igCredit: { fontSize: 11, textAlign: 'center', marginTop: 4 },
 
   setGridHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, marginBottom: 2 },
   setHeaderText: { fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: '500' },

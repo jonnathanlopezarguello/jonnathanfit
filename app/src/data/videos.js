@@ -68,5 +68,5 @@ export const YOUTUBE_VIDEOS = {
   'Remo en polea baja': { q: 'shakil+ahmed+tone+garage+seated+row', img: IMG + 'Seated_Cable_Rows/0.jpg' },
 };
 
-export const SHAKIL_INSTAGRAM = 'shakil.tgtransformation';
+export const SHAKIL_INSTAGRAM = 'transformwithshakil';
 export const SHAKIL_YOUTUBE_CHANNEL = 'https://www.youtube.com/channel/UCqYv__Nk8novCowpqlmErSA';
