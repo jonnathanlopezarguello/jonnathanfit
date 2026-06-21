@@ -210,7 +210,7 @@ function MainLayout({ tab, setTab, theme }) {
 
       {/* Content */}
       <View style={{ flex: 1 }}>
-        <Screen theme={theme} />
+        <Screen theme={theme} setTab={setTab} />
       </View>
 
       {/* Bottom Tab Bar */}

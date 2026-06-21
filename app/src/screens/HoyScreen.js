@@ -24,7 +24,7 @@ function SectionDivider({ label, theme }) {
   );
 }
 
-export default function HoyScreen({ theme }) {
+export default function HoyScreen({ theme, setTab }) {
   const [state, setState] = useState(getState());
 
   useEffect(() => { setState(getState()); }, []);
@@ -131,7 +131,7 @@ export default function HoyScreen({ theme }) {
               {DAY_TITLE[realDayName] || realDayName}
             </Text>
 
-            <TouchableOpacity style={[s.iniciarBtn, { backgroundColor: theme.accent }]} activeOpacity={0.8}>
+            <TouchableOpacity style={[s.iniciarBtn, { backgroundColor: theme.accent }]} activeOpacity={0.8} onPress={() => setTab && setTab('Entreno')}>
               <Text style={[s.iniciarText, { color: theme.bg }]}>INICIAR</Text>
             </TouchableOpacity>
 
