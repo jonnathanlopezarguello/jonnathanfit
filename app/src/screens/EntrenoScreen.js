@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Linking } from 'react-native';
 import { getState, updateState } from '../store';
 import { PLAN_DAYS, DAY_TITLE, TEMPLATES, EXERCISE_LIB } from '../data/templates';
 import { e1rm } from '../data/calc';
 import ExerciseDemo from '../components/ExerciseDemo';
+import { YOUTUBE_VIDEOS } from '../data/videos';
 
 const DAY_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
@@ -332,6 +333,21 @@ export default function EntrenoScreen({ theme }) {
             <ExerciseDemo exerciseName={currentEx.name} width={160} height={174} theme={theme} />
           </View>
 
+          {/* YouTube technique link */}
+          <TouchableOpacity
+            style={st.ytLink}
+            onPress={() => {
+              const vid = YOUTUBE_VIDEOS[currentEx.name];
+              const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' tecnica correcta').replace(/%20/g, '+');
+              Linking.openURL('https://www.youtube.com/results?search_query=' + q + '+tecnica+correcta');
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={[st.ytLinkText, { color: theme.text3 }]}>
+              {'▶'}  VER EN YOUTUBE
+            </Text>
+          </TouchableOpacity>
+
           {/* Foco text */}
           {currentPlan && currentPlan.foco ? (
             <View style={[st.focoCard, { borderColor: theme.line }]}>
@@ -470,7 +486,10 @@ const st = StyleSheet.create({
   techName: { fontSize: 13, fontWeight: '500', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
   techSub: { fontSize: 12 },
 
-  demoWrap: { alignItems: 'center', marginBottom: 12, paddingVertical: 8, backgroundColor: 'rgba(28,28,26,.5)', borderRadius: 0 },
+  demoWrap: { alignItems: 'center', marginBottom: 4, paddingVertical: 8, backgroundColor: 'rgba(28,28,26,.5)', borderRadius: 0 },
+
+  ytLink: { alignItems: 'center', paddingVertical: 8, marginBottom: 12 },
+  ytLinkText: { fontSize: 10, letterSpacing: 2, fontWeight: '500', textTransform: 'uppercase' },
 
   focoCard: { borderTopWidth: 1, paddingTop: 12, marginBottom: 16 },
   focoLabel: { fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', fontWeight: '500', marginBottom: 6 },
