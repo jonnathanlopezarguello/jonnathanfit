@@ -4,6 +4,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
   Platform,
 } from 'react-native';
@@ -17,8 +18,10 @@ import EntrenoScreen from './src/screens/EntrenoScreen';
 import ComidaScreen from './src/screens/ComidaScreen';
 import PlanScreen from './src/screens/PlanScreen';
 import ProgresoScreen from './src/screens/ProgresoScreen';
+import FuentesScreen from './src/screens/FuentesScreen';
 import PerfilScreen from './src/screens/PerfilScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
+import SaludScreen from './src/screens/SaludScreen';
 
 let Svg, Path, Rect, Circle;
 let hasSvg = false;
@@ -39,6 +42,8 @@ const TABS = [
   { key: 'Comida', label: 'Comida', fallback: '⑂' },
   { key: 'Plan', label: 'Plan', fallback: '☷' },
   { key: 'Progreso', label: 'Progreso', fallback: '➚' },
+  { key: 'Fuentes', label: 'Fuentes', fallback: '📚' },
+  { key: 'Salud', label: 'Salud', fallback: '♥' },
 ];
 
 const SCREENS = {
@@ -47,6 +52,8 @@ const SCREENS = {
   Comida: ComidaScreen,
   Plan: PlanScreen,
   Progreso: ProgresoScreen,
+  Fuentes: FuentesScreen,
+  Salud: SaludScreen,
   Perfil: PerfilScreen,
 };
 
@@ -102,6 +109,20 @@ function TabIcon({ tabKey, color, size }) {
       return (
         <Svg {...props}>
           <Path d="M4 20V4M4 20h16M7 16l4-5 3 3 5-7" {...s} strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      );
+    case 'Fuentes':
+      return (
+        <Svg {...props}>
+          <Path d="M4 19.5A2.5 2.5 0 016.5 17H20" {...s} strokeLinejoin="round" />
+          <Path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" {...s} strokeLinejoin="round" />
+          <Path d="M8 7h8M8 11h6" {...s} strokeLinecap="round" />
+        </Svg>
+      );
+    case 'Salud':
+      return (
+        <Svg {...props}>
+          <Path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" {...s} strokeLinejoin="round" />
         </Svg>
       );
     default:
@@ -228,7 +249,7 @@ function MainLayout({ tab, setTab, theme }) {
       <View style={{ height: 1, backgroundColor: theme.line }} />
 
       {/* Top Tab Bar */}
-      <View style={[styles.tabBar, { backgroundColor: theme.bg }]}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.tabBar, { backgroundColor: theme.bg }]} contentContainerStyle={styles.tabBarContent}>
         {TABS.map(t => {
           const active = tab === t.key;
           return (
@@ -253,7 +274,7 @@ function MainLayout({ tab, setTab, theme }) {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* Hairline below tab bar */}
       <View style={{ height: 1, backgroundColor: theme.line }} />
@@ -307,14 +328,15 @@ const styles = StyleSheet.create({
 
   /* Top Tab Bar */
   tabBar: {
-    flexDirection: 'row',
     height: 50,
+  },
+  tabBarContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingTop: 0,
+    paddingHorizontal: 4,
   },
   tabItem: {
-    flex: 1,
+    paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },

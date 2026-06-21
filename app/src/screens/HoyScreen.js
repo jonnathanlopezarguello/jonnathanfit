@@ -72,6 +72,13 @@ export default function HoyScreen({ theme, setTab }) {
     return null;
   }
 
+  const measurements = state.measurements || [];
+  const lastMeasurement = measurements.length > 0 ? measurements[measurements.length - 1] : null;
+  const daysSinceMeasurement = lastMeasurement
+    ? Math.floor((today.getTime() - new Date(lastMeasurement.date).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const showMeasurementReminder = measurements.length === 0 || daysSinceMeasurement >= 30;
+
   const macros = [
     { label: 'PROTEINA', value: protLogged, target: t.protein, color: theme.accent, barColor: theme.accent },
     { label: 'CARBOS', value: carbLogged, target: t.carbs, color: theme.text, barColor: theme.text3 },
@@ -94,7 +101,27 @@ export default function HoyScreen({ theme, setTab }) {
 
   return (
     <ScrollView style={[s.container, { backgroundColor: theme.bg }]} contentContainerStyle={s.content}>
-      {/* Greeting section */}
+      {showMeasurementReminder && (
+        <View style={[s.card, { borderColor: theme.accent, backgroundColor: theme.surface, marginBottom: 24 }]}>
+          <Text style={{ fontSize: 11, letterSpacing: 2.5, fontWeight: '500', color: theme.text3, marginBottom: 8 }}>
+            REVISION MENSUAL
+          </Text>
+          <Text style={{ fontSize: 13, color: theme.text2, lineHeight: 20, marginBottom: 16 }}>
+            {measurements.length === 0
+              ? 'Aun no tienes medidas registradas. Registra tus medidas en el perfil para hacer seguimiento.'
+              : 'Han pasado mas de 30 dias desde tu ultima medicion. Actualiza tus medidas para seguir tu progreso.'}
+          </Text>
+          <TouchableOpacity
+            style={{ minHeight: 42, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.accent }}
+            activeOpacity={0.8}
+            onPress={() => setTab('Perfil')}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '600', letterSpacing: 2.5, color: theme.bg }}>
+              ACTUALIZAR MEDIDAS
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <Text style={[s.dateText, { color: theme.text3 }]}>{dateStr}</Text>
       <Text style={s.greetingLine}>
         <Text style={{ color: theme.text, fontSize: 30, fontWeight: '300' }}>{greeting.rest}</Text>

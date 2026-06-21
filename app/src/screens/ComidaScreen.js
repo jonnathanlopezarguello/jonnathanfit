@@ -87,6 +87,20 @@ function getDateLabel(offset) {
   return `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
 }
 
+function getWeekDates() {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d.toLocaleDateString('en-CA'));
+  }
+  return dates;
+}
+
 function MacroDonut({ totals, target, theme }) {
   if (!SvgLib) return null;
   const { Svg, Circle: SvgCircle, Path } = SvgLib;
@@ -215,6 +229,62 @@ export default function ComidaScreen({ theme }) {
     (meals[name] || []).reduce((s, it) => s + it.kcal, 0);
 
   const pct = t.kcal > 0 ? Math.min(100, Math.round((totals.kcal / t.kcal) * 100)) : 0;
+
+  const weekDates = getWeekDates();
+  const weekTotals = weekDates.reduce(
+    (a, d) => {
+      const entries = state.nutrition[d] || [];
+      entries.forEach(it => {
+        a.kcal += it.kcal;
+        a.p += it.p;
+        a.c += (it.c || 0);
+        a.f += (it.f || 0);
+      });
+      return a;
+    },
+    { kcal: 0, p: 0, c: 0, f: 0 },
+  );
+  const weekTargets = {
+    kcal: t.kcal * 7,
+    p: t.protein * 7,
+    c: t.carbs * 7,
+    f: t.fat * 7,
+  };
+
+  const isSunday = new Date().getDay() === 0;
+  const weekDeficit = {
+    kcal: Math.max(0, weekTargets.kcal - weekTotals.kcal),
+    p: Math.max(0, weekTargets.p - weekTotals.p),
+    c: Math.max(0, weekTargets.c - weekTotals.c),
+    f: Math.max(0, weekTargets.f - weekTotals.f),
+  };
+  const hasWeekDeficit = weekDeficit.kcal > 0 || weekDeficit.p > 0 || weekDeficit.c > 0 || weekDeficit.f > 0;
+
+  function getSundaySuggestions() {
+    const suggestions = [];
+    if (weekDeficit.p > 20) suggestions.push({ food: 'Pechuga de pollo (100g)', kcal: 165, p: 31, c: 0, f: 4, label: 'Pechuga de pollo (100g) - 31g P' });
+    if (weekDeficit.p > 40) suggestions.push({ food: 'Atun en lata (100g)', kcal: 132, p: 25.5, c: 0, f: 2, label: 'Atun en lata (100g) - 25.5g P' });
+    if (weekDeficit.c > 50) suggestions.push({ food: 'Arroz blanco (1 taza)', kcal: 260, p: 5, c: 45, f: 1, label: 'Arroz blanco (1 taza) - 45g C' });
+    if (weekDeficit.c > 100) suggestions.push({ food: 'Platano (1 unidad)', kcal: 107, p: 1, c: 27, f: 0, label: 'Platano (1 unidad) - 27g C' });
+    if (weekDeficit.f > 10) suggestions.push({ food: 'Aguacate (1/2)', kcal: 120, p: 1, c: 6, f: 11, label: 'Aguacate (1/2) - 11g G' });
+    if (weekDeficit.f > 20) suggestions.push({ food: 'Almendras (30g)', kcal: 170, p: 6, c: 6, f: 14, label: 'Almendras (30g) - 14g G' });
+    return suggestions;
+  }
+
+  const sundaySuggestions = isSunday && hasWeekDeficit ? getSundaySuggestions() : [];
+
+  async function loadSundaySuggestions() {
+    const todayISO = getDateISO(0);
+    const items = getSundaySuggestions();
+    if (items.length === 0) return;
+    const s = await updateState(st => {
+      if (!st.nutrition[todayISO]) st.nutrition[todayISO] = [];
+      items.forEach(it => {
+        st.nutrition[todayISO].push({ food: it.food, kcal: it.kcal, p: it.p, c: it.c, f: it.f, meal: 'Cena' });
+      });
+    });
+    setState({ ...s });
+  }
 
   async function addFood() {
     const kcal = parseFloat(foodKcal) || 0;
@@ -502,6 +572,57 @@ export default function ComidaScreen({ theme }) {
           </TouchableOpacity>
         </View>
       )}
+
+      <View style={[styles.weekDivider, { borderTopColor: theme.line }]} />
+      <Text style={[styles.sectionLabel, { color: theme.text3, marginTop: spacing.lg }]}>{'RESUMEN SEMANAL'}</Text>
+      <View style={[styles.card, { borderColor: theme.line }]}>
+        {[
+          { label: 'KCAL', consumed: weekTotals.kcal, target: weekTargets.kcal, color: theme.accent },
+          { label: 'PROTEINA', consumed: weekTotals.p, target: weekTargets.p, color: theme.accent },
+          { label: 'CARBOS', consumed: weekTotals.c, target: weekTargets.c, color: theme.text2 },
+          { label: 'GRASA', consumed: weekTotals.f, target: weekTargets.f, color: theme.text3 },
+        ].map((macro, idx) => {
+          const pctW = macro.target > 0 ? Math.min(100, Math.round((macro.consumed / macro.target) * 100)) : 0;
+          return (
+            <View key={macro.label} style={idx > 0 ? { marginTop: 14 } : undefined}>
+              <View style={styles.weekMacroHeader}>
+                <Text style={[styles.weekMacroLabel, { color: macro.color }]}>{macro.label}</Text>
+                <Text style={[styles.weekMacroValues, { color: theme.text2 }]}>
+                  {Math.round(macro.consumed) + ' / ' + Math.round(macro.target)}
+                </Text>
+              </View>
+              <View style={[styles.track, { backgroundColor: theme.line2, marginTop: 4 }]}>
+                <View style={[styles.fill, { width: `${pctW}%`, backgroundColor: macro.color }]} />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      {isSunday && hasWeekDeficit && sundaySuggestions.length > 0 && (
+        <View>
+          <Text style={[styles.sectionLabel, { color: theme.text3 }]}>{'COMIDA DE CIERRE SEMANAL'}</Text>
+          <View style={[styles.card, { borderColor: theme.accent }]}>
+            <Text style={[styles.weekDeficitNote, { color: theme.text2 }]}>
+              {'Deficit restante: ' + Math.round(weekDeficit.kcal) + ' kcal · P ' + Math.round(weekDeficit.p) + 'g · C ' + Math.round(weekDeficit.c) + 'g · G ' + Math.round(weekDeficit.f) + 'g'}
+            </Text>
+            {sundaySuggestions.map((sug, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.sugRow,
+                  i < sundaySuggestions.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.line },
+                ]}
+              >
+                <Text style={[styles.foodName, { color: theme.text }]}>{sug.label}</Text>
+              </View>
+            ))}
+            <TouchableOpacity style={[styles.saveBtn, { backgroundColor: theme.accent, marginTop: 14 }]} onPress={loadSundaySuggestions}>
+              <Text style={[styles.addBtnText, { color: theme.bg }]}>{'CARGAR SUGERENCIA'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -553,4 +674,10 @@ const styles = StyleSheet.create({
   catChip: { borderWidth: 1, paddingVertical: 6, paddingHorizontal: 10, marginRight: 8 },
   searchResults: { maxHeight: 320 },
   searchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
+  weekDivider: { borderTopWidth: 1, marginTop: spacing.lg },
+  weekMacroHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  weekMacroLabel: { fontSize: 10, letterSpacing: 2, fontWeight: '500' },
+  weekMacroValues: { fontSize: 12, fontVariant: ['tabular-nums'] },
+  weekDeficitNote: { fontSize: 12, marginBottom: 12 },
+  sugRow: { paddingVertical: 10 },
 });
