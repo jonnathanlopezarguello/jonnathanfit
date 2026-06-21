@@ -7,11 +7,14 @@ const defaultState = {
     name: '', sex: 'male', age: 25, weight: 79, height: 176,
     activity: 1.55, goal: 'bulk', days: 4,
     proteinPerKg: 2.0, fatPerKg: 1.0,
-    bodyFat: '', yearsTraining: '', calAdjust: 0,
-    programStart: '', _set: false
+    bodyFat: '', waistCm: '', neckCm: '', hipCm: '',
+    yearsTraining: '', sleepHours: '7', stressLevel: 'medio',
+    injuries: '', activityLevel: 'moderado',
+    calAdjust: 0, programStart: '', _set: false
   },
   bodyweight: [],
   waist: [],
+  // Each entry: { date, weight, waistCm, neckCm, hipCm, bodyFat }
   measurements: [],
   workouts: [],
   active: null,
@@ -33,7 +36,7 @@ export async function loadState() {
     } else {
       state = JSON.parse(JSON.stringify(defaultState));
     }
-  } catch {
+  } catch (e) {
     state = JSON.parse(JSON.stringify(defaultState));
   }
   return state;

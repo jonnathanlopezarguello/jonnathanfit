@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { loadState } from './src/store';
+import { loadState, getState } from './src/store';
 import { colors } from './src/theme';
 
 import HoyScreen from './src/screens/HoyScreen';
@@ -18,6 +18,7 @@ import ComidaScreen from './src/screens/ComidaScreen';
 import PlanScreen from './src/screens/PlanScreen';
 import ProgresoScreen from './src/screens/ProgresoScreen';
 import PerfilScreen from './src/screens/PerfilScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 
 let Svg, Path, Rect, Circle;
 let hasSvg = false;
@@ -153,8 +154,15 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState('Hoy');
   const [secs, setSecs] = useState(0);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
-  useEffect(() => { loadState().then(() => setReady(true)); }, []);
+  useEffect(() => {
+    loadState().then(() => {
+      const s = getState();
+      setNeedsOnboarding(!s.profile._set);
+      setReady(true);
+    });
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => setSecs(s => s + 1), 1000);
@@ -166,6 +174,17 @@ export default function App() {
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
         <ActivityIndicator size="large" color={colors.text} />
       </View>
+    );
+  }
+
+  if (needsOnboarding) {
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: 0 }}>
+          <OnboardingScreen theme={colors} onFinish={() => setNeedsOnboarding(false)} />
+        </View>
+        <StatusBar style="light" />
+      </SafeAreaProvider>
     );
   }
 
@@ -208,13 +227,8 @@ function MainLayout({ tab, setTab, theme }) {
       {/* Hairline */}
       <View style={{ height: 1, backgroundColor: theme.line }} />
 
-      {/* Content */}
-      <View style={{ flex: 1 }}>
-        <Screen theme={theme} setTab={setTab} />
-      </View>
-
-      {/* Bottom Tab Bar */}
-      <View style={[styles.tabBar, { paddingBottom: insets.bottom || 8 }]}>
+      {/* Top Tab Bar */}
+      <View style={[styles.tabBar, { backgroundColor: theme.bg }]}>
         {TABS.map(t => {
           const active = tab === t.key;
           return (
@@ -224,11 +238,8 @@ function MainLayout({ tab, setTab, theme }) {
               onPress={() => setTab(t.key)}
               activeOpacity={0.7}
             >
-              {active && (
-                <View style={[styles.tabAccentLine, { backgroundColor: theme.accent }]} />
-              )}
-              <View style={{ marginTop: active ? 6 : 8 }}>
-                <TabIcon tabKey={t.key} color={active ? theme.text : theme.text3} size={22} />
+              <View style={{ marginTop: 6 }}>
+                <TabIcon tabKey={t.key} color={active ? theme.text : theme.text3} size={20} />
               </View>
               <Text style={[
                 styles.tabLabel,
@@ -236,9 +247,20 @@ function MainLayout({ tab, setTab, theme }) {
               ]}>
                 {t.label}
               </Text>
+              {active && (
+                <View style={[styles.tabAccentLine, { backgroundColor: theme.accent }]} />
+              )}
             </TouchableOpacity>
           );
         })}
+      </View>
+
+      {/* Hairline below tab bar */}
+      <View style={{ height: 1, backgroundColor: theme.line }} />
+
+      {/* Content */}
+      <View style={{ flex: 1 }}>
+        <Screen theme={theme} setTab={setTab} />
       </View>
     </View>
   );
@@ -283,31 +305,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /* Bottom Tab Bar */
+  /* Top Tab Bar */
   tabBar: {
     flexDirection: 'row',
-    height: 70,
-    backgroundColor: 'rgba(18,18,17,.92)',
-    borderTopWidth: 0,
-    alignItems: 'flex-start',
+    height: 50,
+    alignItems: 'center',
     justifyContent: 'space-around',
     paddingTop: 0,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 0,
+    justifyContent: 'center',
   },
   tabAccentLine: {
     width: 14,
     height: 1.5,
-    marginTop: 0,
+    marginTop: 3,
   },
   tabLabel: {
     fontSize: 9,
     fontWeight: '500',
     letterSpacing: 0.5,
-    marginTop: 4,
+    marginTop: 2,
   },
 });

@@ -180,6 +180,21 @@ export default function ProgresoScreen({ theme }) {
     ? { sets: vol[selMuscle] || 0, min: (VOL_RANGE[selMuscle] || [10, 20])[0] }
     : null;
 
+  const selExInfo = (() => {
+    if (!selMuscle) return null;
+    const allExForMuscle = [];
+    Object.entries(TEMPLATES).forEach(([day, exs]) => {
+      exs.forEach(e => { if (e.g === selMuscle) allExForMuscle.push({ name: e.n, day }); });
+    });
+    const doneExNames = new Set();
+    weekWorkouts.forEach(w => w.exercises.forEach(e => {
+      if (e.sets && e.sets.some(s => s.done)) doneExNames.add(e.name);
+    }));
+    const remaining = allExForMuscle.filter(e => !doneExNames.has(e.name));
+    const doneCount = allExForMuscle.filter(e => doneExNames.has(e.name)).length;
+    return { total: allExForMuscle.length, doneCount, remaining };
+  })();
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.bg }]} contentContainerStyle={styles.content}>
       {/* Header */}
@@ -242,12 +257,28 @@ export default function ProgresoScreen({ theme }) {
         </View>
 
         {/* Tap hint or selection */}
-        {selMuscle && selData ? (
+        {selMuscle && selData && selExInfo ? (
           <View style={styles.selInfo}>
             <Text style={[styles.selName, { color: theme.text }]}>{selMuscle}</Text>
             <Text style={[styles.selSeries, { color: theme.text2 }]}>
               {selData.sets + ' / ' + selData.min + ' series'}
             </Text>
+            <Text style={[styles.selSeries, { color: theme.text2, marginTop: 4 }]}>
+              {selExInfo.doneCount + ' / ' + selExInfo.total + ' ejercicios completados'}
+            </Text>
+            {selExInfo.remaining.length === 0 ? (
+              <Text style={[styles.selRemaining, { color: theme.good, marginTop: 4 }]}>
+                {'Todos los ejercicios completados'}
+              </Text>
+            ) : (
+              <View style={{ marginTop: 4 }}>
+                {selExInfo.remaining.map((e, i) => (
+                  <Text key={i} style={[styles.selRemaining, { color: theme.text3 }]}>
+                    {e.name + ' (' + e.day + ')'}
+                  </Text>
+                ))}
+              </View>
+            )}
           </View>
         ) : (
           <Text style={[styles.tapHint, { color: theme.text3 }]}>
@@ -403,6 +434,10 @@ const styles = StyleSheet.create({
   selSeries: {
     fontSize: 13,
     marginTop: 2,
+  },
+  selRemaining: {
+    fontSize: 11,
+    lineHeight: 16,
   },
 
   /* Section label */

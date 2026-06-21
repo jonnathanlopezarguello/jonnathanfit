@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { getState } from '../store';
+import { getState, updateState } from '../store';
 import { calc, GOAL_LABEL } from '../data/calc';
 import { PLAN_DAYS, DAY_TITLE, TEMPLATES } from '../data/templates';
 
 const DAY_ES = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
 const DAY_SHORT = ['DOM','LUN','MAR','MIE','JUE','VIE','SAB'];
 const MONTH_SHORT = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+
+const SUPPLEMENTS = [
+  { key: 'creatina', name: 'Creatina', dose: '5g', info: 'Monohidrato · con cualquier comida' },
+  { key: 'proteina', name: 'Proteina Whey', dose: '1 scoop', info: '24g proteina · post-entreno o entre comidas' },
+  { key: 'cafeina', name: 'Cafeina', dose: '200mg', info: '30-60 min pre-entreno · no despues de 2pm' },
+];
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -73,6 +79,19 @@ export default function HoyScreen({ theme, setTab }) {
     { label: 'FIBRA', value: fiberLogged, target: t.fiber, color: theme.good, barColor: theme.good },
   ];
 
+  const todaySupps = state.suppLog[todayISO] || [];
+
+  function toggleSupp(key) {
+    updateState(s => {
+      const arr = s.suppLog[todayISO] || [];
+      if (arr.includes(key)) {
+        s.suppLog[todayISO] = arr.filter(k => k !== key);
+      } else {
+        s.suppLog[todayISO] = [...arr, key];
+      }
+    }).then(s => setState({ ...s }));
+  }
+
   return (
     <ScrollView style={[s.container, { backgroundColor: theme.bg }]} contentContainerStyle={s.content}>
       {/* Greeting section */}
@@ -118,6 +137,31 @@ export default function HoyScreen({ theme, setTab }) {
             );
           })}
         </View>
+      </View>
+
+      {/* Supplements section */}
+      <SectionDivider label="SUPLEMENTOS DEL DIA" theme={theme} />
+
+      <View style={[s.card, { borderColor: theme.line, backgroundColor: theme.surface }]}>
+        {SUPPLEMENTS.map((sup, i) => {
+          const checked = todaySupps.includes(sup.key);
+          return (
+            <View key={sup.key} style={[s.suppRow, i < SUPPLEMENTS.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.line }]}>
+              <TouchableOpacity
+                style={[s.suppCheckbox, { borderColor: checked ? theme.accent : theme.text3, backgroundColor: checked ? theme.accent : 'transparent' }]}
+                activeOpacity={0.7}
+                onPress={() => toggleSupp(sup.key)}
+              />
+              <View style={s.suppInfo}>
+                <View style={s.suppNameRow}>
+                  <Text style={[s.suppName, { color: theme.text }]}>{sup.name}</Text>
+                  <Text style={[s.suppDose, { color: theme.text3 }]}>{sup.dose}</Text>
+                </View>
+                <Text style={[s.suppDetail, { color: theme.text3 }]}>{sup.info}</Text>
+              </View>
+            </View>
+          );
+        })}
       </View>
 
       {/* Training section */}
@@ -205,6 +249,15 @@ const s = StyleSheet.create({
   sessionName: { fontSize: 26, fontWeight: '300', lineHeight: 32, marginBottom: 20 },
   iniciarBtn: { minHeight: 42, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
   iniciarText: { fontSize: 12, fontWeight: '600', letterSpacing: 2.5, textTransform: 'uppercase' },
+
+  // Supplements
+  suppRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 12 },
+  suppCheckbox: { width: 24, height: 24, borderWidth: 1.5, borderRadius: 3, marginRight: 14, marginTop: 2 },
+  suppInfo: { flex: 1 },
+  suppNameRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  suppName: { fontSize: 14, fontWeight: '500', marginRight: 8 },
+  suppDose: { fontSize: 12 },
+  suppDetail: { fontSize: 11, fontStyle: 'italic' },
 
   // Overload
   overloadLabel: { fontSize: 11, letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: '500', marginBottom: 12, color: '#8A8A82' },

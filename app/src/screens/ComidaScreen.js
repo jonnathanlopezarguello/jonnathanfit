@@ -6,6 +6,7 @@ import { spacing } from '../theme';
 import { getState, updateState } from '../store';
 import { calc } from '../data/calc';
 import { PLAN_DAYS } from '../data/templates';
+import { FOODS, FOOD_CATEGORIES } from '../data/foods';
 
 const DAY_SHORT = ['DOM','LUN','MAR','MIE','JUE','VIE','SAB'];
 const MONTH_SHORT = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -189,6 +190,9 @@ export default function ComidaScreen({ theme }) {
   const [foodC, setFoodC] = useState('');
   const [foodF, setFoodF] = useState('');
   const [foodMeal, setFoodMeal] = useState('Almuerzo');
+  const [searchMode, setSearchMode] = useState(false);
+  const [searchQ, setSearchQ] = useState('');
+  const [selectedCat, setSelectedCat] = useState(null);
 
   useEffect(() => { setState(getState()); }, []);
 
@@ -230,6 +234,26 @@ export default function ComidaScreen({ theme }) {
     setAdding(false);
     setFoodName(''); setFoodKcal(''); setFoodP(''); setFoodC(''); setFoodF('');
   }
+
+  async function addFoodFromDB(item) {
+    const entry = { food: item.n, kcal: item.kcal, p: item.p, c: item.c, f: item.f, meal: foodMeal };
+    const s = await updateState(st => {
+      if (!st.nutrition[dateISO]) st.nutrition[dateISO] = [];
+      st.nutrition[dateISO].push(entry);
+    });
+    setState({ ...s });
+    setSearchMode(false);
+    setSearchQ('');
+    setSelectedCat(null);
+  }
+
+  const filteredFoods = searchMode
+    ? FOODS.filter(item => {
+        const matchQ = !searchQ || item.n.toLowerCase().includes(searchQ.toLowerCase());
+        const matchCat = !selectedCat || item.cat === selectedCat;
+        return matchQ && matchCat;
+      })
+    : [];
 
   async function deleteFood(mealName, idx) {
     const mealItems = meals[mealName];
@@ -280,7 +304,7 @@ export default function ComidaScreen({ theme }) {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={[styles.supra, { color: theme.text3 }]}>{'REGISTRO DE ALIMENTACIÓN'}</Text>
       <Text style={[styles.title, { color: theme.text }]}>Comida</Text>
 
@@ -364,10 +388,8 @@ export default function ComidaScreen({ theme }) {
         ))
       )}
 
-      {/* Add food form */}
       {adding ? (
         <View style={[styles.card, { borderColor: theme.accent }]}>
-          {/* Meal selector */}
           <View style={styles.mealRow}>
             {MEAL_OPTIONS.map(m => (
               <TouchableOpacity
@@ -395,10 +417,90 @@ export default function ComidaScreen({ theme }) {
             </TouchableOpacity>
           </View>
         </View>
+      ) : searchMode ? (
+        <View style={[styles.card, { borderColor: theme.accent }]}>
+          <View style={styles.mealRow}>
+            {MEAL_OPTIONS.map(m => (
+              <TouchableOpacity
+                key={m}
+                style={[styles.mealChip, { borderColor: foodMeal === m ? theme.accent : theme.line, backgroundColor: foodMeal === m ? theme.accentSoft : 'transparent' }]}
+                onPress={() => setFoodMeal(m)}
+              >
+                <Text style={{ fontSize: 10, color: foodMeal === m ? theme.text : theme.text3 }}>{m}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <TextInput
+            style={[styles.input, { borderColor: theme.line, color: theme.text }]}
+            placeholder="Buscar alimento..."
+            placeholderTextColor={theme.text3}
+            value={searchQ}
+            onChangeText={setSearchQ}
+            autoFocus
+          />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll} keyboardShouldPersistTaps="handled">
+            <TouchableOpacity
+              style={[styles.catChip, { borderColor: !selectedCat ? theme.accent : theme.line, backgroundColor: !selectedCat ? theme.accentSoft : 'transparent' }]}
+              onPress={() => setSelectedCat(null)}
+            >
+              <Text style={{ fontSize: 10, color: !selectedCat ? theme.text : theme.text3 }}>Todos</Text>
+            </TouchableOpacity>
+            {FOOD_CATEGORIES.map(cat => (
+              <TouchableOpacity
+                key={cat}
+                style={[styles.catChip, { borderColor: selectedCat === cat ? theme.accent : theme.line, backgroundColor: selectedCat === cat ? theme.accentSoft : 'transparent' }]}
+                onPress={() => setSelectedCat(selectedCat === cat ? null : cat)}
+              >
+                <Text style={{ fontSize: 10, color: selectedCat === cat ? theme.text : theme.text3 }}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <View style={styles.searchResults}>
+            {filteredFoods.slice(0, 50).map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.searchRow,
+                  i < Math.min(filteredFoods.length, 50) - 1 && { borderBottomWidth: 1, borderBottomColor: theme.line },
+                ]}
+                onPress={() => addFoodFromDB(item)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.foodLeft}>
+                  <Text style={[styles.foodName, { color: theme.text }]}>{item.n}</Text>
+                  <Text style={[styles.foodMacros, { color: theme.text3 }]}>
+                    {item.portion + '  ·  P ' + Math.round(item.p) + ' · C ' + Math.round(item.c) + ' · G ' + Math.round(item.f)}
+                  </Text>
+                </View>
+                <Text style={[styles.foodKcal, { color: theme.text }]}>{Math.round(item.kcal)}</Text>
+              </TouchableOpacity>
+            ))}
+            {filteredFoods.length === 0 && (
+              <Text style={[styles.hint, { color: theme.text3 }]}>No se encontraron alimentos.</Text>
+            )}
+          </View>
+          <TouchableOpacity
+            style={[styles.cancelBtn, { borderColor: theme.line, marginTop: 12 }]}
+            onPress={() => { setSearchMode(false); setSearchQ(''); setSelectedCat(null); }}
+          >
+            <Text style={[styles.addBtnText, { color: theme.text3 }]}>CANCELAR</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
-        <TouchableOpacity style={[styles.addBtn, { borderColor: theme.line2 }]} onPress={() => setAdding(true)}>
-          <Text style={[styles.addBtnText, { color: theme.text3 }]}>{'+ AÑADIR COMIDA'}</Text>
-        </TouchableOpacity>
+        <View style={styles.addChoiceRow}>
+          <TouchableOpacity
+            style={[styles.addBtn, { borderColor: theme.line2, flex: 1 }]}
+            onPress={() => setSearchMode(true)}
+          >
+            <Text style={[styles.addBtnText, { color: theme.text3 }]}>BUSCAR ALIMENTO</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.addBtn, { borderColor: theme.line2, flex: 1 }]}
+            onPress={() => setAdding(true)}
+          >
+            <Text style={[styles.addBtnText, { color: theme.text3 }]}>ENTRADA MANUAL</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </ScrollView>
   );
@@ -445,4 +547,10 @@ const styles = StyleSheet.create({
   formBtns: { flexDirection: 'row', gap: 8 },
   cancelBtn: { flex: 1, borderWidth: 1, paddingVertical: 12, alignItems: 'center' },
   saveBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+
+  addChoiceRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  catScroll: { marginBottom: 12 },
+  catChip: { borderWidth: 1, paddingVertical: 6, paddingHorizontal: 10, marginRight: 8 },
+  searchResults: { maxHeight: 320 },
+  searchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
 });
