@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview — Jonnathan Fit cambios</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#121211;--surface:#121211;--surface-2:#1C1C1A;--line:#2A2A28;--line-2:#3D3D3A;--text:#F2F2EE;--text-2:#B9B9B2;--text-3:#8A8A82;--accent:#F2F2EE;--accent-soft:rgba(242,242,238,.08);--good:#7FB07A;--over:#D26A45;--f:'Inter',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a09;display:flex;flex-wrap:wrap;gap:32px;padding:32px;justify-content:center;font-family:var(--f);color:var(--text)}
+h2{color:var(--text);font-weight:300;font-size:18px;margin-bottom:12px;text-align:center}
+.label{color:var(--over);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:500;text-align:center;margin-bottom:8px}
+
+.phone{width:390px;border-radius:42px;overflow:hidden;background:var(--bg);border:1px solid #333;position:relative}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 22px 10px}
+.logo{font:400 16px/1 var(--f);color:var(--text);display:flex;align-items:center;gap:9px}
+.logo b{font-weight:500}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.45}50%{transform:scale(1.7);opacity:1}}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:breathe 2.6s ease infinite}
+.clock{font:300 13px/1 var(--f);color:var(--text-3);font-variant-numeric:tabular-nums}
+.profile-btn{width:34px;height:34px;border:1px solid var(--line-2);border-radius:50%;display:grid;place-items:center;background:none;color:var(--text-2)}
+.topright{display:flex;align-items:center;gap:14px}
+
+/* TAB BAR ARRIBA */
+.tabbar-top{display:flex;height:44px;border-bottom:1px solid var(--line);align-items:stretch;justify-content:space-around;background:rgba(18,18,17,.92)}
+.tab-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;padding:0 4px}
+.tab-top .tab-label{font:500 9px/1 var(--f);letter-spacing:.5px;color:var(--text-3);text-transform:uppercase}
+.tab-top.active .tab-label{color:var(--text)}
+.tab-top.active::after{content:'';position:absolute;bottom:0;width:14px;height:1.5px;background:var(--accent)}
+.tab-top svg{margin-bottom:3px}
+
+/* CONTENT */
+.content{padding:22px;height:620px;overflow-y:auto}
+.content::-webkit-scrollbar{display:none}
+
+/* ENTRENO VIEW */
+.banner{border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.banner-left{}
+.banner-label{font:500 10px/1 var(--f);letter-spacing:2px;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+@keyframes blink{0%,45%{opacity:1}50%,95%{opacity:.25}100%{opacity:1}}
+.blink-dot{width:6px;height:6px;border-radius:50%;background:var(--over);animation:blink 1.6s steps(1) infinite}
+.timer{font:300 24px/1 var(--f);color:var(--text);font-variant-numeric:tabular-nums}
+.finish-btn{padding:10px 16px;background:var(--accent);border:none;font:600 11px/1 var(--f);letter-spacing:2px;text-transform:uppercase;color:var(--bg);cursor:pointer}
+
+/* TECHNIQUE CARD */
+.tech-card{border:1px solid var(--line);padding:16px;margin-bottom:16px}
+.tech-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.tech-name{font:500 13px/1 var(--f);letter-spacing:1.5px;text-transform:uppercase;color:var(--text);margin-bottom:4px}
+.tech-sub{font:400 12px/1.4 var(--f);color:var(--text-3)}
+.tech-badge{border:1px solid var(--line);padding:6px 9px;font:500 9px/1 var(--f);letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3)}
+.tech-foco{font:400 12px/1.5 var(--f);color:var(--text-2);margin-top:8px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line)}
+.demo-box{background:var(--surface-2);border:1px solid var(--line);padding:12px;margin-top:12px;display:flex;justify-content:center;height:200px;align-items:center}
+
+/* SET CHIPS - EDITABLE */
+.chip-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);padding:10px 14px;min-width:80px;text-align:center;cursor:pointer;font:500 12px/1 var(--f);color:var(--text-2);flex:1}
+.chip.done{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.chip-hint{font:400 11px/1.4 var(--f);color:var(--text-3);margin-top:2px}
+
+/* SET INPUT FORM */
+.set-form{border:1px solid var(--accent);padding:14px;margin-bottom:10px;display:flex;gap:8px;align-items:center}
+.set-input{background:transparent;border:1px solid var(--line);color:var(--text);font:400 14px/1 var(--f);padding:8px 10px;width:70px;text-align:center;font-variant-numeric:tabular-nums}
+.set-input::placeholder{color:var(--text-3)}
+.set-save{padding:8px 14px;background:var(--accent);border:none;font:600 10px/1 var(--f);letter-spacing:1.5px;text-transform:uppercase;color:var(--bg);cursor:pointer}
+.set-cancel{padding:8px 14px;background:transparent;border:1px solid var(--line);font:500 10px/1 var(--f);letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3);cursor:pointer}
+.set-label{font:400 10px/1 var(--f);color:var(--text-3);text-transform:uppercase;letter-spacing:1px}
+
+/* EXERCISE LIST */
+.ex-label{font:500 11px/1 var(--f);letter-spacing:2.5px;text-transform:uppercase;color:var(--text-3);margin:8px 0 12px}
+.ex-row{border:1px solid var(--line);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.ex-row.active{border-color:var(--accent)}
+.ex-name{font:500 12px/1 var(--f);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:2px}
+.ex-sub{font:400 11px/1 var(--f);color:var(--text-3)}
+.ex-count{font:500 14px/1 var(--f);color:var(--text-3)}
+.ex-count.complete{color:var(--good)}
+</style>
+</head>
+<body>
+
+<div>
+<div class="label">CAMBIO 1: TABS ARRIBA</div>
+<h2>Navegación en la parte superior</h2>
+<div class="phone">
+  <!-- Top bar -->
+  <div class="topbar">
+    <span class="logo"><span class="dot"></span>Jonnathan <b>Fit</b></span>
+    <div class="topright">
+      <span class="clock">21:45:12</span>
+      <button class="profile-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 19c.8-3.4 3.4-5 6.5-5s5.7 1.6 6.5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- TABS ARRIBA -->
+  <div class="tabbar-top">
+    <div class="tab-top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke="var(--text-3)" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <span class="tab-label">Hoy</span>
+    </div>
+    <div class="tab-top active">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6.5 9v6M17.5 9v6M4 10.5v3M20 10.5v3M6.5 12h11" stroke="var(--text)" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span class="tab-label">Entreno</span>
+    </div>
+    <div class="tab-top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 3v8M5 3v4a2 2 0 002 2M9 3v4a2 2 0 01-2 2M16.5 3c-1.4 0-2.5 2-2.5 5s1.1 3 2.5 3M17 3v18" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span class="tab-label">Comida</span>
+    </div>
+    <div class="tab-top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" stroke="var(--text-3)" stroke-width="1.4"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span class="tab-label">Plan</span>
+    </div>
+    <div class="tab-top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 20V4M4 20h16M7 16l4-5 3 3 5-7" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="tab-label">Progreso</span>
+    </div>
+  </div>
+
+  <!-- Content area -->
+  <div class="content" style="height:680px">
+    <div style="font:500 11px/1 var(--f);letter-spacing:2.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">REGISTRO DE FUERZA</div>
+    <div style="font:300 30px/1 var(--f);color:var(--text);margin-bottom:24px">Entreno</div>
+    <div style="font:400 14px/1 var(--f);color:var(--text-2);margin-bottom:24px">Sábado — Pecho · Tríceps · Abdomen</div>
+
+    <div style="border:1px solid var(--line);padding:16px;margin-bottom:8px">
+      <div style="font:500 13px/1 var(--f);letter-spacing:1.5px;text-transform:uppercase;color:var(--text);margin-bottom:4px">Press banca</div>
+      <div style="font:400 12px/1 var(--f);color:var(--text-3)">4 x 6-10 · RIR 2-3 · Pecho</div>
+    </div>
+    <div style="border:1px solid var(--line);padding:16px;margin-bottom:8px">
+      <div style="font:500 13px/1 var(--f);letter-spacing:1.5px;text-transform:uppercase;color:var(--text);margin-bottom:4px">Fondos en paralelas</div>
+      <div style="font:400 12px/1 var(--f);color:var(--text-3)">3 x 8-12 · RIR 1-2 · Tríceps</div>
+    </div>
+
+    <button style="width:100%;min-height:42px;background:var(--accent);border:none;font:600 12px/1 var(--f);letter-spacing:2.5px;text-transform:uppercase;color:var(--bg);cursor:pointer;margin-top:16px">INICIAR SESION</button>
+  </div>
+</div>
+</div>
+
+<div>
+<div class="label">CAMBIOS 2 Y 3: SERIES EDITABLES + TÉCNICA ANIMADA</div>
+<h2>Sesión activa con técnica y edición de series</h2>
+<div class="phone">
+  <div class="topbar">
+    <span class="logo"><span class="dot"></span>Jonnathan <b>Fit</b></span>
+    <div class="topright">
+      <span class="clock">21:45:12</span>
+      <button class="profile-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 19c.8-3.4 3.4-5 6.5-5s5.7 1.6 6.5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="tabbar-top">
+    <div class="tab-top"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke="var(--text-3)" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="tab-label">Hoy</span></div>
+    <div class="tab-top active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6.5 9v6M17.5 9v6M4 10.5v3M20 10.5v3M6.5 12h11" stroke="var(--text)" stroke-width="1.4" stroke-linecap="round"/></svg><span class="tab-label">Entreno</span></div>
+    <div class="tab-top"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 3v8M5 3v4a2 2 0 002 2M9 3v4a2 2 0 01-2 2M16.5 3c-1.4 0-2.5 2-2.5 5s1.1 3 2.5 3M17 3v18" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round"/></svg><span class="tab-label">Comida</span></div>
+    <div class="tab-top"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" stroke="var(--text-3)" stroke-width="1.4"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round"/></svg><span class="tab-label">Plan</span></div>
+    <div class="tab-top"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 20V4M4 20h16M7 16l4-5 3 3 5-7" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Progreso</span></div>
+  </div>
+
+  <div class="content" style="height:680px">
+    <!-- Session banner -->
+    <div class="banner">
+      <div class="banner-left">
+        <div class="banner-label"><span class="blink-dot"></span>EN CURSO · PECHO · TRÍCEPS</div>
+        <div class="timer">00:12:34</div>
+      </div>
+      <button class="finish-btn">FINALIZAR</button>
+    </div>
+
+    <!-- Technique card -->
+    <div class="tech-card">
+      <div class="tech-header">
+        <div style="flex:1">
+          <div class="tech-name">Press banca</div>
+          <div class="tech-sub">Ultima 60 kg × 8 · Objetivo 4 x 6-10</div>
+        </div>
+        <div class="tech-badge">TÉCNICA</div>
+      </div>
+
+      <!-- ANIMATED FIGURE -->
+      <div class="demo-box">
+        <svg viewBox="0 0 220 240" style="width:100%;height:100%"><line x1="40" y1="172" x2="150" y2="172" stroke="var(--line-2)" stroke-width="2.5" stroke-linecap="round"/><line x1="55" y1="172" x2="55" y2="212" stroke="var(--line-2)" stroke-width="2.5" stroke-linecap="round"/><line x1="135" y1="172" x2="135" y2="212" stroke="var(--line-2)" stroke-width="2.5" stroke-linecap="round"/><line x1="64" y1="168" x2="120" y2="168" stroke="var(--text)" stroke-width="4" stroke-linecap="round"></line><line x1="120" y1="168" x2="146" y2="196" stroke="var(--text)" stroke-width="4" stroke-linecap="round"></line><line x1="146" y1="196" x2="160" y2="222" stroke="var(--text)" stroke-width="4" stroke-linecap="round"></line><line x1="160" y1="222" x2="176" y2="222" stroke="var(--text)" stroke-width="4" stroke-linecap="round"></line><line x1="64" y1="168" x2="82" y2="152" stroke="var(--text)" stroke-width="4" stroke-linecap="round"><animate attributeName="x2" values="82;64;82" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/><animate attributeName="y2" values="152;128;152" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/></line><line x1="82" y1="152" x2="68" y2="140" stroke="var(--text)" stroke-width="4" stroke-linecap="round"><animate attributeName="x1" values="82;64;82" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/><animate attributeName="y1" values="152;128;152" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/><animate attributeName="x2" values="68;62;68" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/><animate attributeName="y2" values="140;104;140" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/></line><circle r="13" cx="46" cy="158" fill="none" stroke="var(--text)" stroke-width="4"></circle><line x1="52" y1="140" x2="84" y2="140" stroke="var(--text-3)" stroke-width="4" stroke-linecap="round"><animate attributeName="x1" values="52;46;52" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/><animate attributeName="y1" values="140;104;140" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/><animate attributeName="x2" values="84;78;84" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/><animate attributeName="y2" values="140;104;140" dur="2.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/></line></svg>
+      </div>
+
+      <!-- FOCO TEXT -->
+      <div class="tech-foco">
+        <span style="color:var(--text-3);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:500">FOCO</span><br>
+        Vasto ext/medial; profundidad completa
+      </div>
+
+      <!-- SET CHIPS -->
+      <div style="margin-top:14px">
+        <div class="chip-row">
+          <div class="chip done">✓ 62.5 × 8</div>
+          <div class="chip" style="border-color:var(--accent);background:var(--accent-soft)">
+            <span style="color:var(--text);font-size:11px">Serie 2 ←</span>
+          </div>
+          <div class="chip">Serie 3</div>
+        </div>
+
+        <!-- EDITABLE SET FORM -->
+        <div class="set-form">
+          <div style="text-align:center">
+            <div class="set-label">KG</div>
+            <input class="set-input" type="text" value="62.5" placeholder="kg">
+          </div>
+          <span style="color:var(--text-3);font-size:18px;font-weight:300">×</span>
+          <div style="text-align:center">
+            <div class="set-label">REPS</div>
+            <input class="set-input" type="text" value="8" placeholder="reps">
+          </div>
+          <button class="set-save">✓ MARCAR</button>
+          <button class="set-cancel">×</button>
+        </div>
+
+        <div class="chip-hint">1 de 4 series completadas</div>
+      </div>
+    </div>
+
+    <!-- Exercise list -->
+    <div class="ex-label">EJERCICIOS</div>
+    <div class="ex-row active">
+      <div>
+        <div class="ex-name" style="color:var(--text)">Press banca</div>
+        <div class="ex-sub">Objetivo 4 x 6-10</div>
+      </div>
+      <div class="ex-count">1/4</div>
+    </div>
+    <div class="ex-row">
+      <div>
+        <div class="ex-name" style="color:var(--text-2)">Aperturas mancuerna</div>
+        <div class="ex-sub">Objetivo 3 x 10-12</div>
+      </div>
+      <div class="ex-count">0/3</div>
+    </div>
+    <div class="ex-row">
+      <div>
+        <div class="ex-name" style="color:var(--text-2)">Fondos en paralelas</div>
+        <div class="ex-sub">Objetivo 3 x 8-12</div>
+      </div>
+      <div class="ex-count complete">3/3</div>
+    </div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>
