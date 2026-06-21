@@ -201,6 +201,7 @@ export default function EntrenoScreen({ theme }) {
 
   const [showPicker, setShowPicker] = useState(false);
   const [searchQ, setSearchQ] = useState('');
+  const [showTech, setShowTech] = useState(false);
 
   // ─── NO ACTIVE SESSION ───
   if (!active) {
@@ -312,7 +313,7 @@ export default function EntrenoScreen({ theme }) {
         </View>
       </View>
 
-      {/* Exercise technique card */}
+      {/* Exercise sets card */}
       {currentEx && (
         <View style={[st.techCard, { borderColor: theme.line, backgroundColor: theme.surface }]}>
           <View style={st.techHeader}>
@@ -323,43 +324,15 @@ export default function EntrenoScreen({ theme }) {
                 {targetStr ? ` · Objetivo ${targetStr}` : ''}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => delExercise(exIdx)} activeOpacity={0.7}>
-              <Text style={{ color: theme.text3, fontSize: 10, letterSpacing: 1 }}>QUITAR</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Animated stick figure demo */}
-          <View style={st.demoWrap}>
-            <ExerciseDemo exerciseName={currentEx.name} width={160} height={174} theme={theme} />
-          </View>
-
-          {/* YouTube technique link */}
-          <TouchableOpacity
-            style={st.ytLink}
-            onPress={() => {
-              const vid = YOUTUBE_VIDEOS[currentEx.name];
-              const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' tecnica correcta').replace(/%20/g, '+');
-              Linking.openURL('https://www.youtube.com/results?search_query=' + q + '+tecnica+correcta');
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={[st.ytLinkText, { color: theme.text3 }]}>
-              {'▶'}  VER EN YOUTUBE
-            </Text>
-          </TouchableOpacity>
-
-          {/* Foco text */}
-          {currentPlan && currentPlan.foco ? (
-            <View style={[st.focoCard, { borderColor: theme.line }]}>
-              <Text style={[st.focoLabel, { color: theme.text3 }]}>FOCO T{'É'}CNICO</Text>
-              <Text style={[st.focoContent, { color: theme.text2 }]}>{currentPlan.foco}</Text>
-              {currentPlan.rest ? (
-                <Text style={[st.focoRest, { color: theme.text3 }]}>
-                  Descanso: {currentPlan.rest} {'·'} RIR: {currentPlan.rir}
-                </Text>
-              ) : null}
+            <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+              <TouchableOpacity onPress={() => setShowTech(!showTech)} activeOpacity={0.7}>
+                <Text style={{ color: showTech ? theme.accent : theme.text3, fontSize: 10, letterSpacing: 1 }}>T{'É'}CNICA</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => delExercise(exIdx)} activeOpacity={0.7}>
+                <Text style={{ color: theme.text3, fontSize: 10, letterSpacing: 1 }}>QUITAR</Text>
+              </TouchableOpacity>
             </View>
-          ) : null}
+          </View>
 
           {/* Set grid */}
           <View style={st.setGridHeader}>
@@ -420,25 +393,20 @@ export default function EntrenoScreen({ theme }) {
         const isActive = ei === exIdx;
         const exCompletedSets = ex.sets.filter(s => s.done).length;
         return (
-          <TouchableOpacity
-            key={ei}
-            style={[
-              st.exRow,
-              { borderColor: isActive ? theme.accent : theme.line, backgroundColor: theme.surface },
-            ]}
-            onPress={() => setExIdx(ei)}
-            activeOpacity={0.7}
-          >
-            <View style={{ flex: 1 }}>
+          <View key={ei} style={[st.exRow, { borderColor: isActive ? theme.accent : theme.line, backgroundColor: theme.surface }]}>
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => setExIdx(ei)} activeOpacity={0.7}>
               <Text style={[st.exRowName, { color: isActive ? theme.text : theme.text2 }]}>{ex.name}</Text>
               <Text style={[st.exRowSub, { color: theme.text3 }]}>
                 {ex.plan ? `Objetivo ${ex.plan.s} x ${ex.plan.reps}` : 'Personalizado'}
               </Text>
-            </View>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setExIdx(ei); setShowTech(true); }} activeOpacity={0.7} style={{ paddingHorizontal: 8, paddingVertical: 4 }}>
+              <Text style={{ color: theme.text3, fontSize: 10, letterSpacing: 1 }}>T{'é'}cnica</Text>
+            </TouchableOpacity>
             <Text style={[st.exRowCount, { color: exCompletedSets === ex.sets.length && exCompletedSets > 0 ? theme.good : theme.text3 }]}>
               {exCompletedSets}/{ex.sets.length}
             </Text>
-          </TouchableOpacity>
+          </View>
         );
       })}
 
@@ -450,6 +418,43 @@ export default function EntrenoScreen({ theme }) {
       >
         <Text style={{ color: theme.text3, fontSize: 11, letterSpacing: 1.5 }}>+ A{'Ñ'}ADIR EJERCICIO</Text>
       </TouchableOpacity>
+
+      {/* Technique card - shown when Técnica is toggled */}
+      {showTech && currentEx && (
+        <View style={[st.techCard, { borderColor: theme.line, backgroundColor: theme.surface, marginTop: 8 }]}>
+          <Text style={[st.techTitle, { color: theme.text3 }]}>
+            T{'É'}CNICA {'—'} {currentEx.name.toUpperCase()}
+          </Text>
+
+          <View style={st.demoWrap}>
+            <ExerciseDemo exerciseName={currentEx.name} width={220} height={230} theme={theme} />
+          </View>
+
+          <TouchableOpacity
+            style={st.ytBtn}
+            onPress={() => {
+              const vid = YOUTUBE_VIDEOS[currentEx.name];
+              const q = vid ? vid.q : encodeURIComponent(currentEx.name + ' tecnica correcta').replace(/%20/g, '+');
+              Linking.openURL('https://www.youtube.com/results?search_query=' + q + '+tecnica+correcta');
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={[st.ytBtnText, { color: theme.text2 }]}>
+              {'▶'}{'  '}VER T{'É'}CNICA EN YOUTUBE
+            </Text>
+          </TouchableOpacity>
+
+          {currentPlan ? (
+            <Text style={[st.techDesc, { color: theme.text3 }]}>
+              {currentPlan.foco ? currentPlan.foco + '. ' : ''}
+              {'Objetivo ' + currentPlan.s + '×' + currentPlan.reps}
+              {currentPlan.rir ? ' · RIR ' + currentPlan.rir : ''}
+              {currentPlan.rest ? ' · descanso ' + currentPlan.rest : ''}
+              {'.'}
+            </Text>
+          ) : null}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -486,15 +491,11 @@ const st = StyleSheet.create({
   techName: { fontSize: 13, fontWeight: '500', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
   techSub: { fontSize: 12 },
 
-  demoWrap: { alignItems: 'center', marginBottom: 4, paddingVertical: 8, backgroundColor: 'rgba(28,28,26,.5)', borderRadius: 0 },
-
-  ytLink: { alignItems: 'center', paddingVertical: 8, marginBottom: 12 },
-  ytLinkText: { fontSize: 10, letterSpacing: 2, fontWeight: '500', textTransform: 'uppercase' },
-
-  focoCard: { borderTopWidth: 1, paddingTop: 12, marginBottom: 16 },
-  focoLabel: { fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', fontWeight: '500', marginBottom: 6 },
-  focoContent: { fontSize: 13, lineHeight: 18 },
-  focoRest: { fontSize: 11, marginTop: 6 },
+  techTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 },
+  demoWrap: { alignItems: 'center', marginBottom: 0, paddingVertical: 12, backgroundColor: 'rgba(28,28,26,.5)', borderRadius: 0 },
+  ytBtn: { backgroundColor: 'rgba(28,28,26,.5)', paddingVertical: 14, alignItems: 'center', marginBottom: 12 },
+  ytBtnText: { fontSize: 12, letterSpacing: 2, fontWeight: '500' },
+  techDesc: { fontSize: 13, lineHeight: 20 },
 
   setGridHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, marginBottom: 2 },
   setHeaderText: { fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: '500' },
