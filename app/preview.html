@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JONNATHAN FIT - Preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a09;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+.phone-frame{width:390px;height:750px;background:#121211;border-radius:32px;overflow:hidden;position:relative;border:2px solid #2A2A28;display:flex;flex-direction:column;}
+.top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 6px;flex-shrink:0;}
+.top-left{display:flex;align-items:center;gap:8px;}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:#7FB07A;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(127,176,122,0.6);}50%{opacity:0.7;box-shadow:0 0 0 6px rgba(127,176,122,0);}}
+.app-title{color:#F2F2EE;font-size:14px;font-weight:700;letter-spacing:0.5px;}
+.top-right{display:flex;align-items:center;gap:10px;}
+.clock{color:#B9B9B2;font-size:12px;}
+.profile-icon{width:28px;height:28px;border-radius:50%;border:1.5px solid #F2F2EE;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#F2F2EE;font-size:12px;font-weight:700;}
+.tab-bar{display:flex;overflow-x:auto;padding:0 8px;border-bottom:1px solid #2A2A28;flex-shrink:0;-ms-overflow-style:none;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{color:#8A8A82;font-size:11px;font-weight:600;padding:8px 10px 10px;cursor:pointer;white-space:nowrap;border:none;background:none;border-bottom:2px solid transparent;transition:all 0.2s;letter-spacing:0.5px;}
+.tab-btn.active{color:#F2F2EE;border-bottom-color:#F2F2EE;}
+.tab-btn:hover{color:#B9B9B2;}
+.screen{flex:1;overflow-y:auto;padding:12px 16px 16px;display:none;-ms-overflow-style:none;scrollbar-width:thin;scrollbar-color:#2A2A28 transparent;}
+.screen::-webkit-scrollbar{width:4px;}
+.screen::-webkit-scrollbar-thumb{background:#2A2A28;border-radius:2px;}
+.screen.active{display:block;}
+.card{background:#1a1a18;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #2A2A28;}
+.card-accent{border-color:#F2F2EE;}
+.section-title{color:#8A8A82;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:8px;}
+h2{color:#F2F2EE;font-size:16px;font-weight:700;margin-bottom:4px;}
+h3{color:#F2F2EE;font-size:13px;font-weight:600;margin-bottom:6px;}
+p{color:#B9B9B2;font-size:12px;line-height:1.4;}
+.btn{background:#F2F2EE;color:#121211;border:none;padding:8px 16px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:opacity 0.2s;}
+.btn:hover{opacity:0.85;}
+.btn:active{opacity:0.7;}
+.btn-outline{background:transparent;color:#F2F2EE;border:1px solid #F2F2EE;}
+.btn-small{padding:5px 10px;font-size:10px;}
+.btn-danger{background:#D26A45;color:#F2F2EE;}
+.btn-good{background:#7FB07A;color:#121211;}
+.btn-ghost{background:transparent;color:#B9B9B2;border:1px solid #2A2A28;}
+input[type="text"],input[type="number"],select{background:#1a1a18;border:1px solid #2A2A28;color:#F2F2EE;padding:6px 10px;border-radius:6px;font-size:12px;width:100%;outline:none;}
+input:focus,select:focus{border-color:#F2F2EE;}
+.flex{display:flex;}
+.flex-between{display:flex;justify-content:space-between;align-items:center;}
+.flex-center{display:flex;align-items:center;justify-content:center;}
+.gap-4{gap:4px;}.gap-6{gap:6px;}.gap-8{gap:8px;}.gap-10{gap:10px;}.gap-12{gap:12px;}
+.mt-4{margin-top:4px;}.mt-8{margin-top:8px;}.mt-12{margin-top:12px;}.mt-16{margin-top:16px;}
+.mb-4{margin-bottom:4px;}.mb-8{margin-bottom:8px;}.mb-12{margin-bottom:12px;}
+.text-accent{color:#F2F2EE;}.text-muted{color:#8A8A82;}.text-body{color:#B9B9B2;}
+.text-good{color:#7FB07A;}.text-over{color:#D26A45;}
+.text-xs{font-size:10px;}.text-sm{font-size:11px;}.text-md{font-size:12px;}.text-lg{font-size:14px;}
+.fw-700{font-weight:700;}.fw-600{font-weight:600;}
+.w-full{width:100%;}
+.progress-bar{height:6px;background:#2A2A28;border-radius:3px;overflow:hidden;flex:1;}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.3s;}
+.checkbox-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2A2A28;cursor:pointer;}
+.checkbox-row:last-child{border-bottom:none;}
+.check-box{width:18px;height:18px;border-radius:4px;border:1.5px solid #8A8A82;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.check-box.checked{background:#7FB07A;border-color:#7FB07A;}
+.check-box.checked::after{content:"\\2713";color:#121211;font-size:11px;font-weight:700;}
+.exercise-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1f1f1d;}
+.exercise-row:last-child{border-bottom:none;}
+.chip{display:inline-block;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #2A2A28;color:#B9B9B2;background:transparent;transition:all 0.2s;}
+.chip.active{background:#F2F2EE;color:#121211;border-color:#F2F2EE;}
+.toggle-wrap{width:40px;height:22px;border-radius:11px;background:#2A2A28;cursor:pointer;position:relative;transition:background 0.2s;}
+.toggle-wrap.on{background:#7FB07A;}
+.toggle-knob{width:18px;height:18px;border-radius:50%;background:#F2F2EE;position:absolute;top:2px;left:2px;transition:left 0.2s;}
+.toggle-wrap.on .toggle-knob{left:20px;}
+.badge{padding:2px 8px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:0.5px;}
+.badge-pending{background:#2A2A28;color:#8A8A82;}
+.badge-good{background:rgba(127,176,122,0.15);color:#7FB07A;}
+.schedule-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.modal-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:100;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:#1a1a18;border-radius:16px;padding:20px;width:100%;max-height:90%;overflow-y:auto;border:1px solid #2A2A28;}
+.circle-progress{position:relative;width:120px;height:120px;}
+.circle-progress svg{transform:rotate(-90deg);}
+.circle-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+@keyframes squat{0%,100%{transform:translateY(0);}50%{transform:translateY(12px) scaleY(0.85);}}
+.stick-figure{animation:squat 1.5s ease-in-out infinite;}
+.stick-figure-static{animation:none;}
+.day-card{margin-bottom:10px;}
+.day-header{display:flex;justify-content:space-between;align-items:center;padding:8px 0;cursor:pointer;}
+.day-exercises{display:none;padding:4px 0;}
+.day-exercises.open{display:block;}
+.food-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1f1f1d;}
+.donut-chart{width:100px;height:100px;border-radius:50%;position:relative;}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.muscle-map{cursor:pointer;}
+.muscle-map path:hover{opacity:0.8;}
+.search-input{background:#1a1a18;border:1px solid #2A2A28;color:#F2F2EE;padding:8px 12px;border-radius:8px;font-size:12px;width:100%;outline:none;}
+.search-input:focus{border-color:#F2F2EE;}
+.set-grid{width:100%;}
+.set-grid th{color:#8A8A82;font-size:10px;font-weight:600;padding:4px;text-align:center;}
+.set-grid td{padding:3px;}
+.set-grid input{width:100%;text-align:center;padding:5px 2px;font-size:12px;}
+.set-grid .set-check,.set-grid .set-remove{width:28px;height:28px;border-radius:6px;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.set-check{background:#2A2A28;color:#8A8A82;}
+.set-check.done{background:#7FB07A;color:#121211;}
+.set-remove{background:#2A2A28;color:#D26A45;}
+.ref-card{padding:8px 0;border-bottom:1px solid #1f1f1d;}
+.ref-card:last-child{border-bottom:none;}
+.table-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1f1f1d;}
+.table-row:last-child{border-bottom:none;}
+.table-label{color:#8A8A82;font-size:11px;}
+.table-value{color:#F2F2EE;font-size:11px;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="phone-frame" id="app">
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-left">
+      <div class="pulse-dot"></div>
+      <span class="app-title">Jonnathan Fit</span>
+    </div>
+    <div class="top-right">
+      <span class="clock" id="clock">12:00</span>
+      <div class="profile-icon" onclick="switchTab('perfil')">J</div>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" onclick="switchTab('hoy')">HOY</button>
+    <button class="tab-btn" onclick="switchTab('entreno')">ENTRENO</button>
+    <button class="tab-btn" onclick="switchTab('comida')">COMIDA</button>
+    <button class="tab-btn" onclick="switchTab('plan')">PLAN</button>
+    <button class="tab-btn" onclick="switchTab('progreso')">PROGRESO</button>
+    <button class="tab-btn" onclick="switchTab('fuentes')">FUENTES</button>
+    <button class="tab-btn" onclick="switchTab('salud')">SALUD</button>
+  </div>
+
+  <!-- ==================== HOY ==================== -->
+  <div class="screen active" id="screen-hoy">
+    <p class="text-xs text-muted fw-700" style="letter-spacing:1.5px;">LUN 21 JUN</p>
+    <h2 style="margin:4px 0 12px;">Buenas tardes, Jonnathan</h2>
+
+    <!-- Revision mensual -->
+    <div class="card card-accent">
+      <p class="text-xs text-muted fw-700" style="letter-spacing:1px;margin-bottom:4px;">REVISION MENSUAL</p>
+      <p class="text-sm text-body mb-8">Actualiza tus medidas corporales para recalcular tu plan.</p>
+      <button class="btn btn-small" onclick="alert('Redirigiendo a mediciones...')">ACTUALIZAR MEDIDAS</button>
+    </div>
+
+    <!-- Nutrition -->
+    <div class="card">
+      <p class="section-title">NUTRICION</p>
+      <div class="flex gap-12" style="align-items:flex-start;">
+        <div class="circle-progress">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#2A2A28" stroke-width="8"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#F2F2EE" stroke-width="8" stroke-dasharray="0 314" stroke-linecap="round" id="kcalCircle"/>
+          </svg>
+          <div class="circle-center">
+            <div class="text-lg fw-700 text-accent" id="kcalDisplay">0</div>
+            <div class="text-xs text-muted">KCAL</div>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <p class="text-xs text-muted mb-4">RESTANTES <span class="text-accent fw-700" id="kcalRemaining">2800</span></p>
+          <div id="macroContainer">
+            <div class="flex-between mb-4"><span class="text-xs text-body">Proteina</span><span class="text-xs text-muted" id="macroP">0/158g</span></div>
+            <div class="progress-bar mb-8"><div class="progress-fill" id="barP" style="width:0%;background:#7FB07A;"></div></div>
+            <div class="flex-between mb-4"><span class="text-xs text-body">Carbos</span><span class="text-xs text-muted" id="macroC">0/310g</span></div>
+            <div class="progress-bar mb-8"><div class="progress-fill" id="barC" style="width:0%;background:#F2F2EE;"></div></div>
+            <div class="flex-between mb-4"><span class="text-xs text-body">Grasa</span><span class="text-xs text-muted" id="macroG">0/79g</span></div>
+            <div class="progress-bar mb-8"><div class="progress-fill" id="barG" style="width:0%;background:#D26A45;"></div></div>
+            <div class="flex-between mb-4"><span class="text-xs text-body">Fibra</span><span class="text-xs text-muted" id="macroF">0/39g</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="barF" style="width:0%;background:#8A8A82;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suplementos -->
+    <div class="card">
+      <p class="section-title">SUPLEMENTOS</p>
+      <div id="supplements">
+        <div class="checkbox-row" onclick="toggleSupplement(0)">
+          <div class="check-box" id="supp0"></div>
+          <div><span class="text-sm text-accent">Creatina</span><span class="text-xs text-muted" style="margin-left:6px;">5g</span></div>
+        </div>
+        <div class="checkbox-row" onclick="toggleSupplement(1)">
+          <div class="check-box" id="supp1"></div>
+          <div><span class="text-sm text-accent">Proteina Whey</span><span class="text-xs text-muted" style="margin-left:6px;">1 scoop</span></div>
+        </div>
+        <div class="checkbox-row" onclick="toggleSupplement(2)">
+          <div class="check-box" id="supp2"></div>
+          <div><span class="text-sm text-accent">Cafeina</span><span class="text-xs text-muted" style="margin-left:6px;">200mg</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entrenamiento -->
+    <div class="card">
+      <p class="section-title">ENTRENAMIENTO</p>
+      <p class="text-sm text-body mb-8">Cuadriceps &middot; Hombro &middot; Abdomen &middot; Gemelo</p>
+      <button class="btn w-full" onclick="switchTab('entreno')">INICIAR</button>
+    </div>
+
+    <!-- Overload -->
+    <div class="card">
+      <p class="section-title">OBJETIVOS DE SOBRECARGA</p>
+      <div class="exercise-row">
+        <div><span class="text-sm text-accent">Sentadilla libre</span></div>
+        <div class="text-xs text-muted">? kg x 6-10</div>
+      </div>
+      <div class="exercise-row">
+        <div><span class="text-sm text-accent">Prensa 45&deg;</span></div>
+        <div class="text-xs text-muted">? kg x 10-12</div>
+      </div>
+      <div class="exercise-row">
+        <div><span class="text-sm text-accent">Hack squat</span></div>
+        <div class="text-xs text-muted">? kg x 8-12</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ENTRENO ==================== -->
+  <div class="screen" id="screen-entreno">
+    <!-- Pre-session view -->
+    <div id="entrenoPreSession">
+      <p class="section-title">LUNES - SESION DE ENTRENAMIENTO</p>
+      <p class="text-xs text-muted mb-12">Cuadriceps &middot; Hombro &middot; Abdomen &middot; Gemelo &middot; 14 ejercicios</p>
+      <div id="exerciseListPre"></div>
+      <button class="btn w-full mt-12" onclick="startSession()">INICIAR SESION</button>
+    </div>
+
+    <!-- Active session view -->
+    <div id="entrenoActiveSession" style="display:none;">
+      <div class="flex-between mb-8">
+        <div>
+          <span class="badge badge-good">EN CURSO</span>
+          <span class="text-xs text-muted" style="margin-left:8px;" id="sessionTimer">00:00</span>
+        </div>
+        <span class="text-xs text-muted" id="exerciseCounter">1/14</span>
+      </div>
+
+      <!-- Current exercise -->
+      <div class="card" id="currentExerciseCard">
+        <div class="flex-between mb-8">
+          <h3 id="currentExName">Sentadilla libre</h3>
+          <span class="text-xs text-muted" id="currentExMuscle">Cuadriceps</span>
+        </div>
+
+        <!-- Stick figure animation -->
+        <div class="flex-center mb-8">
+          <svg width="60" height="80" viewBox="0 0 60 80" class="stick-figure" id="stickFigure">
+            <circle cx="30" cy="10" r="7" fill="none" stroke="#F2F2EE" stroke-width="2"/>
+            <line x1="30" y1="17" x2="30" y2="45" stroke="#F2F2EE" stroke-width="2"/>
+            <line x1="30" y1="25" x2="15" y2="35" stroke="#F2F2EE" stroke-width="2"/>
+            <line x1="30" y1="25" x2="45" y2="35" stroke="#F2F2EE" stroke-width="2"/>
+            <line x1="30" y1="45" x2="20" y2="65" stroke="#F2F2EE" stroke-width="2"/>
+            <line x1="30" y1="45" x2="40" y2="65" stroke="#F2F2EE" stroke-width="2"/>
+            <line x1="20" y1="65" x2="15" y2="75" stroke="#F2F2EE" stroke-width="2"/>
+            <line x1="40" y1="65" x2="45" y2="75" stroke="#F2F2EE" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <p class="text-xs text-over fw-600 mb-8" id="focoTecnico">FOCO TECNICO: Mantener rodillas alineadas con los pies, bajar hasta paralelo.</p>
+
+        <!-- Set grid -->
+        <table class="set-grid w-full" id="setGrid">
+          <thead>
+            <tr><th>Set</th><th>Kg</th><th>Reps</th><th></th><th></th></tr>
+          </thead>
+          <tbody id="setGridBody">
+          </tbody>
+        </table>
+        <button class="btn btn-ghost btn-small w-full mt-8" onclick="addSetRow()">+ SERIE</button>
+      </div>
+
+      <!-- Exercise list -->
+      <div class="card">
+        <p class="section-title">EJERCICIOS</p>
+        <div id="exerciseListActive"></div>
+      </div>
+
+      <button class="btn btn-small mt-8" onclick="addExercisePrompt()" style="margin-right:8px;">+ ANADIR EJERCICIO</button>
+      <div class="flex gap-8 mt-12">
+        <button class="btn btn-good w-full" onclick="finishSession()">FINALIZAR</button>
+        <button class="btn btn-danger w-full" onclick="discardSession()">DESCARTAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== COMIDA ==================== -->
+  <div class="screen" id="screen-comida">
+    <!-- Day selector -->
+    <div class="flex-center gap-12 mb-12">
+      <span class="text-sm text-muted" style="cursor:pointer;" onclick="alert('Dia anterior')">&lsaquo;</span>
+      <span class="text-sm text-accent fw-700">Hoy - Lunes</span>
+      <span class="text-sm text-muted" style="cursor:pointer;" onclick="alert('Dia siguiente')">&rsaquo;</span>
+    </div>
+
+    <button class="btn w-full mb-12" id="btnCargarPlan" onclick="loadMealPlan()">CARGAR PLAN</button>
+
+    <!-- Macro summary donut -->
+    <div class="card" id="comidaMacroCard">
+      <p class="section-title">MACRONUTRIENTES</p>
+      <div class="flex gap-12" style="align-items:center;">
+        <div class="donut-chart" id="donutChart" style="background:conic-gradient(#7FB07A 0deg 0deg,#F2F2EE 0deg 0deg,#D26A45 0deg 0deg,#2A2A28 0deg 360deg);">
+          <div class="donut-center">
+            <div class="text-sm fw-700 text-accent" id="comidaKcal">0</div>
+            <div class="text-xs text-muted">kcal</div>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div class="flex-between mb-4"><span class="text-xs text-good">P</span><span class="text-xs text-muted" id="comidaP">0g</span></div>
+          <div class="flex-between mb-4"><span class="text-xs text-accent">C</span><span class="text-xs text-muted" id="comidaC">0g</span></div>
+          <div class="flex-between"><span class="text-xs text-over">G</span><span class="text-xs text-muted" id="comidaG">0g</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Food list by meal -->
+    <div id="mealListContainer" style="display:none;">
+      <div id="mealList"></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex gap-8 mt-12">
+      <button class="btn btn-outline w-full" onclick="showSearchFood()">BUSCAR ALIMENTO</button>
+      <button class="btn btn-outline w-full" onclick="showManualEntry()">ENTRADA MANUAL</button>
+    </div>
+
+    <!-- Weekly summary -->
+    <div class="card mt-12">
+      <p class="section-title">RESUMEN SEMANAL</p>
+      <div class="mb-8">
+        <div class="flex-between mb-4"><span class="text-xs text-body">Proteina</span><span class="text-xs text-muted">Promedio 0g / 158g</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#7FB07A;"></div></div>
+      </div>
+      <div class="mb-8">
+        <div class="flex-between mb-4"><span class="text-xs text-body">Carbos</span><span class="text-xs text-muted">Promedio 0g / 310g</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#F2F2EE;"></div></div>
+      </div>
+      <div class="mb-8">
+        <div class="flex-between mb-4"><span class="text-xs text-body">Grasa</span><span class="text-xs text-muted">Promedio 0g / 79g</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#D26A45;"></div></div>
+      </div>
+      <div>
+        <div class="flex-between mb-4"><span class="text-xs text-body">Calorias</span><span class="text-xs text-muted">Promedio 0 / 2800</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#8A8A82;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PLAN ==================== -->
+  <div class="screen" id="screen-plan">
+    <p class="section-title">PLAN DE ENTRENAMIENTO SEMANAL</p>
+    <div id="planContainer"></div>
+  </div>
+
+  <!-- ==================== PROGRESO ==================== -->
+  <div class="screen" id="screen-progreso">
+    <p class="section-title">MAPA MUSCULAR</p>
+
+    <!-- Toggle frontal/posterior -->
+    <div class="flex-center gap-8 mb-12">
+      <span class="chip active" id="chipFrontal" onclick="toggleBodyView('frontal')">FRONTAL</span>
+      <span class="chip" id="chipPosterior" onclick="toggleBodyView('posterior')">POSTERIOR</span>
+    </div>
+
+    <!-- Muscle map SVG - Frontal -->
+    <div class="flex-center mb-12" id="bodyFrontal">
+      <svg width="180" height="340" viewBox="0 0 180 340" class="muscle-map">
+        <!-- Head -->
+        <circle cx="90" cy="28" r="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1"/>
+        <!-- Neck -->
+        <rect x="80" y="50" width="20" height="15" fill="#2A2A28" stroke="#8A8A82" stroke-width="1"/>
+        <!-- Hombro left -->
+        <ellipse cx="55" cy="72" rx="18" ry="12" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Hombro','2/6 series','Press militar, Lateral raise, Face pull')"/>
+        <!-- Hombro right -->
+        <ellipse cx="125" cy="72" rx="18" ry="12" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Hombro','2/6 series','Press militar, Lateral raise, Face pull')"/>
+        <!-- Pecho -->
+        <ellipse cx="90" cy="95" rx="35" ry="18" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Pecho','0/0 series','Descanso hoy')"/>
+        <!-- Biceps left -->
+        <ellipse cx="40" cy="115" rx="10" ry="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Biceps','0/0 series','Descanso hoy')"/>
+        <!-- Biceps right -->
+        <ellipse cx="140" cy="115" rx="10" ry="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Biceps','0/0 series','Descanso hoy')"/>
+        <!-- Abdomen -->
+        <rect x="68" y="115" width="44" height="50" rx="8" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Abdomen','0/4 series','Crunch polea, Plancha, Rueda abdominal')"/>
+        <!-- Forearm left -->
+        <ellipse cx="35" cy="155" rx="8" ry="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1"/>
+        <!-- Forearm right -->
+        <ellipse cx="145" cy="155" rx="8" ry="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1"/>
+        <!-- Cuadriceps left -->
+        <ellipse cx="72" cy="210" rx="18" ry="40" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Cuadriceps','0/10 series','Sentadilla, Prensa, Hack squat, Extension')"/>
+        <!-- Cuadriceps right -->
+        <ellipse cx="108" cy="210" rx="18" ry="40" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Cuadriceps','0/10 series','Sentadilla, Prensa, Hack squat, Extension')"/>
+        <!-- Gemelo left -->
+        <ellipse cx="70" cy="290" rx="12" ry="25" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Gemelo','0/4 series','Gemelo sentado, Gemelo de pie')"/>
+        <!-- Gemelo right -->
+        <ellipse cx="110" cy="290" rx="12" ry="25" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Gemelo','0/4 series','Gemelo sentado, Gemelo de pie')"/>
+      </svg>
+    </div>
+
+    <!-- Muscle map SVG - Posterior -->
+    <div class="flex-center mb-12" id="bodyPosterior" style="display:none;">
+      <svg width="180" height="340" viewBox="0 0 180 340" class="muscle-map">
+        <circle cx="90" cy="28" r="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1"/>
+        <rect x="80" y="50" width="20" height="15" fill="#2A2A28" stroke="#8A8A82" stroke-width="1"/>
+        <!-- Traps -->
+        <path d="M60,60 Q90,50 120,60 L115,85 Q90,78 65,85 Z" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Trapecio','0/0 series','Descanso hoy')"/>
+        <!-- Espalda -->
+        <rect x="60" y="85" width="60" height="45" rx="8" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Espalda','0/0 series','Descanso hoy')"/>
+        <!-- Triceps left -->
+        <ellipse cx="42" cy="115" rx="10" ry="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Triceps','0/0 series','Descanso hoy')"/>
+        <!-- Triceps right -->
+        <ellipse cx="138" cy="115" rx="10" ry="22" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Triceps','0/0 series','Descanso hoy')"/>
+        <!-- Gluteo -->
+        <ellipse cx="90" cy="175" rx="35" ry="18" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Gluteo','0/0 series','Descanso hoy')"/>
+        <!-- Isquiotibiales left -->
+        <ellipse cx="72" cy="225" rx="16" ry="35" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Isquiotibiales','0/0 series','Descanso hoy')"/>
+        <!-- Isquiotibiales right -->
+        <ellipse cx="108" cy="225" rx="16" ry="35" fill="#2A2A28" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Isquiotibiales','0/0 series','Descanso hoy')"/>
+        <!-- Gemelo post left -->
+        <ellipse cx="70" cy="290" rx="12" ry="25" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Gemelo','0/4 series','Gemelo sentado, Gemelo de pie')"/>
+        <!-- Gemelo post right -->
+        <ellipse cx="110" cy="290" rx="12" ry="25" fill="#8A8A82" stroke="#8A8A82" stroke-width="1" style="cursor:pointer;" onclick="showMuscleInfo('Gemelo','0/4 series','Gemelo sentado, Gemelo de pie')"/>
+      </svg>
+    </div>
+
+    <!-- Muscle info popup -->
+    <div class="card" id="muscleInfoCard" style="display:none;">
+      <h3 id="muscleInfoName">-</h3>
+      <p class="text-sm text-body" id="muscleInfoSeries">-</p>
+      <p class="text-xs text-muted mt-4" id="muscleInfoExercises">-</p>
+    </div>
+
+    <!-- Peso corporal -->
+    <div class="card">
+      <p class="section-title">PESO CORPORAL</p>
+      <div class="flex-between">
+        <span class="text-lg text-accent fw-700">--- kg</span>
+        <span class="text-xs text-muted">Sin registro</span>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="flex gap-12 mt-8">
+      <div class="flex gap-4" style="align-items:center;"><div class="schedule-dot" style="background:#7FB07A;"></div><span class="text-xs text-muted">Cumplido</span></div>
+      <div class="flex gap-4" style="align-items:center;"><div class="schedule-dot" style="background:#8A8A82;"></div><span class="text-xs text-muted">Casi</span></div>
+      <div class="flex gap-4" style="align-items:center;"><div class="schedule-dot" style="background:#D26A45;"></div><span class="text-xs text-muted">Falta</span></div>
+    </div>
+  </div>
+
+  <!-- ==================== FUENTES ==================== -->
+  <div class="screen" id="screen-fuentes">
+    <p class="section-title">REFERENCIAS CIENTIFICAS</p>
+
+    <div class="card">
+      <h3>ENTRENAMIENTO</h3>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Schoenfeld, B.J. (2017)</p>
+        <p class="text-xs text-muted">Dose-response relationship between weekly resistance training volume and increases in muscle mass. Medicine & Science in Sports & Exercise.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Israetel, M. (2021)</p>
+        <p class="text-xs text-muted">Scientific Principles of Hypertrophy Training. Renaissance Periodization.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Schoenfeld, B.J. (2010)</p>
+        <p class="text-xs text-muted">The mechanisms of muscle hypertrophy and their application to resistance training. Journal of Strength & Conditioning Research.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Nippard, J. (2023)</p>
+        <p class="text-xs text-muted">Evidence-based training methodology and exercise selection for hypertrophy.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>NUTRICION</h3>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Morton, R.W. (2018)</p>
+        <p class="text-xs text-muted">A systematic review of protein supplementation on muscle mass and strength. British Journal of Sports Medicine.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Helms, E.R. (2014)</p>
+        <p class="text-xs text-muted">Evidence-based recommendations for natural bodybuilding nutrition. Journal of the ISSN.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Mifflin, M.D. (1990)</p>
+        <p class="text-xs text-muted">A new predictive equation for resting energy expenditure in healthy individuals. American Journal of Clinical Nutrition.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">ICBF / TCAC (2018)</p>
+        <p class="text-xs text-muted">Tabla de Composicion de Alimentos Colombianos. Instituto Colombiano de Bienestar Familiar.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>SUPLEMENTACION</h3>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Kreider, R.B. (2017)</p>
+        <p class="text-xs text-muted">International Society of Sports Nutrition position stand: safety and efficacy of creatine supplementation. JISSN.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Jager, R. (2017)</p>
+        <p class="text-xs text-muted">International Society of Sports Nutrition Position Stand: protein and exercise. JISSN.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Guest, N.S. (2021)</p>
+        <p class="text-xs text-muted">International Society of Sports Nutrition position stand: caffeine and exercise performance. JISSN.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>COMPOSICION CORPORAL</h3>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Hodgdon, J.A. (1984)</p>
+        <p class="text-xs text-muted">Mathematical models for body composition prediction using circumference measurements. Naval Health Research Center.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Jackson, A.S. (1978)</p>
+        <p class="text-xs text-muted">Generalized equations for predicting body density of men. British Journal of Nutrition.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">ENSIN (2015)</p>
+        <p class="text-xs text-muted">Encuesta Nacional de Situacion Nutricional. Ministerio de Salud y Proteccion Social de Colombia.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>SOBRECARGA PROGRESIVA</h3>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Zourdos, M.C. (2016)</p>
+        <p class="text-xs text-muted">Novel resistance training-specific RPE scale measuring repetitions in reserve. Journal of Strength & Conditioning Research.</p>
+      </div>
+      <div class="ref-card">
+        <p class="text-sm text-accent">Helms, E.R. (2016)</p>
+        <p class="text-xs text-muted">Application of the Repetitions in Reserve-Based Rating of Perceived Exertion Scale for Resistance Training. Strength & Conditioning Journal.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SALUD ==================== -->
+  <div class="screen" id="screen-salud">
+    <!-- Notifications toggle -->
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h3>Notificaciones</h3>
+          <p class="text-xs text-muted">Recordatorios de comida y suplementos</p>
+        </div>
+        <div class="toggle-wrap on" id="notifToggle" onclick="toggleNotif()">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily schedule -->
+    <div class="card">
+      <p class="section-title">HORARIO DIARIO</p>
+      <div id="scheduleList">
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#7FB07A;"></div><span class="text-xs text-muted" style="width:40px;">07:00</span><span class="text-sm text-body">Desayuno</span></div>
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#7FB07A;"></div><span class="text-xs text-muted" style="width:40px;">09:00</span><span class="text-sm text-body">Snack manana</span></div>
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#F2F2EE;"></div><span class="text-xs text-muted" style="width:40px;">10:00</span><span class="text-sm text-body">Suplementos pre-entreno</span></div>
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#D26A45;"></div><span class="text-xs text-muted" style="width:40px;">10:30</span><span class="text-sm text-body">Entrenamiento</span></div>
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#7FB07A;"></div><span class="text-xs text-muted" style="width:40px;">12:00</span><span class="text-sm text-body">Almuerzo</span></div>
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#8A8A82;"></div><span class="text-xs text-muted" style="width:40px;">15:00</span><span class="text-sm text-body">Snack tarde</span></div>
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#8A8A82;"></div><span class="text-xs text-muted" style="width:40px;">18:00</span><span class="text-sm text-body">Cena</span></div>
+        <div class="flex gap-10 mb-8" style="align-items:center;"><div class="schedule-dot" style="background:#7FB07A;"></div><span class="text-xs text-muted" style="width:40px;">20:00</span><span class="text-sm text-body">Suplemento nocturno</span></div>
+        <div class="flex gap-10" style="align-items:center;"><div class="schedule-dot" style="background:#8A8A82;"></div><span class="text-xs text-muted" style="width:40px;">22:00</span><span class="text-sm text-body">Descanso / Dormir</span></div>
+      </div>
+    </div>
+
+    <!-- Samsung Fit3 -->
+    <div class="card">
+      <div class="flex-between mb-8">
+        <h3>Samsung Galaxy Fit3</h3>
+        <span class="badge badge-pending">PENDIENTE</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="flex-between" style="padding:6px 0;"><span class="text-xs text-body">Pasos</span><span class="badge badge-pending">PENDIENTE</span></div>
+        <div class="flex-between" style="padding:6px 0;"><span class="text-xs text-body">FC</span><span class="badge badge-pending">PENDIENTE</span></div>
+        <div class="flex-between" style="padding:6px 0;"><span class="text-xs text-body">Sueno</span><span class="badge badge-pending">PENDIENTE</span></div>
+        <div class="flex-between" style="padding:6px 0;"><span class="text-xs text-body">Calorias</span><span class="badge badge-pending">PENDIENTE</span></div>
+        <div class="flex-between" style="padding:6px 0;"><span class="text-xs text-body">Estres</span><span class="badge badge-pending">PENDIENTE</span></div>
+        <div class="flex-between" style="padding:6px 0;"><span class="text-xs text-body">SpO2</span><span class="badge badge-pending">PENDIENTE</span></div>
+      </div>
+      <button class="btn btn-outline w-full mt-8" onclick="alert('Conectando con Samsung Galaxy Fit3... Funcionalidad pendiente de implementacion.')">CONECTAR</button>
+    </div>
+  </div>
+
+  <!-- ==================== PERFIL ==================== -->
+  <div class="screen" id="screen-perfil">
+    <div id="perfilView">
+      <div class="flex-center mb-12" style="flex-direction:column;">
+        <div style="width:60px;height:60px;border-radius:50%;background:#2A2A28;display:flex;align-items:center;justify-content:center;font-size:24px;color:#F2F2EE;font-weight:700;margin-bottom:8px;">J</div>
+        <h2>Jonnathan</h2>
+        <p class="text-xs text-muted">Volumen &middot; 25 anos</p>
+      </div>
+
+      <div class="card">
+        <p class="section-title">INFORMACION PERSONAL</p>
+        <div class="table-row"><span class="table-label">Nombre</span><span class="table-value">Jonnathan</span></div>
+        <div class="table-row"><span class="table-label">Edad</span><span class="table-value">25</span></div>
+        <div class="table-row"><span class="table-label">Sexo</span><span class="table-value">Hombre</span></div>
+        <div class="table-row"><span class="table-label">Peso</span><span class="table-value">79 kg</span></div>
+        <div class="table-row"><span class="table-label">Altura</span><span class="table-value">176 cm</span></div>
+        <div class="table-row"><span class="table-label">Objetivo</span><span class="table-value">Volumen</span></div>
+      </div>
+
+      <div class="card">
+        <p class="section-title">COMPOSICION CORPORAL</p>
+        <div class="table-row"><span class="table-label">Grasa corporal</span><span class="table-value">---</span></div>
+        <div class="table-row"><span class="table-label">Cintura</span><span class="table-value">---</span></div>
+        <div class="table-row"><span class="table-label">Cuello</span><span class="table-value">---</span></div>
+        <div class="table-row"><span class="table-label">Cadera</span><span class="table-value">---</span></div>
+      </div>
+
+      <div class="card">
+        <p class="section-title">ESTILO DE VIDA</p>
+        <div class="table-row"><span class="table-label">Actividad</span><span class="table-value">Moderado</span></div>
+        <div class="table-row"><span class="table-label">Anos entrenando</span><span class="table-value">---</span></div>
+        <div class="table-row"><span class="table-label">Sueno</span><span class="table-value">7 horas</span></div>
+        <div class="table-row"><span class="table-label">Estres</span><span class="table-value">Medio</span></div>
+      </div>
+
+      <div class="card">
+        <p class="section-title">METABOLISMO</p>
+        <div class="table-row"><span class="table-label">BMR</span><span class="table-value">1779 kcal</span></div>
+        <div class="table-row"><span class="table-label">TDEE</span><span class="table-value">2758 kcal</span></div>
+        <div class="table-row"><span class="table-label">KCAL objetivo</span><span class="table-value">3034 kcal</span></div>
+      </div>
+
+      <button class="btn w-full mt-8" onclick="showEditProfile()">EDITAR PERFIL</button>
+      <button class="btn btn-outline w-full mt-8" onclick="alert('Funcion de medicion de progreso. Registra tus medidas corporales actuales.')">MEDIR PROGRESO</button>
+      <button class="btn btn-danger w-full mt-8" onclick="resetData()">REINICIAR DATOS</button>
+    </div>
+
+    <!-- Edit profile form -->
+    <div id="perfilEdit" style="display:none;">
+      <h2 class="mb-12">Editar Perfil</h2>
+      <div class="card">
+        <p class="section-title">INFORMACION PERSONAL</p>
+        <div class="mb-8"><label class="text-xs text-muted">Nombre</label><input type="text" id="editNombre" value="Jonnathan" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Edad</label><input type="number" id="editEdad" value="25" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Sexo</label>
+          <select id="editSexo" class="mt-4"><option value="Hombre" selected>Hombre</option><option value="Mujer">Mujer</option></select>
+        </div>
+        <div class="mb-8"><label class="text-xs text-muted">Peso (kg)</label><input type="number" id="editPeso" value="79" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Altura (cm)</label><input type="number" id="editAltura" value="176" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Objetivo</label>
+          <select id="editObjetivo" class="mt-4"><option value="Volumen" selected>Volumen</option><option value="Definicion">Definicion</option><option value="Mantenimiento">Mantenimiento</option></select>
+        </div>
+      </div>
+      <div class="card">
+        <p class="section-title">COMPOSICION CORPORAL</p>
+        <div class="mb-8"><label class="text-xs text-muted">Grasa corporal (%)</label><input type="number" id="editGrasa" placeholder="---" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Cintura (cm)</label><input type="number" id="editCintura" placeholder="---" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Cuello (cm)</label><input type="number" id="editCuello" placeholder="---" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Cadera (cm)</label><input type="number" id="editCadera" placeholder="---" class="mt-4"></div>
+      </div>
+      <div class="card">
+        <p class="section-title">ESTILO DE VIDA</p>
+        <div class="mb-8"><label class="text-xs text-muted">Actividad</label>
+          <select id="editActividad" class="mt-4"><option value="Sedentario">Sedentario</option><option value="Ligero">Ligero</option><option value="Moderado" selected>Moderado</option><option value="Activo">Activo</option><option value="Muy activo">Muy activo</option></select>
+        </div>
+        <div class="mb-8"><label class="text-xs text-muted">Anos entrenando</label><input type="number" id="editAnos" placeholder="---" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Sueno (horas)</label><input type="number" id="editSueno" value="7" class="mt-4"></div>
+        <div class="mb-8"><label class="text-xs text-muted">Estres</label>
+          <select id="editEstres" class="mt-4"><option value="Bajo">Bajo</option><option value="Medio" selected>Medio</option><option value="Alto">Alto</option></select>
+        </div>
+      </div>
+      <div class="flex gap-8">
+        <button class="btn btn-good w-full" onclick="saveProfile()">GUARDAR</button>
+        <button class="btn btn-ghost w-full" onclick="cancelEditProfile()">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+  <!-- Search food modal -->
+  <div class="modal-overlay" id="modalSearchFood">
+    <div class="modal">
+      <div class="flex-between mb-12">
+        <h3>Buscar Alimento</h3>
+        <span style="cursor:pointer;color:#8A8A82;font-size:18px;" onclick="closeModal('modalSearchFood')">&times;</span>
+      </div>
+      <input type="text" class="search-input mb-8" placeholder="Buscar alimento..." id="foodSearchInput" oninput="filterFoods()">
+      <div class="flex gap-4 mb-12" style="flex-wrap:wrap;" id="foodCategoryChips">
+        <span class="chip active" onclick="filterFoodCategory(this,'all')">Todos</span>
+        <span class="chip" onclick="filterFoodCategory(this,'Proteinas')">Proteinas</span>
+        <span class="chip" onclick="filterFoodCategory(this,'Lacteos')">Lacteos</span>
+        <span class="chip" onclick="filterFoodCategory(this,'Legumbres')">Legumbres</span>
+        <span class="chip" onclick="filterFoodCategory(this,'Cereales')">Cereales</span>
+        <span class="chip" onclick="filterFoodCategory(this,'Frutas')">Frutas</span>
+        <span class="chip" onclick="filterFoodCategory(this,'Verduras')">Verduras</span>
+        <span class="chip" onclick="filterFoodCategory(this,'Tipicas')">Tipicas</span>
+      </div>
+      <div id="foodSearchResults" style="max-height:300px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- Manual entry modal -->
+  <div class="modal-overlay" id="modalManualEntry">
+    <div class="modal">
+      <div class="flex-between mb-12">
+        <h3>Entrada Manual</h3>
+        <span style="cursor:pointer;color:#8A8A82;font-size:18px;" onclick="closeModal('modalManualEntry')">&times;</span>
+      </div>
+      <div class="mb-8">
+        <label class="text-xs text-muted">Comida</label>
+        <div class="flex gap-4 mt-4" style="flex-wrap:wrap;" id="mealChips">
+          <span class="chip active" data-meal="Desayuno" onclick="selectMealChip(this)">Desayuno</span>
+          <span class="chip" data-meal="Almuerzo" onclick="selectMealChip(this)">Almuerzo</span>
+          <span class="chip" data-meal="Cena" onclick="selectMealChip(this)">Cena</span>
+          <span class="chip" data-meal="Snack" onclick="selectMealChip(this)">Snack</span>
+        </div>
+      </div>
+      <div class="mb-8"><label class="text-xs text-muted">Nombre del alimento</label><input type="text" id="manualName" placeholder="Ej: Arroz con pollo" class="mt-4"></div>
+      <div class="mb-8"><label class="text-xs text-muted">Calorias (kcal)</label><input type="number" id="manualKcal" placeholder="0" class="mt-4"></div>
+      <div class="flex gap-8 mb-8">
+        <div style="flex:1;"><label class="text-xs text-muted">Proteina (g)</label><input type="number" id="manualP" placeholder="0" class="mt-4"></div>
+        <div style="flex:1;"><label class="text-xs text-muted">Carbos (g)</label><input type="number" id="manualC" placeholder="0" class="mt-4"></div>
+        <div style="flex:1;"><label class="text-xs text-muted">Grasa (g)</label><input type="number" id="manualG" placeholder="0" class="mt-4"></div>
+      </div>
+      <div class="flex gap-8">
+        <button class="btn btn-good w-full" onclick="saveManualEntry()">GUARDAR</button>
+        <button class="btn btn-ghost w-full" onclick="closeModal('modalManualEntry')">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add exercise modal -->
+  <div class="modal-overlay" id="modalAddExercise">
+    <div class="modal">
+      <div class="flex-between mb-12">
+        <h3>Anadir Ejercicio</h3>
+        <span style="cursor:pointer;color:#8A8A82;font-size:18px;" onclick="closeModal('modalAddExercise')">&times;</span>
+      </div>
+      <div class="mb-8"><label class="text-xs text-muted">Nombre del ejercicio</label><input type="text" id="newExName" placeholder="Ej: Curl biceps" class="mt-4"></div>
+      <div class="flex gap-8 mb-8">
+        <div style="flex:1;"><label class="text-xs text-muted">Series</label><input type="number" id="newExSets" placeholder="3" class="mt-4"></div>
+        <div style="flex:1;"><label class="text-xs text-muted">Reps</label><input type="number" id="newExReps" placeholder="10" class="mt-4"></div>
+        <div style="flex:1;"><label class="text-xs text-muted">RIR</label><input type="number" id="newExRIR" placeholder="2" class="mt-4"></div>
+      </div>
+      <div class="mb-8"><label class="text-xs text-muted">Grupo muscular</label><input type="text" id="newExMuscle" placeholder="Ej: Biceps" class="mt-4"></div>
+      <button class="btn btn-good w-full" onclick="addNewExercise()">ANADIR</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== DATA ==========
+const EXERCISES_MONDAY = [
+  {name:'Sentadilla libre',sets:4,reps:'6-10',rir:2,muscle:'Cuadriceps',foco:'Mantener rodillas alineadas con los pies, bajar hasta paralelo.'},
+  {name:'Prensa 45°',sets:3,reps:'10-12',rir:2,muscle:'Cuadriceps',foco:'Pies a la anchura de hombros, no bloquear rodillas arriba.'},
+  {name:'Hack squat',sets:3,reps:'8-12',rir:2,muscle:'Cuadriceps',foco:'Espalda pegada al respaldo, descenso controlado.'},
+  {name:'Extension de cuadriceps',sets:3,reps:'12-15',rir:1,muscle:'Cuadriceps',foco:'Contraccion completa arriba, 2 seg en fase excentrica.'},
+  {name:'Press militar con barra',sets:3,reps:'8-10',rir:2,muscle:'Hombro',foco:'Core activado, no arquear espalda, codos a 45 grados.'},
+  {name:'Elevacion lateral',sets:4,reps:'12-15',rir:1,muscle:'Hombro',foco:'Levantar hasta la linea del hombro, sin impulso.'},
+  {name:'Face pull',sets:3,reps:'15-20',rir:1,muscle:'Hombro',foco:'Tirar hacia la cara, rotacion externa al final.'},
+  {name:'Encogimientos con barra',sets:3,reps:'12-15',rir:2,muscle:'Hombro',foco:'Solo movimiento de hombros, sin flexion de codos.'},
+  {name:'Crunch en polea',sets:3,reps:'15-20',rir:1,muscle:'Abdomen',foco:'Flexion del tronco, no tirar con los brazos.'},
+  {name:'Plancha frontal',sets:3,reps:'30-45s',rir:0,muscle:'Abdomen',foco:'Linea recta de cabeza a talones, activar gluteo.'},
+  {name:'Rueda abdominal',sets:3,reps:'10-12',rir:2,muscle:'Abdomen',foco:'Extender lo maximo posible, volver sin colapsar cadera.'},
+  {name:'Elevacion de piernas colgado',sets:3,reps:'12-15',rir:1,muscle:'Abdomen',foco:'Elevar pelvis al final, no balancear.'},
+  {name:'Gemelo sentado',sets:4,reps:'12-15',rir:1,muscle:'Gemelo',foco:'Rango completo, 2 seg pausa abajo.'},
+  {name:'Gemelo de pie en maquina',sets:3,reps:'10-12',rir:2,muscle:'Gemelo',foco:'Extension completa arriba, descenso lento.'}
+];
+
+const EXERCISES_TUESDAY = [
+  {name:'Jalon al pecho',sets:4,reps:'8-12',rir:2,muscle:'Espalda'},
+  {name:'Remo con barra',sets:3,reps:'8-10',rir:2,muscle:'Espalda'},
+  {name:'Remo en polea baja',sets:3,reps:'10-12',rir:2,muscle:'Espalda'},
+  {name:'Pull over con polea',sets:3,reps:'12-15',rir:1,muscle:'Espalda'},
+  {name:'Curl con barra',sets:3,reps:'8-10',rir:2,muscle:'Biceps'},
+  {name:'Curl martillo',sets:3,reps:'10-12',rir:2,muscle:'Biceps'},
+  {name:'Curl inclinado con mancuerna',sets:3,reps:'12-15',rir:1,muscle:'Biceps'},
+  {name:'Face pull',sets:3,reps:'15-20',rir:1,muscle:'Hombro posterior'}
+];
+
+const EXERCISES_THURSDAY = [
+  {name:'Press banca con barra',sets:4,reps:'6-10',rir:2,muscle:'Pecho'},
+  {name:'Press inclinado mancuerna',sets:3,reps:'8-12',rir:2,muscle:'Pecho'},
+  {name:'Aperturas en polea',sets:3,reps:'12-15',rir:1,muscle:'Pecho'},
+  {name:'Fondos en paralelas',sets:3,reps:'8-12',rir:2,muscle:'Pecho'},
+  {name:'Press frances con barra Z',sets:3,reps:'8-10',rir:2,muscle:'Triceps'},
+  {name:'Extension de triceps en polea',sets:3,reps:'10-12',rir:2,muscle:'Triceps'},
+  {name:'Patada de triceps',sets:3,reps:'12-15',rir:1,muscle:'Triceps'},
+  {name:'Press militar con mancuerna',sets:3,reps:'8-10',rir:2,muscle:'Hombro'},
+  {name:'Elevacion lateral',sets:4,reps:'12-15',rir:1,muscle:'Hombro'},
+  {name:'Crunch en polea',sets:3,reps:'15-20',rir:1,muscle:'Abdomen'},
+  {name:'Plancha lateral',sets:3,reps:'30s/lado',rir:0,muscle:'Abdomen'},
+  {name:'Elevacion de piernas',sets:3,reps:'12-15',rir:1,muscle:'Abdomen'},
+  {name:'Gemelo sentado',sets:3,reps:'12-15',rir:1,muscle:'Gemelo'},
+  {name:'Gemelo de pie',sets:3,reps:'10-12',rir:2,muscle:'Gemelo'}
+];
+
+const EXERCISES_FRIDAY = [
+  {name:'Peso muerto rumano',sets:4,reps:'8-10',rir:2,muscle:'Isquiotibiales'},
+  {name:'Curl femoral acostado',sets:3,reps:'10-12',rir:2,muscle:'Isquiotibiales'},
+  {name:'Hip thrust con barra',sets:4,reps:'8-12',rir:2,muscle:'Gluteo'},
+  {name:'Zancadas con mancuerna',sets:3,reps:'10-12/pierna',rir:2,muscle:'Cuadriceps'},
+  {name:'Abduccion en maquina',sets:3,reps:'15-20',rir:1,muscle:'Gluteo'},
+  {name:'Remo con mancuerna',sets:3,reps:'8-10',rir:2,muscle:'Espalda'},
+  {name:'Jalon con agarre estrecho',sets:3,reps:'10-12',rir:2,muscle:'Espalda'},
+  {name:'Curl predicador',sets:3,reps:'10-12',rir:2,muscle:'Biceps'},
+  {name:'Curl concentrado',sets:3,reps:'12-15',rir:1,muscle:'Biceps'},
+  {name:'Crunch inverso',sets:3,reps:'15-20',rir:1,muscle:'Abdomen'},
+  {name:'Russian twist',sets:3,reps:'20',rir:1,muscle:'Abdomen'},
+  {name:'Gemelo de pie',sets:3,reps:'10-12',rir:2,muscle:'Gemelo'}
+];
+
+const FOOD_DATABASE = [
+  {name:'Pechuga de pollo',cat:'Proteinas',kcal:165,p:31,c:0,g:3.6},
+  {name:'Huevo entero',cat:'Proteinas',kcal:155,p:13,c:1.1,g:11},
+  {name:'Carne molida magra',cat:'Proteinas',kcal:250,p:26,c:0,g:15},
+  {name:'Atun en lata',cat:'Proteinas',kcal:116,p:26,c:0,g:1},
+  {name:'Salmon',cat:'Proteinas',kcal:208,p:20,c:0,g:13},
+  {name:'Leche entera',cat:'Lacteos',kcal:61,p:3.2,c:4.8,g:3.3},
+  {name:'Yogurt griego',cat:'Lacteos',kcal:59,p:10,c:3.6,g:0.4},
+  {name:'Queso campesino',cat:'Lacteos',kcal:321,p:25,c:1.3,g:24},
+  {name:'Lentejas cocidas',cat:'Legumbres',kcal:116,p:9,c:20,g:0.4},
+  {name:'Frijol rojo cocido',cat:'Legumbres',kcal:127,p:8.7,c:22.8,g:0.5},
+  {name:'Garbanzo cocido',cat:'Legumbres',kcal:164,p:8.9,c:27,g:2.6},
+  {name:'Arroz blanco cocido',cat:'Cereales',kcal:130,p:2.7,c:28,g:0.3},
+  {name:'Avena en hojuelas',cat:'Cereales',kcal:389,p:16.9,c:66,g:6.9},
+  {name:'Pan integral',cat:'Cereales',kcal:247,p:13,c:41,g:3.4},
+  {name:'Pasta cocida',cat:'Cereales',kcal:131,p:5,c:25,g:1.1},
+  {name:'Banano',cat:'Frutas',kcal:89,p:1.1,c:23,g:0.3},
+  {name:'Manzana',cat:'Frutas',kcal:52,p:0.3,c:14,g:0.2},
+  {name:'Fresa',cat:'Frutas',kcal:33,p:0.7,c:8,g:0.3},
+  {name:'Mango',cat:'Frutas',kcal:60,p:0.8,c:15,g:0.4},
+  {name:'Brocoli',cat:'Verduras',kcal:34,p:2.8,c:7,g:0.4},
+  {name:'Espinaca',cat:'Verduras',kcal:23,p:2.9,c:3.6,g:0.4},
+  {name:'Papa cocida',cat:'Verduras',kcal:77,p:2,c:17,g:0.1},
+  {name:'Platano maduro frito',cat:'Tipicas',kcal:268,p:1.3,c:37,g:13},
+  {name:'Arepa de maiz',cat:'Tipicas',kcal:200,p:4,c:30,g:7},
+  {name:'Bandeja paisa (porcion)',cat:'Tipicas',kcal:850,p:45,c:80,g:35}
+];
+
+const MEAL_PLAN = [
+  {meal:'Desayuno', items:[
+    {name:'Avena en hojuelas (80g)',kcal:311,p:13.5,c:52.8,g:5.5},
+    {name:'Banano (1 und)',kcal:89,p:1.1,c:23,g:0.3},
+    {name:'Huevo entero x3',kcal:231,p:19.5,c:1.7,g:16.5},
+    {name:'Leche entera (250ml)',kcal:153,p:8,c:12,g:8.3}
+  ]},
+  {meal:'Snack AM', items:[
+    {name:'Yogurt griego (200g)',kcal:118,p:20,c:7.2,g:0.8},
+    {name:'Manzana (1 und)',kcal:52,p:0.3,c:14,g:0.2}
+  ]},
+  {meal:'Almuerzo', items:[
+    {name:'Arroz blanco (200g cocido)',kcal:260,p:5.4,c:56,g:0.6},
+    {name:'Pechuga de pollo (200g)',kcal:330,p:62,c:0,g:7.2},
+    {name:'Lentejas (100g)',kcal:116,p:9,c:20,g:0.4},
+    {name:'Ensalada mixta',kcal:45,p:2,c:8,g:0.5}
+  ]},
+  {meal:'Snack PM', items:[
+    {name:'Pan integral x2 rebanadas',kcal:164,p:8.7,c:27.3,g:2.3},
+    {name:'Atun en lata (100g)',kcal:116,p:26,c:0,g:1}
+  ]},
+  {meal:'Cena', items:[
+    {name:'Pasta cocida (200g)',kcal:262,p:10,c:50,g:2.2},
+    {name:'Carne molida magra (150g)',kcal:375,p:39,c:0,g:22.5},
+    {name:'Brocoli (100g)',kcal:34,p:2.8,c:7,g:0.4}
+  ]},
+  {meal:'Pre-dormir', items:[
+    {name:'Queso campesino (50g)',kcal:161,p:12.5,c:0.7,g:12}
+  ]}
+];
+
+// ========== STATE ==========
+let currentTab = 'hoy';
+let sessionActive = false;
+let sessionTimer = null;
+let sessionSeconds = 0;
+let currentExerciseIndex = 0;
+let sessionExercises = [...EXERCISES_MONDAY];
+let setRows = [];
+let supplements = JSON.parse(localStorage.getItem('jf_supplements') || '[false,false,false]');
+let foodLog = JSON.parse(localStorage.getItem('jf_foodlog') || '[]');
+let mealPlanLoaded = JSON.parse(localStorage.getItem('jf_mealplan') || 'false');
+let selectedFoodCategory = 'all';
+let selectedMealChip = 'Desayuno';
+
+// ========== INIT ==========
+function init() {
+  updateClock();
+  setInterval(updateClock, 1000);
+  renderSupplements();
+  renderExerciseListPre();
+  renderPlan();
+  renderFoodSearchResults();
+  if (mealPlanLoaded) {
+    renderMealPlan();
+  }
+  updateNutrition();
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ========== TAB NAVIGATION ==========
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabNames = ['hoy','entreno','comida','plan','progreso','fuentes','salud'];
+  const idx = tabNames.indexOf(tab);
+  if (idx >= 0 && tabBtns[idx]) tabBtns[idx].classList.add('active');
+}
+
+// ========== SUPPLEMENTS ==========
+function toggleSupplement(idx) {
+  supplements[idx] = !supplements[idx];
+  localStorage.setItem('jf_supplements', JSON.stringify(supplements));
+  renderSupplements();
+}
+
+function renderSupplements() {
+  for (let i = 0; i < 3; i++) {
+    const el = document.getElementById('supp' + i);
+    if (supplements[i]) {
+      el.classList.add('checked');
+    } else {
+      el.classList.remove('checked');
+    }
+  }
+}
+
+// ========== NUTRITION ==========
+function updateNutrition() {
+  let totalKcal=0, totalP=0, totalC=0, totalG=0;
+  foodLog.forEach(f => {
+    totalKcal += f.kcal || 0;
+    totalP += f.p || 0;
+    totalC += f.c || 0;
+    totalG += f.g || 0;
+  });
+
+  document.getElementById('kcalDisplay').textContent = Math.round(totalKcal);
+  document.getElementById('kcalRemaining').textContent = Math.max(0, 2800 - Math.round(totalKcal));
+
+  const circPct = Math.min(1, totalKcal / 2800);
+  document.getElementById('kcalCircle').setAttribute('stroke-dasharray', (circPct * 314) + ' 314');
+
+  document.getElementById('macroP').textContent = Math.round(totalP) + '/158g';
+  document.getElementById('macroC').textContent = Math.round(totalC) + '/310g';
+  document.getElementById('macroG').textContent = Math.round(totalG) + '/79g';
+  const fiberEst = Math.round(totalC * 0.08);
+  document.getElementById('macroF').textContent = fiberEst + '/39g';
+
+  document.getElementById('barP').style.width = Math.min(100, (totalP/158)*100) + '%';
+  document.getElementById('barC').style.width = Math.min(100, (totalC/310)*100) + '%';
+  document.getElementById('barG').style.width = Math.min(100, (totalG/79)*100) + '%';
+  document.getElementById('barF').style.width = Math.min(100, (fiberEst/39)*100) + '%';
+
+  // Comida screen
+  document.getElementById('comidaKcal').textContent = Math.round(totalKcal);
+  document.getElementById('comidaP').textContent = Math.round(totalP) + 'g';
+  document.getElementById('comidaC').textContent = Math.round(totalC) + 'g';
+  document.getElementById('comidaG').textContent = Math.round(totalG) + 'g';
+
+  // Donut chart
+  const pDeg = (totalP * 4 / Math.max(1,totalKcal)) * 360;
+  const cDeg = (totalC * 4 / Math.max(1,totalKcal)) * 360;
+  const gDeg = (totalG * 9 / Math.max(1,totalKcal)) * 360;
+  if (totalKcal > 0) {
+    document.getElementById('donutChart').style.background =
+      'conic-gradient(#7FB07A 0deg ' + pDeg + 'deg, #F2F2EE ' + pDeg + 'deg ' + (pDeg+cDeg) + 'deg, #D26A45 ' + (pDeg+cDeg) + 'deg ' + (pDeg+cDeg+gDeg) + 'deg, #2A2A28 ' + (pDeg+cDeg+gDeg) + 'deg 360deg)';
+  }
+}
+
+// ========== EXERCISE LIST PRE ==========
+function renderExerciseListPre() {
+  const container = document.getElementById('exerciseListPre');
+  container.innerHTML = '';
+  sessionExercises.forEach((ex, i) => {
+    container.innerHTML += '<div class="exercise-row"><div><span class="text-sm text-accent">' + ex.name + '</span><br><span class="text-xs text-muted">' + ex.muscle + '</span></div><div style="text-align:right;"><span class="text-xs text-body">' + ex.sets + 'x' + ex.reps + '</span><br><span class="text-xs text-muted">RIR ' + ex.rir + '</span></div></div>';
+  });
+}
+
+// ========== SESSION ==========
+function startSession() {
+  sessionActive = true;
+  sessionSeconds = 0;
+  currentExerciseIndex = 0;
+  document.getElementById('entrenoPreSession').style.display = 'none';
+  document.getElementById('entrenoActiveSession').style.display = 'block';
+  sessionTimer = setInterval(() => {
+    sessionSeconds++;
+    const m = Math.floor(sessionSeconds / 60).toString().padStart(2,'0');
+    const s = (sessionSeconds % 60).toString().padStart(2,'0');
+    document.getElementById('sessionTimer').textContent = m + ':' + s;
+  }, 1000);
+  loadCurrentExercise();
+  renderExerciseListActive();
+}
+
+function loadCurrentExercise() {
+  const ex = sessionExercises[currentExerciseIndex];
+  document.getElementById('currentExName').textContent = ex.name;
+  document.getElementById('currentExMuscle').textContent = ex.muscle;
+  document.getElementById('focoTecnico').textContent = 'FOCO TECNICO: ' + (ex.foco || 'Mantener buena tecnica y control.');
+  document.getElementById('exerciseCounter').textContent = (currentExerciseIndex + 1) + '/' + sessionExercises.length;
+
+  // Build set rows
+  setRows = [];
+  for (let i = 0; i < ex.sets; i++) {
+    setRows.push({kg:'', reps:'', done:false});
+  }
+  renderSetGrid();
+}
+
+function renderSetGrid() {
+  const body = document.getElementById('setGridBody');
+  body.innerHTML = '';
+  setRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td class="text-xs text-muted" style="text-align:center;">' + (i+1) + '</td>' +
+      '<td><input type="number" placeholder="-" value="' + row.kg + '" onchange="setRows[' + i + '].kg=this.value"></td>' +
+      '<td><input type="number" placeholder="-" value="' + row.reps + '" onchange="setRows[' + i + '].reps=this.value"></td>' +
+      '<td><button class="set-check ' + (row.done ? 'done' : '') + '" onclick="toggleSetDone(' + i + ')">&#10003;</button></td>' +
+      '<td><button class="set-remove" onclick="removeSetRow(' + i + ')">&#10005;</button></td>';
+    body.appendChild(tr);
+  });
+}
+
+function toggleSetDone(i) {
+  setRows[i].done = !setRows[i].done;
+  renderSetGrid();
+}
+
+function removeSetRow(i) {
+  setRows.splice(i, 1);
+  renderSetGrid();
+}
+
+function addSetRow() {
+  setRows.push({kg:'', reps:'', done:false});
+  renderSetGrid();
+}
+
+function renderExerciseListActive() {
+  const container = document.getElementById('exerciseListActive');
+  container.innerHTML = '';
+  sessionExercises.forEach((ex, i) => {
+    const isActive = i === currentExerciseIndex;
+    container.innerHTML += '<div class="exercise-row" style="cursor:pointer;' + (isActive ? 'background:#1f1f1d;border-radius:6px;padding:8px;margin:-4px -4px;' : '') + '" onclick="switchExercise(' + i + ')"><span class="text-sm ' + (isActive ? 'text-accent fw-700' : 'text-body') + '">' + (i+1) + '. ' + ex.name + '</span><span class="text-xs text-muted">' + ex.sets + 'x' + ex.reps + '</span></div>';
+  });
+}
+
+function switchExercise(i) {
+  currentExerciseIndex = i;
+  loadCurrentExercise();
+  renderExerciseListActive();
+}
+
+function finishSession() {
+  if (confirm('Finalizar sesion de entrenamiento?')) {
+    clearInterval(sessionTimer);
+    sessionActive = false;
+    document.getElementById('entrenoPreSession').style.display = 'block';
+    document.getElementById('entrenoActiveSession').style.display = 'none';
+    alert('Sesion finalizada! Tiempo total: ' + document.getElementById('sessionTimer').textContent);
+  }
+}
+
+function discardSession() {
+  if (confirm('Descartar sesion? Se perderan todos los datos.')) {
+    clearInterval(sessionTimer);
+    sessionActive = false;
+    document.getElementById('entrenoPreSession').style.display = 'block';
+    document.getElementById('entrenoActiveSession').style.display = 'none';
+  }
+}
+
+function addExercisePrompt() {
+  document.getElementById('modalAddExercise').classList.add('show');
+}
+
+function addNewExercise() {
+  const name = document.getElementById('newExName').value.trim();
+  const sets = parseInt(document.getElementById('newExSets').value) || 3;
+  const reps = document.getElementById('newExReps').value || '10';
+  const rir = parseInt(document.getElementById('newExRIR').value) || 2;
+  const muscle = document.getElementById('newExMuscle').value.trim() || 'General';
+  if (!name) { alert('Ingresa un nombre'); return; }
+  sessionExercises.push({name, sets, reps, rir, muscle, foco:'Mantener buena tecnica y control.'});
+  renderExerciseListPre();
+  renderExerciseListActive();
+  closeModal('modalAddExercise');
+  document.getElementById('newExName').value = '';
+  document.getElementById('newExSets').value = '';
+  document.getElementById('newExReps').value = '';
+  document.getElementById('newExRIR').value = '';
+  document.getElementById('newExMuscle').value = '';
+}
+
+// ========== COMIDA ==========
+function loadMealPlan() {
+  mealPlanLoaded = true;
+  localStorage.setItem('jf_mealplan', 'true');
+  foodLog = [];
+  MEAL_PLAN.forEach(meal => {
+    meal.items.forEach(item => {
+      foodLog.push({...item, meal: meal.meal});
+    });
+  });
+  localStorage.setItem('jf_foodlog', JSON.stringify(foodLog));
+  renderMealPlan();
+  updateNutrition();
+  document.getElementById('btnCargarPlan').textContent = 'PLAN CARGADO';
+  document.getElementById('btnCargarPlan').style.opacity = '0.6';
+}
+
+function renderMealPlan() {
+  const container = document.getElementById('mealListContainer');
+  const list = document.getElementById('mealList');
+  container.style.display = 'block';
+  list.innerHTML = '';
+
+  const meals = {};
+  foodLog.forEach(f => {
+    if (!meals[f.meal]) meals[f.meal] = [];
+    meals[f.meal].push(f);
+  });
+
+  Object.keys(meals).forEach(mealName => {
+    let mealKcal = 0;
+    let html = '<div class="card"><p class="section-title">' + mealName.toUpperCase() + '</p>';
+    meals[mealName].forEach(item => {
+      mealKcal += item.kcal;
+      html += '<div class="food-item"><div><span class="text-sm text-accent">' + item.name + '</span><br><span class="text-xs text-muted">P:' + item.p + 'g C:' + item.c + 'g G:' + item.g + 'g</span></div><span class="text-sm text-body">' + item.kcal + '</span></div>';
+    });
+    html += '<div class="flex-between mt-4"><span class="text-xs text-muted">Total</span><span class="text-sm text-accent fw-700">' + Math.round(mealKcal) + ' kcal</span></div></div>';
+    list.innerHTML += html;
+  });
+}
+
+function showSearchFood() {
+  document.getElementById('modalSearchFood').classList.add('show');
+  document.getElementById('foodSearchInput').value = '';
+  selectedFoodCategory = 'all';
+  document.querySelectorAll('#foodCategoryChips .chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('#foodCategoryChips .chip').classList.add('active');
+  renderFoodSearchResults();
+}
+
+function showManualEntry() {
+  document.getElementById('modalManualEntry').classList.add('show');
+}
+
+function filterFoodCategory(el, cat) {
+  selectedFoodCategory = cat;
+  document.querySelectorAll('#foodCategoryChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderFoodSearchResults();
+}
+
+function filterFoods() {
+  renderFoodSearchResults();
+}
+
+function renderFoodSearchResults() {
+  const query = (document.getElementById('foodSearchInput')?.value || '').toLowerCase();
+  const container = document.getElementById('foodSearchResults');
+  let filtered = FOOD_DATABASE.filter(f => {
+    const matchCat = selectedFoodCategory === 'all' || f.cat === selectedFoodCategory;
+    const matchQuery = !query || f.name.toLowerCase().includes(query);
+    return matchCat && matchQuery;
+  });
+  container.innerHTML = '';
+  filtered.forEach(f => {
+    container.innerHTML += '<div class="food-item" style="cursor:pointer;" onclick="addFoodToLog(\'' + f.name.replace(/'/g,"\\'") + '\',' + f.kcal + ',' + f.p + ',' + f.c + ',' + f.g + ')"><div><span class="text-sm text-accent">' + f.name + '</span><br><span class="text-xs text-muted">' + f.cat + ' &middot; P:' + f.p + 'g C:' + f.c + 'g G:' + f.g + 'g</span></div><span class="text-sm text-body">' + f.kcal + '</span></div>';
+  });
+}
+
+function addFoodToLog(name, kcal, p, c, g) {
+  foodLog.push({name, kcal, p, c, g, meal: 'Manual'});
+  localStorage.setItem('jf_foodlog', JSON.stringify(foodLog));
+  updateNutrition();
+  renderMealPlan();
+  closeModal('modalSearchFood');
+}
+
+function selectMealChip(el) {
+  selectedMealChip = el.dataset.meal;
+  document.querySelectorAll('#mealChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function saveManualEntry() {
+  const name = document.getElementById('manualName').value.trim();
+  const kcal = parseFloat(document.getElementById('manualKcal').value) || 0;
+  const p = parseFloat(document.getElementById('manualP').value) || 0;
+  const c = parseFloat(document.getElementById('manualC').value) || 0;
+  const g = parseFloat(document.getElementById('manualG').value) || 0;
+  if (!name) { alert('Ingresa un nombre'); return; }
+  foodLog.push({name, kcal, p, c, g, meal: selectedMealChip});
+  localStorage.setItem('jf_foodlog', JSON.stringify(foodLog));
+  updateNutrition();
+  renderMealPlan();
+  closeModal('modalManualEntry');
+  document.getElementById('manualName').value = '';
+  document.getElementById('manualKcal').value = '';
+  document.getElementById('manualP').value = '';
+  document.getElementById('manualC').value = '';
+  document.getElementById('manualG').value = '';
+  document.getElementById('mealListContainer').style.display = 'block';
+}
+
+// ========== PLAN ==========
+function renderPlan() {
+  const container = document.getElementById('planContainer');
+  const days = [
+    {name:'LUNES', desc:'Cuadriceps, Hombro, Abdomen, Gemelo', exercises: EXERCISES_MONDAY},
+    {name:'MARTES', desc:'Espalda, Biceps, Hombro posterior', exercises: EXERCISES_TUESDAY},
+    {name:'JUEVES', desc:'Pecho, Triceps, Hombro, Abdomen, Gemelo', exercises: EXERCISES_THURSDAY},
+    {name:'VIERNES', desc:'Isquiotibiales, Gluteo, Espalda, Biceps, Abdomen, Gemelo', exercises: EXERCISES_FRIDAY}
+  ];
+  container.innerHTML = '';
+  days.forEach((day, di) => {
+    let html = '<div class="day-card"><div class="card" style="cursor:pointer;" onclick="toggleDayExercises(' + di + ')">';
+    html += '<div class="day-header"><div><h3>' + day.name + '</h3><p class="text-xs text-muted">' + day.desc + '</p></div><span class="text-sm text-muted">' + day.exercises.length + ' ej.</span></div>';
+    html += '<div class="day-exercises" id="dayEx' + di + '">';
+    day.exercises.forEach(ex => {
+      html += '<div class="exercise-row"><div><span class="text-sm text-accent">' + ex.name + '</span><br><span class="text-xs text-muted">' + ex.muscle + '</span></div><div style="text-align:right;"><span class="text-xs text-body">' + ex.sets + 'x' + ex.reps + '</span><br><span class="text-xs text-muted">RIR ' + ex.rir + '</span></div></div>';
+    });
+    html += '</div></div></div>';
+    container.innerHTML += html;
+  });
+}
+
+function toggleDayExercises(i) {
+  const el = document.getElementById('dayEx' + i);
+  el.classList.toggle('open');
+}
+
+// ========== PROGRESO ==========
+function toggleBodyView(view) {
+  if (view === 'frontal') {
+    document.getElementById('bodyFrontal').style.display = 'flex';
+    document.getElementById('bodyPosterior').style.display = 'none';
+    document.getElementById('chipFrontal').classList.add('active');
+    document.getElementById('chipPosterior').classList.remove('active');
+  } else {
+    document.getElementById('bodyFrontal').style.display = 'none';
+    document.getElementById('bodyPosterior').style.display = 'flex';
+    document.getElementById('chipFrontal').classList.remove('active');
+    document.getElementById('chipPosterior').classList.add('active');
+  }
+}
+
+function showMuscleInfo(name, series, exercises) {
+  document.getElementById('muscleInfoCard').style.display = 'block';
+  document.getElementById('muscleInfoName').textContent = name;
+  document.getElementById('muscleInfoSeries').textContent = series;
+  document.getElementById('muscleInfoExercises').textContent = 'Ejercicios: ' + exercises;
+}
+
+// ========== SALUD ==========
+function toggleNotif() {
+  const el = document.getElementById('notifToggle');
+  el.classList.toggle('on');
+}
+
+// ========== PERFIL ==========
+function showEditProfile() {
+  document.getElementById('perfilView').style.display = 'none';
+  document.getElementById('perfilEdit').style.display = 'block';
+}
+
+function cancelEditProfile() {
+  document.getElementById('perfilView').style.display = 'block';
+  document.getElementById('perfilEdit').style.display = 'none';
+}
+
+function saveProfile() {
+  alert('Perfil actualizado correctamente.');
+  document.getElementById('perfilView').style.display = 'block';
+  document.getElementById('perfilEdit').style.display = 'none';
+}
+
+function resetData() {
+  if (confirm('Reiniciar todos los datos? Esta accion no se puede deshacer.')) {
+    localStorage.removeItem('jf_supplements');
+    localStorage.removeItem('jf_foodlog');
+    localStorage.removeItem('jf_mealplan');
+    supplements = [false, false, false];
+    foodLog = [];
+    mealPlanLoaded = false;
+    renderSupplements();
+    updateNutrition();
+    document.getElementById('mealListContainer').style.display = 'none';
+    document.getElementById('mealList').innerHTML = '';
+    document.getElementById('btnCargarPlan').textContent = 'CARGAR PLAN';
+    document.getElementById('btnCargarPlan').style.opacity = '1';
+    alert('Datos reiniciados.');
+  }
+}
+
+// ========== MODALS ==========
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ========== START ==========
+init();
+</script>
+</body>
+</html>
