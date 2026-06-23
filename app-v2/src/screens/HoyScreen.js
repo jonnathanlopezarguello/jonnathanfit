@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import theme from '../theme';
 import { calc, greet, diso, GL, getDayName } from '../utils';
@@ -154,7 +154,7 @@ export default function HoyScreen({ onNavigate }) {
   const dayTitle = isTrainingDay ? DT[dayName] : null;
 
   return (
-    <View style={s.root}>
+    <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
       {/* DATE + GREETING */}
       <Text style={s.dateLabel}>{dateLbl()}</Text>
       <Text style={s.greeting}>{greet()}, {profile.name}</Text>
@@ -265,13 +265,18 @@ export default function HoyScreen({ onNavigate }) {
           />
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: theme.bg,
+  },
+  rootPad: {
+    padding: 24,
+    paddingBottom: 60,
   },
 
   /* Date + Greeting */

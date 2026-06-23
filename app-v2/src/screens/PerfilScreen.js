@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../theme';
 import { calc, GL, DEFAULT_PROFILE } from '../utils';
@@ -99,7 +99,7 @@ export default function PerfilScreen() {
   // ─── EDIT MODE ───────────────────────────────────
   if (editing) {
     return (
-      <View style={s.root}>
+      <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
         <Text style={s.label}>EDITAR PERFIL</Text>
         <Text style={s.h1}>Datos</Text>
 
@@ -268,7 +268,7 @@ export default function PerfilScreen() {
             <Text style={s.saveBtnText}>GUARDAR</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -277,7 +277,7 @@ export default function PerfilScreen() {
   const actLabel = ACTIVITY_OPTS.find((o) => o.k === profile.activity);
 
   return (
-    <View style={s.root}>
+    <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
       {/* Header */}
       <Text style={s.label}>DATOS Y OBJETIVOS</Text>
       <Text style={s.h1}>Perfil</Text>
@@ -356,7 +356,7 @@ export default function PerfilScreen() {
       <TouchableOpacity style={s.resetBtn} onPress={resetData} activeOpacity={0.7}>
         <Text style={s.resetBtnText}>REINICIAR DATOS</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -392,9 +392,8 @@ const infoStyles = StyleSheet.create({
 });
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: theme.bg },
+  rootPad: { padding: 24, paddingBottom: 60 },
 
   /* Header */
   label: {

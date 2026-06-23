@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import theme from '../theme';
 import { SCHED, HMET } from '../data/plan';
 
@@ -28,7 +28,7 @@ export default function SaludScreen() {
   };
 
   return (
-    <View style={s.root}>
+    <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
       {/* Header */}
       <Text style={s.label}>INTEGRACIONES</Text>
       <Text style={s.h1}>Salud</Text>
@@ -111,14 +111,13 @@ export default function SaludScreen() {
           </Text>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: theme.bg },
+  rootPad: { padding: 24, paddingBottom: 60 },
 
   /* Header */
   label: {

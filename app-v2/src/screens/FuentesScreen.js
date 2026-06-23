@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import theme from '../theme';
 import { REFS } from '../data/plan';
 
 export default function FuentesScreen() {
   return (
-    <View style={s.root}>
+    <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
       {/* Header */}
       <Text style={s.label}>EVIDENCIA CIENTIFICA</Text>
       <Text style={s.h1}>Fuentes</Text>
@@ -28,14 +28,13 @@ export default function FuentesScreen() {
           ))}
         </View>
       ))}
-    </View>
+    </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: theme.bg },
+  rootPad: { padding: 24, paddingBottom: 60 },
 
   /* Header */
   label: {

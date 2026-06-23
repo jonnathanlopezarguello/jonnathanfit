@@ -104,9 +104,9 @@ export default function App() {
 
         <View style={s.hl} />
 
-        <ScrollView style={s.ca} contentContainerStyle={s.caContent}>
+        <View style={s.ca}>
           {renderScreen()}
-        </ScrollView>
+        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -130,5 +130,4 @@ const s = StyleSheet.create({
   tlActive: { color: theme.text },
   tul: { width: 14, height: 1.5, backgroundColor: theme.accent, marginTop: 3 },
   ca: { flex: 1 },
-  caContent: { padding: 24, paddingBottom: 60 },
 });

@@ -403,7 +403,7 @@ export default function ComidaScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
-  pad: { padding: 16, paddingTop: 50 },
+  pad: { padding: 24, paddingBottom: 60 },
 
   sectionLabel: { color: theme.text3, fontSize: 11, letterSpacing: 1.5, marginBottom: 2 },
   title: { color: theme.text, fontSize: 22, fontWeight: '700', marginBottom: 16 },

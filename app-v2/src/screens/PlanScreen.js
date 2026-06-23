@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import theme from '../theme';
 import { calc, GL } from '../utils';
 import { T, DT, PD } from '../data/exercises';
@@ -23,7 +23,7 @@ export default function PlanScreen() {
   const targets = calc(profile);
 
   return (
-    <View style={s.root}>
+    <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
       {/* Header */}
       <Text style={s.label}>NUTRICION BASADA EN EVIDENCIA</Text>
       <Text style={s.h1}>Plan</Text>
@@ -117,14 +117,13 @@ export default function PlanScreen() {
           </View>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: theme.bg },
+  rootPad: { padding: 24, paddingBottom: 60 },
 
   /* Header */
   label: {

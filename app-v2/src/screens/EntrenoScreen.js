@@ -327,11 +327,11 @@ export default function EntrenoScreen() {
 
           {/* set grid header */}
           <View style={s.setRow}>
-            <Text style={[s.setH, { width: 32 }]}>Set</Text>
+            <Text style={[s.setH, { width: 28 }]}>Set</Text>
             <Text style={[s.setH, { flex: 1 }]}>Kg</Text>
             <Text style={[s.setH, { flex: 1 }]}>Reps</Text>
             <View style={{ width: 36 }} />
-            <View style={{ width: 36 }} />
+            <View style={{ width: 26 }} />
           </View>
 
           {/* set rows */}
@@ -340,13 +340,13 @@ export default function EntrenoScreen() {
               key={si}
               style={[s.setRow, st.d && { backgroundColor: theme.accentSoft, borderRadius: 6 }]}
             >
-              <Text style={[s.setCellTxt, { width: 32 }]}>{si + 1}</Text>
+              <Text style={[s.setCellTxt, { width: 28 }]}>{si + 1}</Text>
               <TextInput
                 style={[s.setInput, { flex: 1 }]}
                 value={st.kg}
                 onChangeText={v => updateSetField(curIdx, si, 'kg', v)}
                 keyboardType="numeric"
-                placeholder="-"
+                placeholder="0"
                 placeholderTextColor={theme.text3}
               />
               <TextInput
@@ -354,7 +354,7 @@ export default function EntrenoScreen() {
                 value={st.rp}
                 onChangeText={v => updateSetField(curIdx, si, 'rp', v)}
                 keyboardType="numeric"
-                placeholder="-"
+                placeholder="0"
                 placeholderTextColor={theme.text3}
               />
               <TouchableOpacity
@@ -371,7 +371,7 @@ export default function EntrenoScreen() {
                 onPress={() => removeSet(curIdx, si)}
                 activeOpacity={0.7}
               >
-                <Text style={s.delTxt}>×</Text>
+                <Text style={s.delTxt}>✕</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -522,7 +522,7 @@ export default function EntrenoScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
-  rootPad: { padding: 20, paddingTop: 60 },
+  rootPad: { padding: 20, paddingBottom: 60 },
   loadTxt: { color: theme.text3, textAlign: 'center', marginTop: 100 },
 
   /* header */
@@ -622,13 +622,12 @@ const s = StyleSheet.create({
 
   /* delete set button */
   delBtn: {
-    width: 36,
+    width: 26,
     height: 36,
-    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  delTxt: { color: theme.text3, fontSize: 18 },
+  delTxt: { color: theme.text3, fontSize: 14 },
 
   /* dashed button */
   dashedBtn: {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import theme from '../theme';
 import { load, KEYS } from '../store';
@@ -117,7 +117,7 @@ export default function ProgresoScreen() {
     });
 
   return (
-    <View style={s.root}>
+    <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
       {/* Header */}
       <Text style={s.label}>TENDENCIA</Text>
       <Text style={s.h1}>Progreso</Text>
@@ -293,14 +293,13 @@ export default function ProgresoScreen() {
           </View>
         </>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: theme.bg },
+  rootPad: { padding: 24, paddingBottom: 60 },
 
   /* Header */
   label: {
