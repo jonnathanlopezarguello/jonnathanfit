@@ -326,37 +326,64 @@ export default function EntrenoScreen() {
           )}
 
           {/* set grid header */}
-          <View style={s.setRow}>
-            <Text style={[s.setH, { width: 28 }]}>Set</Text>
-            <Text style={[s.setH, { flex: 1 }]}>Kg</Text>
-            <Text style={[s.setH, { flex: 1 }]}>Reps</Text>
-            <View style={{ width: 36 }} />
-            <View style={{ width: 26 }} />
-          </View>
+          {(() => {
+            const isTime = cur.name === 'Rueda abdominal' || cur.name === 'Plancha lastrada';
+            return isTime ? (
+              <View style={s.setRow}>
+                <Text style={[s.setH, { width: 28 }]}>Set</Text>
+                <Text style={[s.setH, { flex: 1 }]}>Min</Text>
+                <View style={{ width: 36 }} />
+                <View style={{ width: 26 }} />
+              </View>
+            ) : (
+              <View style={s.setRow}>
+                <Text style={[s.setH, { width: 28 }]}>Set</Text>
+                <Text style={[s.setH, { flex: 1 }]}>Kg</Text>
+                <Text style={[s.setH, { flex: 1 }]}>Reps</Text>
+                <View style={{ width: 36 }} />
+                <View style={{ width: 26 }} />
+              </View>
+            );
+          })()}
 
           {/* set rows */}
-          {cur.sets.map((st, si) => (
+          {cur.sets.map((st, si) => {
+            const isTime = cur.name === 'Rueda abdominal' || cur.name === 'Plancha lastrada';
+            return (
             <View
               key={si}
               style={[s.setRow, st.d && { backgroundColor: theme.accentSoft, borderRadius: 6 }]}
             >
               <Text style={[s.setCellTxt, { width: 28 }]}>{si + 1}</Text>
-              <TextInput
-                style={[s.setInput, { flex: 1 }]}
-                value={st.kg}
-                onChangeText={v => updateSetField(curIdx, si, 'kg', v)}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor={theme.text3}
-              />
-              <TextInput
-                style={[s.setInput, { flex: 1 }]}
-                value={st.rp}
-                onChangeText={v => updateSetField(curIdx, si, 'rp', v)}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor={theme.text3}
-              />
+              {isTime ? (
+                <TextInput
+                  style={[s.setInput, { flex: 1 }]}
+                  value={st.rp}
+                  onChangeText={v => updateSetField(curIdx, si, 'rp', v)}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={theme.text3}
+                />
+              ) : (
+                <>
+                  <TextInput
+                    style={[s.setInput, { flex: 1 }]}
+                    value={st.kg}
+                    onChangeText={v => updateSetField(curIdx, si, 'kg', v)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={theme.text3}
+                  />
+                  <TextInput
+                    style={[s.setInput, { flex: 1 }]}
+                    value={st.rp}
+                    onChangeText={v => updateSetField(curIdx, si, 'rp', v)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={theme.text3}
+                  />
+                </>
+              )}
               <TouchableOpacity
                 style={[s.checkBtn, st.d && s.checkBtnDone]}
                 onPress={() => toggleSet(curIdx, si)}
@@ -374,7 +401,8 @@ export default function EntrenoScreen() {
                 <Text style={s.delTxt}>✕</Text>
               </TouchableOpacity>
             </View>
-          ))}
+            );
+          })}
 
           {/* add set */}
           <TouchableOpacity style={s.dashedBtn} onPress={() => addSet(curIdx)} activeOpacity={0.7}>
