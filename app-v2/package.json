@@ -14,7 +14,7 @@
     "react-native-web": "~0.21.0"
   },
   "devDependencies": {
-    "babel-preset-expo": "~12.1.0"
+    "babel-preset-expo": "~11.0.15"
   },
   "scripts": {
     "start": "expo start",
