@@ -57,13 +57,14 @@ input:focus{border-color:var(--text3)!important}
 .hidden{display:none!important}
 /* Exercise and set styles */
 .excard{border:1px solid var(--line);padding:16px;margin-bottom:8px}
-.srow{display:flex;align-items:center;padding:6px 0;gap:6px}
+.srow{display:flex;align-items:center;padding:4px 0;gap:4px}
 .srow.dn{background:var(--accentSoft)}
-.si{flex:1;border:1px solid var(--line);padding:8px;font-size:14px;text-align:center;background:transparent;color:var(--text);outline:none;font-variant-numeric:tabular-nums}
+.si{flex:1;min-width:0;border:1px solid var(--line);padding:6px 2px;font-size:14px;text-align:center;background:transparent;color:var(--text);outline:none;font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield}
+.si::-webkit-outer-spin-button,.si::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .srow.dn .si{border-color:var(--accent)}
-.dbtn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);cursor:pointer;background:transparent;color:var(--text3);font-size:14px}
+.dbtn{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);cursor:pointer;background:transparent;color:var(--text3);font-size:14px}
 .dbtn.ck{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-.xbtn{background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:4px}
+.xbtn{background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:2px;flex-shrink:0}
 .dashed{border:1px dashed var(--line);padding:12px;text-align:center;cursor:pointer;color:var(--text3);font-size:11px;letter-spacing:1px;background:transparent}
 .dashed:hover{border-color:var(--text3)}
 .exr{border:1px solid var(--line);padding:14px;margin-bottom:8px;display:flex;align-items:center;cursor:pointer}
@@ -279,8 +280,8 @@ if(cur){var cd=cur.sets.filter(function(s){return s.d}).length;
 // Exercise card with sets only
 h+='<div class="card"><div style="display:flex;align-items:flex-start;margin-bottom:12px"><div style="flex:1"><div style="font-size:13px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">'+cur.name+'</div><div style="font-size:12px;color:var(--text3)">Sin datos previos'+(cur.plan?' · Objetivo '+cur.plan.s+' x '+cur.plan.r:'')+'</div></div><div style="display:flex;gap:16px;align-items:center"><span style="font-size:10px;letter-spacing:1px;color:'+(sTech?'var(--accent)':'var(--text3)')+';cursor:pointer" onclick="sTech=!sTech;rnd()">TECNICA</span><span style="font-size:10px;letter-spacing:1px;color:var(--text3);cursor:pointer" onclick="modal(\'Quitar ejercicio\',\'Quitar este ejercicio?\',[{l:\'Cancelar\',a:\'cmod()\'},{l:\'Quitar\',cl:\'d\',a:\'cmod();delEx('+sei+')\'}])">QUITAR</span></div></div>';
 // Set grid
-h+='<div style="display:flex;align-items:center;padding:6px 0;margin-bottom:2px"><span style="width:30px;font-size:10px;letter-spacing:1.5px;font-weight:500;color:var(--text3)">Set</span><span style="flex:1;font-size:10px;letter-spacing:1.5px;font-weight:500;color:var(--text3)">Kg</span><span style="flex:1;font-size:10px;letter-spacing:1.5px;font-weight:500;color:var(--text3)">Reps</span><span style="width:36px;text-align:center;font-size:10px;letter-spacing:1.5px;font-weight:500;color:var(--text3)">OK</span><span style="width:28px"></span></div>';
-cur.sets.forEach(function(s,si){h+='<div class="srow'+(s.d?' dn':'')+'"><span style="width:30px;font-size:13px;font-weight:500;color:var(--text3)">'+(si+1)+'</span><input class="si" type="number" value="'+(s.kg||'')+'" placeholder="0" onchange="sval('+sei+','+si+',\'kg\',this.value)"><input class="si" type="number" value="'+(s.rp||'')+'" placeholder="0" onchange="sval('+sei+','+si+',\'rp\',this.value)"><div class="dbtn'+(s.d?' ck':'')+'" onclick="stog('+sei+','+si+')">✓</div><div class="xbtn" onclick="sdel('+sei+','+si+')">✕</div></div>'});
+h+='<div style="display:flex;align-items:center;padding:4px 0;margin-bottom:2px;gap:4px"><span style="width:24px;font-size:10px;letter-spacing:1px;font-weight:500;color:var(--text3)">Set</span><span style="flex:1;font-size:10px;letter-spacing:1px;font-weight:500;color:var(--text3)">Kg</span><span style="flex:1;font-size:10px;letter-spacing:1px;font-weight:500;color:var(--text3)">Reps</span><span style="width:34px;text-align:center;font-size:10px;letter-spacing:1px;font-weight:500;color:var(--text3)">OK</span><span style="width:22px"></span></div>';
+cur.sets.forEach(function(s,si){h+='<div class="srow'+(s.d?' dn':'')+'"><span style="width:24px;font-size:13px;font-weight:500;color:var(--text3);flex-shrink:0">'+(si+1)+'</span><input class="si" type="number" inputmode="numeric" pattern="[0-9]*" value="'+(s.kg||'')+'" placeholder="0" onchange="sval('+sei+','+si+',\'kg\',this.value)"><input class="si" type="number" inputmode="numeric" pattern="[0-9]*" value="'+(s.rp||'')+'" placeholder="0" onchange="sval('+sei+','+si+',\'rp\',this.value)"><div class="dbtn'+(s.d?' ck':'')+'" onclick="stog('+sei+','+si+')">✓</div><div class="xbtn" onclick="sdel('+sei+','+si+')">✕</div></div>'});
 h+='<div class="dashed" onclick="sadd('+sei+')">+ SERIE</div>';
 h+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(cd>0?cd+' de '+cur.sets.length+' series completadas':'Ingresa kg y reps, luego marca cada serie.')+'</div></div>'}
 // Exercise list
