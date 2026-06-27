@@ -60,7 +60,7 @@ export default function App() {
       case 'Progreso': return <ProgresoScreen />;
       case 'Fuentes': return <FuentesScreen />;
       case 'Salud': return <SaludScreen />;
-      case 'Perfil': return <PerfilScreen />;
+      case 'Perfil': return <PerfilScreen onNavigate={setTab} />;
       default: return <HoyScreen onNavigate={setTab} />;
     }
   };

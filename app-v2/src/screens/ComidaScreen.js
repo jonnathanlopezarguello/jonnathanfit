@@ -85,7 +85,10 @@ export default function ComidaScreen() {
   };
 
   const saveManual = () => {
-    if (!mName.trim()) return;
+    if (!mName.trim()) {
+      Alert.alert('Campo requerido', 'Ingresa el nombre del alimento.');
+      return;
+    }
     addItem(mName.trim(), mK || 0, mP || 0, mC || 0, mF || 0, cfm);
     setMName(''); setMK(''); setMP(''); setMC(''); setMF('');
   };

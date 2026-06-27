@@ -31,7 +31,7 @@ const STRESS_OPTS = [
   { k: 'alto', l: 'Alto' },
 ];
 
-export default function PerfilScreen() {
+export default function PerfilScreen({ onNavigate }) {
   const [profile, setProfile] = useState(DEFAULT_PROFILE);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(DEFAULT_PROFILE);
@@ -349,7 +349,7 @@ export default function PerfilScreen() {
         <Text style={s.editBtnText}>EDITAR PERFIL</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={s.measureBtn} activeOpacity={0.7}>
+      <TouchableOpacity style={s.measureBtn} activeOpacity={0.7} onPress={() => onNavigate && onNavigate('Progreso')}>
         <Text style={s.measureBtnText}>MEDIR PROGRESO</Text>
       </TouchableOpacity>
 

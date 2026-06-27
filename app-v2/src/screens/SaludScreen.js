@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import theme from '../theme';
 import { SCHED, HMET } from '../data/plan';
+import { load, save, KEYS } from '../store';
 
 const DOT_COLORS = {
   n: theme.good,
@@ -14,15 +15,27 @@ const DOT_COLORS = {
 export default function SaludScreen() {
   const [remindersOn, setRemindersOn] = useState(true);
 
+  useEffect(() => {
+    (async () => {
+      const saved = await load(KEYS.reminders);
+      if (saved !== null) setRemindersOn(saved);
+    })();
+  }, []);
+
+  const toggleReminders = (val) => {
+    setRemindersOn(val);
+    save(KEYS.reminders, val);
+  };
+
   const handleConnect = () => {
     Alert.alert(
       'Samsung Galaxy Fit3',
       'Para conectar tu Galaxy Fit3:\n\n' +
-        '1. Abre Samsung Health en tu telefono\n' +
-        '2. Ve a Ajustes > Accesorios\n' +
-        '3. Vincula tu Galaxy Fit3\n' +
-        '4. Activa la sincronizacion de datos\n\n' +
-        'Los datos se sincronizaran automaticamente con la app.',
+        '1. Instala "Health Connect" desde Play Store\n' +
+        '2. Abre Samsung Health > Ajustes\n' +
+        '3. Activa sincronizacion con Health Connect\n' +
+        '4. En Health Connect, permite acceso a Jonnathan Fit\n\n' +
+        'Los datos de pasos, sueno y frecuencia cardiaca se sincronizaran automaticamente.',
       [{ text: 'Entendido' }]
     );
   };
@@ -49,7 +62,7 @@ export default function SaludScreen() {
           </View>
           <TouchableOpacity
             style={[s.toggle, remindersOn && s.toggleOn]}
-            onPress={() => setRemindersOn(!remindersOn)}
+            onPress={() => toggleReminders(!remindersOn)}
             activeOpacity={0.7}
           >
             <View style={[s.toggleThumb, remindersOn && s.toggleThumbOn]} />

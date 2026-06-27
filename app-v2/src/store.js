@@ -7,6 +7,7 @@ const KEYS = {
   workouts: 'jfit_w',
   profile: 'jfit_p',
   activity: 'jfit_act',
+  reminders: 'jfit_rem',
 };
 
 export async function load(key) {
