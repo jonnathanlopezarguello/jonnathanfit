@@ -18,23 +18,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#121211"
       },
-      "permissions": [
-        "android.permission.health.READ_STEPS",
-        "android.permission.health.READ_HEART_RATE",
-        "android.permission.health.READ_SLEEP",
-        "android.permission.health.READ_EXERCISE",
-        "android.permission.health.READ_DISTANCE",
-        "android.permission.health.READ_ACTIVE_CALORIES_BURNED"
-      ]
     },
-    "plugins": [
-      [
-        "react-native-health-connect",
-        {
-          "requestPermissionsRationale": "Esta app necesita acceder a tus datos de salud para sincronizar con tu Galaxy Fit3"
-        }
-      ]
-    ],
     "extra": {
       "eas": {
         "projectId": "54c33850-6930-4f65-97d6-509a6fa13120"
