@@ -8,6 +8,7 @@ const KEYS = {
   profile: 'jfit_p',
   activity: 'jfit_act',
   reminders: 'jfit_rem',
+  healthConnect: 'jfit_hc',
 };
 
 export async function load(key) {
