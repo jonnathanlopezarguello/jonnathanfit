@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
-import {
-  initialize,
-  getSdkStatus,
-  requestPermission,
-  readRecords,
-  SdkAvailabilityStatus,
-} from 'react-native-health-connect';
 import theme from '../theme';
+
+let HC = null;
+if (Platform.OS === 'android') {
+  try {
+    HC = require('react-native-health-connect');
+  } catch (e) {}
+}
 import { SCHED } from '../data/plan';
 import { load, save, KEYS } from '../store';
 import { dlbl } from '../utils';
@@ -76,32 +76,41 @@ export default function SaludScreen() {
   };
 
   const syncData = useCallback(async () => {
-    if (Platform.OS !== 'android') {
-      Alert.alert('Solo Android', 'Health Connect solo esta disponible en Android.');
+    if (!HC) {
+      Alert.alert(
+        'No disponible',
+        'Health Connect no esta disponible en esta version. Asegurate de usar el APK nativo y tener Health Connect instalado.'
+      );
       return;
     }
 
     setSyncing(true);
 
     try {
-      const isInitialized = await initialize();
+      const isInitialized = await HC.initialize();
       if (!isInitialized) {
-        Alert.alert('Error', 'No se pudo inicializar Health Connect.');
+        Alert.alert('Error', 'No se pudo inicializar Health Connect. Verifica que este instalado.');
         setSyncing(false);
         return;
       }
+    } catch (e) {
+      Alert.alert('Error', 'Fallo al inicializar Health Connect: ' + (e.message || ''));
+      setSyncing(false);
+      return;
+    }
 
-      const status = await getSdkStatus();
-      if (status !== SdkAvailabilityStatus.SDK_AVAILABLE) {
+    try {
+      const status = await HC.getSdkStatus();
+      if (status !== 3) {
         Alert.alert(
           'Health Connect',
-          'Health Connect no esta disponible. Instalalo o actualizalo desde Play Store.'
+          'Health Connect no esta disponible (estado: ' + status + '). Instalalo o actualizalo desde Play Store.'
         );
         setSyncing(false);
         return;
       }
 
-      const permissions = await requestPermission([
+      const permissions = await HC.requestPermission([
         { accessType: 'read', recordType: 'Steps' },
         { accessType: 'read', recordType: 'HeartRate' },
         { accessType: 'read', recordType: 'SleepSession' },
@@ -121,16 +130,18 @@ export default function SaludScreen() {
       const data = {};
 
       try {
-        const r = await readRecords('Steps', { timeRangeFilter: range });
-        if (r && r.length > 0) {
-          data.steps = r.reduce((sum, rec) => sum + (rec.count || 0), 0);
+        const r = await HC.readRecords('Steps', { timeRangeFilter: range });
+        const records = r && r.records ? r.records : (Array.isArray(r) ? r : []);
+        if (records.length > 0) {
+          data.steps = records.reduce((sum, rec) => sum + (rec.count || 0), 0);
         }
       } catch (e) {}
 
       try {
-        const r = await readRecords('HeartRate', { timeRangeFilter: range });
-        if (r && r.length > 0) {
-          const last = r[r.length - 1];
+        const r = await HC.readRecords('HeartRate', { timeRangeFilter: range });
+        const records = r && r.records ? r.records : (Array.isArray(r) ? r : []);
+        if (records.length > 0) {
+          const last = records[records.length - 1];
           if (last.samples && last.samples.length > 0) {
             data.heartRate = last.samples[last.samples.length - 1].beatsPerMinute;
           }
@@ -138,32 +149,36 @@ export default function SaludScreen() {
       } catch (e) {}
 
       try {
-        const r = await readRecords('SleepSession', { timeRangeFilter: range });
-        if (r && r.length > 0) {
-          const rec = r[0];
+        const r = await HC.readRecords('SleepSession', { timeRangeFilter: range });
+        const records = r && r.records ? r.records : (Array.isArray(r) ? r : []);
+        if (records.length > 0) {
+          const rec = records[0];
           const ms = new Date(rec.endTime) - new Date(rec.startTime);
           data.sleep = Math.round(ms / 3600000 * 10) / 10;
         }
       } catch (e) {}
 
       try {
-        const r = await readRecords('ActiveCaloriesBurned', { timeRangeFilter: range });
-        if (r && r.length > 0) {
-          data.calories = Math.round(r.reduce((sum, rec) => sum + (rec.energy?.inKilocalories || 0), 0));
+        const r = await HC.readRecords('ActiveCaloriesBurned', { timeRangeFilter: range });
+        const records = r && r.records ? r.records : (Array.isArray(r) ? r : []);
+        if (records.length > 0) {
+          data.calories = Math.round(records.reduce((sum, rec) => sum + (rec.energy?.inKilocalories || 0), 0));
         }
       } catch (e) {}
 
       try {
-        const r = await readRecords('Distance', { timeRangeFilter: range });
-        if (r && r.length > 0) {
-          data.distance = Math.round(r.reduce((sum, rec) => sum + (rec.distance?.inKilometers || 0), 0) * 10) / 10;
+        const r = await HC.readRecords('Distance', { timeRangeFilter: range });
+        const records = r && r.records ? r.records : (Array.isArray(r) ? r : []);
+        if (records.length > 0) {
+          data.distance = Math.round(records.reduce((sum, rec) => sum + (rec.distance?.inKilometers || 0), 0) * 10) / 10;
         }
       } catch (e) {}
 
       try {
-        const r = await readRecords('ExerciseSession', { timeRangeFilter: range });
-        if (r && r.length > 0) {
-          data.exercise = r.length;
+        const r = await HC.readRecords('ExerciseSession', { timeRangeFilter: range });
+        const records = r && r.records ? r.records : (Array.isArray(r) ? r : []);
+        if (records.length > 0) {
+          data.exercise = records.length;
         }
       } catch (e) {}
 
