@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
 import theme from '../theme';
 import { SCHED, HMET } from '../data/plan';
 import { load, save, KEYS } from '../store';
-import { diso } from '../utils';
+
+let HC = null;
+if (Platform.OS === 'android') {
+  try { HC = require('react-native-health-connect'); } catch (e) {}
+}
 
 const DOT_COLORS = {
   n: theme.good,
@@ -13,29 +17,23 @@ const DOT_COLORS = {
   d: theme.text2,
 };
 
-const HC_FIELDS = [
-  { key: 'steps', label: 'Pasos', unit: '', kb: 'numeric' },
-  { key: 'heartRate', label: 'Frecuencia cardiaca', unit: 'bpm', kb: 'numeric' },
-  { key: 'sleep', label: 'Horas de sueno', unit: 'h', kb: 'numeric' },
-  { key: 'calories', label: 'Calorias quemadas', unit: 'kcal', kb: 'numeric' },
-  { key: 'distance', label: 'Distancia', unit: 'km', kb: 'numeric' },
-  { key: 'exercise', label: 'Sesiones', unit: '', kb: 'numeric' },
-];
+const HC_KEYS = ['steps', 'heartRate', 'sleep', 'calories', 'distance', 'exercise'];
 
 export default function SaludScreen() {
   const [remindersOn, setRemindersOn] = useState(true);
+  const [connected, setConnected] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [healthData, setHealthData] = useState({});
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({});
-
-  const today = diso(0);
 
   useEffect(() => {
     (async () => {
       const saved = await load(KEYS.reminders);
       if (saved !== null) setRemindersOn(saved);
       const hc = await load(KEYS.healthConnect);
-      if (hc) setHealthData(hc);
+      if (hc) {
+        setHealthData(hc);
+        setConnected(true);
+      }
     })();
   }, []);
 
@@ -44,32 +42,130 @@ export default function SaludScreen() {
     save(KEYS.reminders, val);
   };
 
-  const todayData = healthData[today] || {};
-
-  const startEdit = () => {
-    setForm({ ...todayData });
-    setEditing(true);
+  const getTodayRange = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return {
+      operator: 'between',
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    };
   };
 
-  const saveData = () => {
-    const cleaned = {};
-    HC_FIELDS.forEach(f => {
-      const v = parseFloat(form[f.key]);
-      if (!isNaN(v) && v > 0) cleaned[f.key] = v;
-    });
-    const next = { ...healthData, [today]: cleaned };
-    setHealthData(next);
-    save(KEYS.healthConnect, next);
-    setEditing(false);
-    Alert.alert('Guardado', 'Datos de salud actualizados.');
-  };
+  const syncHealthConnect = useCallback(async () => {
+    if (!HC) {
+      Alert.alert(
+        'No disponible',
+        'Health Connect no esta disponible. Asegurate de estar usando el APK nativo (no Expo Go) y tener Health Connect instalado.'
+      );
+      return;
+    }
+
+    setSyncing(true);
+
+    try {
+      const status = await HC.getSdkStatus();
+      if (status !== 3) {
+        Alert.alert(
+          'Health Connect',
+          'Health Connect no esta disponible o necesita actualizacion. Instalalo desde Play Store.'
+        );
+        setSyncing(false);
+        return;
+      }
+
+      await HC.initialize();
+
+      const granted = await HC.requestPermission([
+        { accessType: 'read', recordType: 'Steps' },
+        { accessType: 'read', recordType: 'HeartRate' },
+        { accessType: 'read', recordType: 'SleepSession' },
+        { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
+        { accessType: 'read', recordType: 'Distance' },
+        { accessType: 'read', recordType: 'ExerciseSession' },
+      ]);
+
+      if (!granted || granted.length === 0) {
+        Alert.alert('Permisos', 'Debes aceptar los permisos para sincronizar.');
+        setSyncing(false);
+        return;
+      }
+
+      const range = getTodayRange();
+      const data = {};
+
+      try {
+        const r = await HC.readRecords('Steps', { timeRangeFilter: range });
+        if (r.records && r.records.length > 0) {
+          data.steps = r.records.reduce((s, rec) => s + (rec.count || 0), 0);
+        }
+      } catch (e) {}
+
+      try {
+        const r = await HC.readRecords('HeartRate', { timeRangeFilter: range });
+        if (r.records && r.records.length > 0) {
+          const last = r.records[r.records.length - 1];
+          if (last.samples && last.samples.length > 0) {
+            data.heartRate = last.samples[last.samples.length - 1].beatsPerMinute;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const r = await HC.readRecords('SleepSession', { timeRangeFilter: range });
+        if (r.records && r.records.length > 0) {
+          const rec = r.records[0];
+          const ms = new Date(rec.endTime) - new Date(rec.startTime);
+          data.sleep = Math.round(ms / 3600000 * 10) / 10;
+        }
+      } catch (e) {}
+
+      try {
+        const r = await HC.readRecords('ActiveCaloriesBurned', { timeRangeFilter: range });
+        if (r.records && r.records.length > 0) {
+          data.calories = Math.round(r.records.reduce((s, rec) => s + (rec.energy?.inKilocalories || 0), 0));
+        }
+      } catch (e) {}
+
+      try {
+        const r = await HC.readRecords('Distance', { timeRangeFilter: range });
+        if (r.records && r.records.length > 0) {
+          data.distance = Math.round(r.records.reduce((s, rec) => s + (rec.distance?.inKilometers || 0), 0) * 10) / 10;
+        }
+      } catch (e) {}
+
+      try {
+        const r = await HC.readRecords('ExerciseSession', { timeRangeFilter: range });
+        if (r.records && r.records.length > 0) {
+          data.exercise = r.records.length;
+        }
+      } catch (e) {}
+
+      setHealthData(data);
+      setConnected(true);
+      save(KEYS.healthConnect, data);
+      Alert.alert('Sincronizado', 'Datos actualizados desde Health Connect.');
+    } catch (err) {
+      Alert.alert('Error', 'No se pudo sincronizar: ' + (err.message || 'Error desconocido'));
+    }
+
+    setSyncing(false);
+  }, []);
 
   const formatVal = (key) => {
-    const v = todayData[key];
+    const v = healthData[key];
     if (v === undefined || v === null) return null;
-    const field = HC_FIELDS.find(f => f.key === key);
-    if (key === 'steps') return v.toLocaleString() + ' pasos';
-    return v + ' ' + (field ? field.unit : '');
+    switch (key) {
+      case 'steps': return v.toLocaleString() + ' pasos';
+      case 'heartRate': return v + ' bpm';
+      case 'sleep': return v + ' h';
+      case 'calories': return v + ' kcal';
+      case 'distance': return v + ' km';
+      case 'exercise': return v + ' sesion(es)';
+      default: return String(v);
+    }
   };
 
   return (
@@ -122,71 +218,53 @@ export default function SaludScreen() {
 
       <View style={s.card}>
         <Text style={s.fitDesc}>
-          Ingresa los datos de tu Galaxy Fit3 desde Samsung Health para llevar el seguimiento diario.
+          {connected
+            ? 'Conectado a Health Connect. Toca sincronizar para actualizar.'
+            : 'Conecta tu Galaxy Fit3 via Health Connect para ver tus datos de salud automaticamente.'}
         </Text>
 
-        {editing ? (
-          <>
-            {HC_FIELDS.map((field) => (
-              <View key={field.key} style={s.editRow}>
-                <Text style={s.editLabel}>{field.label}{field.unit ? ' (' + field.unit + ')' : ''}</Text>
-                <TextInput
-                  style={s.editInput}
-                  keyboardType={field.kb}
-                  value={form[field.key] !== undefined ? String(form[field.key]) : ''}
-                  onChangeText={(v) => setForm(prev => ({ ...prev, [field.key]: v }))}
-                  placeholder="0"
-                  placeholderTextColor={theme.text3}
-                />
+        {HMET.map((metric, i) => {
+          const key = HC_KEYS[i];
+          const val = key ? formatVal(key) : null;
+          return (
+            <View key={i} style={[s.metricRow, i < HMET.length - 1 && s.metricRowBorder]}>
+              <Text style={s.metricIcon}>{metric.ic}</Text>
+              <View style={s.metricInfo}>
+                <Text style={s.metricLabel}>{metric.l}</Text>
+                <Text style={s.metricTarget}>{metric.tg}</Text>
               </View>
-            ))}
-            <View style={s.editActions}>
-              <TouchableOpacity style={s.cancelBtn} onPress={() => setEditing(false)} activeOpacity={0.7}>
-                <Text style={s.cancelBtnText}>CANCELAR</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.saveBtn} onPress={saveData} activeOpacity={0.7}>
-                <Text style={s.saveBtnText}>GUARDAR</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        ) : (
-          <>
-            {HMET.map((metric, i) => {
-              const key = HC_FIELDS[i] ? HC_FIELDS[i].key : null;
-              const val = key ? formatVal(key) : null;
-              return (
-                <View key={i} style={[s.metricRow, i < HMET.length - 1 && s.metricRowBorder]}>
-                  <Text style={s.metricIcon}>{metric.ic}</Text>
-                  <View style={s.metricInfo}>
-                    <Text style={s.metricLabel}>{metric.l}</Text>
-                    <Text style={s.metricTarget}>{metric.tg}</Text>
-                  </View>
-                  {val ? (
-                    <View style={s.connectedBadge}>
-                      <Text style={s.connectedText}>{val}</Text>
-                    </View>
-                  ) : (
-                    <View style={s.pendingBadge}>
-                      <Text style={s.pendingText}>SIN DATOS</Text>
-                    </View>
-                  )}
+              {val ? (
+                <View style={s.connectedBadge}>
+                  <Text style={s.connectedText}>{val}</Text>
                 </View>
-              );
-            })}
+              ) : (
+                <View style={s.pendingBadge}>
+                  <Text style={s.pendingText}>PENDIENTE</Text>
+                </View>
+              )}
+            </View>
+          );
+        })}
 
-            <TouchableOpacity style={s.connectBtn} onPress={startEdit} activeOpacity={0.7}>
-              <Text style={s.connectBtnText}>REGISTRAR DATOS</Text>
-            </TouchableOpacity>
-          </>
-        )}
+        <TouchableOpacity
+          style={[s.connectBtn, syncing && s.connectBtnDisabled]}
+          onPress={syncHealthConnect}
+          activeOpacity={0.7}
+          disabled={syncing}
+        >
+          <Text style={s.connectBtnText}>
+            {syncing ? 'SINCRONIZANDO...' : connected ? 'SINCRONIZAR' : 'CONECTAR'}
+          </Text>
+        </TouchableOpacity>
 
         <View style={s.howCard}>
-          <Text style={s.howTitle}>Como registrar</Text>
+          <Text style={s.howTitle}>Configuracion</Text>
           <Text style={s.howText}>
-            1. Abre Samsung Health en tu celular{'\n'}
-            2. Revisa tus datos del dia (pasos, sueno, etc.){'\n'}
-            3. Toca "REGISTRAR DATOS" e ingresa los valores{'\n'}
-            4. Los datos se guardan por dia automaticamente
+            1. Instala "Health Connect" desde Play Store{'\n'}
+            2. Abre Samsung Health {'>'} Ajustes{'\n'}
+            3. Activa sincronizacion con Health Connect{'\n'}
+            4. Toca "CONECTAR" y acepta los permisos{'\n'}
+            5. Tus datos se sincronizaran automaticamente
           </Text>
         </View>
       </View>
@@ -273,36 +351,8 @@ const s = StyleSheet.create({
     backgroundColor: theme.accent, paddingVertical: 14,
     alignItems: 'center', marginTop: 16, marginBottom: 16,
   },
+  connectBtnDisabled: { opacity: 0.5 },
   connectBtnText: {
-    fontSize: 12, fontWeight: '700', letterSpacing: 2, color: theme.bg,
-  },
-
-  editRow: {
-    marginBottom: 12,
-  },
-  editLabel: {
-    fontSize: 11, fontWeight: '600', letterSpacing: 1,
-    color: theme.text3, marginBottom: 4,
-  },
-  editInput: {
-    borderWidth: 1, borderColor: theme.line, padding: 10,
-    color: theme.text, fontSize: 14,
-  },
-  editActions: {
-    flexDirection: 'row', gap: 10, marginTop: 8,
-  },
-  cancelBtn: {
-    flex: 1, borderWidth: 1, borderColor: theme.line2,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 12, fontWeight: '700', letterSpacing: 2, color: theme.text3,
-  },
-  saveBtn: {
-    flex: 1, backgroundColor: theme.accent,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  saveBtnText: {
     fontSize: 12, fontWeight: '700', letterSpacing: 2, color: theme.bg,
   },
 
