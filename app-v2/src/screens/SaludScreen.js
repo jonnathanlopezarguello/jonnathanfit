@@ -58,7 +58,7 @@ export default function SaludScreen() {
     if (!HC) {
       Alert.alert(
         'No disponible',
-        'Health Connect no esta disponible. Asegurate de estar usando el APK nativo (no Expo Go) y tener Health Connect instalado.'
+        'Health Connect no esta disponible. Asegurate de estar usando el APK nativo (no Expo Go) y tener Health Connect instalado en tu celular.'
       );
       return;
     }
@@ -66,29 +66,50 @@ export default function SaludScreen() {
     setSyncing(true);
 
     try {
-      const status = await HC.getSdkStatus();
+      await HC.initialize();
+    } catch (e) {
+      Alert.alert('Error', 'No se pudo inicializar Health Connect. Verifica que este instalado desde Play Store.');
+      setSyncing(false);
+      return;
+    }
+
+    try {
+      let status = 0;
+      try {
+        status = await HC.getSdkStatus();
+      } catch (e) {
+        Alert.alert('Health Connect', 'No se pudo verificar Health Connect. Instalalo o actualizalo desde Play Store.');
+        setSyncing(false);
+        return;
+      }
+
       if (status !== 3) {
         Alert.alert(
           'Health Connect',
-          'Health Connect no esta disponible o necesita actualizacion. Instalalo desde Play Store.'
+          'Health Connect no esta listo (estado: ' + status + '). Instalalo o actualizalo desde Play Store.'
         );
         setSyncing(false);
         return;
       }
 
-      await HC.initialize();
-
-      const granted = await HC.requestPermission([
-        { accessType: 'read', recordType: 'Steps' },
-        { accessType: 'read', recordType: 'HeartRate' },
-        { accessType: 'read', recordType: 'SleepSession' },
-        { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
-        { accessType: 'read', recordType: 'Distance' },
-        { accessType: 'read', recordType: 'ExerciseSession' },
-      ]);
+      let granted = [];
+      try {
+        granted = await HC.requestPermission([
+          { accessType: 'read', recordType: 'Steps' },
+          { accessType: 'read', recordType: 'HeartRate' },
+          { accessType: 'read', recordType: 'SleepSession' },
+          { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
+          { accessType: 'read', recordType: 'Distance' },
+          { accessType: 'read', recordType: 'ExerciseSession' },
+        ]);
+      } catch (e) {
+        Alert.alert('Permisos', 'Error al solicitar permisos: ' + (e.message || ''));
+        setSyncing(false);
+        return;
+      }
 
       if (!granted || granted.length === 0) {
-        Alert.alert('Permisos', 'Debes aceptar los permisos para sincronizar.');
+        Alert.alert('Permisos', 'Debes aceptar los permisos de Health Connect para sincronizar.');
         setSyncing(false);
         return;
       }
@@ -98,14 +119,14 @@ export default function SaludScreen() {
 
       try {
         const r = await HC.readRecords('Steps', { timeRangeFilter: range });
-        if (r.records && r.records.length > 0) {
-          data.steps = r.records.reduce((s, rec) => s + (rec.count || 0), 0);
+        if (r && r.records && r.records.length > 0) {
+          data.steps = r.records.reduce((sum, rec) => sum + (rec.count || 0), 0);
         }
       } catch (e) {}
 
       try {
         const r = await HC.readRecords('HeartRate', { timeRangeFilter: range });
-        if (r.records && r.records.length > 0) {
+        if (r && r.records && r.records.length > 0) {
           const last = r.records[r.records.length - 1];
           if (last.samples && last.samples.length > 0) {
             data.heartRate = last.samples[last.samples.length - 1].beatsPerMinute;
@@ -115,7 +136,7 @@ export default function SaludScreen() {
 
       try {
         const r = await HC.readRecords('SleepSession', { timeRangeFilter: range });
-        if (r.records && r.records.length > 0) {
+        if (r && r.records && r.records.length > 0) {
           const rec = r.records[0];
           const ms = new Date(rec.endTime) - new Date(rec.startTime);
           data.sleep = Math.round(ms / 3600000 * 10) / 10;
@@ -124,21 +145,21 @@ export default function SaludScreen() {
 
       try {
         const r = await HC.readRecords('ActiveCaloriesBurned', { timeRangeFilter: range });
-        if (r.records && r.records.length > 0) {
-          data.calories = Math.round(r.records.reduce((s, rec) => s + (rec.energy?.inKilocalories || 0), 0));
+        if (r && r.records && r.records.length > 0) {
+          data.calories = Math.round(r.records.reduce((sum, rec) => sum + (rec.energy?.inKilocalories || 0), 0));
         }
       } catch (e) {}
 
       try {
         const r = await HC.readRecords('Distance', { timeRangeFilter: range });
-        if (r.records && r.records.length > 0) {
-          data.distance = Math.round(r.records.reduce((s, rec) => s + (rec.distance?.inKilometers || 0), 0) * 10) / 10;
+        if (r && r.records && r.records.length > 0) {
+          data.distance = Math.round(r.records.reduce((sum, rec) => sum + (rec.distance?.inKilometers || 0), 0) * 10) / 10;
         }
       } catch (e) {}
 
       try {
         const r = await HC.readRecords('ExerciseSession', { timeRangeFilter: range });
-        if (r.records && r.records.length > 0) {
+        if (r && r.records && r.records.length > 0) {
           data.exercise = r.records.length;
         }
       } catch (e) {}
