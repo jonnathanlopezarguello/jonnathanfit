@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
+import {
+  initialize,
+  getSdkStatus,
+  requestPermission,
+  readRecords,
+  SdkAvailabilityStatus,
+} from 'react-native-health-connect';
 import theme from '../theme';
 import { SCHED } from '../data/plan';
 import { load, save, KEYS } from '../store';
-import { diso, dlbl } from '../utils';
+import { dlbl } from '../utils';
 
 const DOT_COLORS = {
   n: theme.good,
@@ -24,49 +31,155 @@ const METRICS = [
 
 export default function SaludScreen() {
   const [remindersOn, setRemindersOn] = useState(true);
-  const [allData, setAllData] = useState({});
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({});
+  const [connected, setConnected] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [healthData, setHealthData] = useState({});
   const [dayOffset, setDayOffset] = useState(0);
-
-  const today = diso(dayOffset);
-  const dayData = allData[today] || {};
 
   useEffect(() => {
     (async () => {
       const saved = await load(KEYS.reminders);
       if (saved !== null) setRemindersOn(saved);
       const hc = await load(KEYS.healthConnect);
-      if (hc) setAllData(hc);
+      if (hc) {
+        setHealthData(hc);
+        setConnected(true);
+      }
     })();
   }, []);
+
+  useEffect(() => {
+    if (connected) syncData();
+  }, [dayOffset]);
 
   const toggleReminders = (val) => {
     setRemindersOn(val);
     save(KEYS.reminders, val);
   };
 
-  const startEdit = () => {
-    const current = {};
-    METRICS.forEach(m => {
-      current[m.key] = dayData[m.key] !== undefined ? String(dayData[m.key]) : '';
-    });
-    setForm(current);
-    setEditing(true);
+  const getDateRange = (offset) => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return {
+      operator: 'between',
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    };
   };
 
-  const saveData = () => {
-    const cleaned = {};
-    METRICS.forEach(m => {
-      const v = parseFloat(form[m.key]);
-      if (!isNaN(v) && v > 0) cleaned[m.key] = v;
-    });
-    const next = { ...allData, [today]: cleaned };
-    setAllData(next);
-    save(KEYS.healthConnect, next);
-    setEditing(false);
+  const getDateKey = (offset) => {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.toISOString().slice(0, 10);
   };
 
+  const syncData = useCallback(async () => {
+    if (Platform.OS !== 'android') {
+      Alert.alert('Solo Android', 'Health Connect solo esta disponible en Android.');
+      return;
+    }
+
+    setSyncing(true);
+
+    try {
+      const isInitialized = await initialize();
+      if (!isInitialized) {
+        Alert.alert('Error', 'No se pudo inicializar Health Connect.');
+        setSyncing(false);
+        return;
+      }
+
+      const status = await getSdkStatus();
+      if (status !== SdkAvailabilityStatus.SDK_AVAILABLE) {
+        Alert.alert(
+          'Health Connect',
+          'Health Connect no esta disponible. Instalalo o actualizalo desde Play Store.'
+        );
+        setSyncing(false);
+        return;
+      }
+
+      const permissions = await requestPermission([
+        { accessType: 'read', recordType: 'Steps' },
+        { accessType: 'read', recordType: 'HeartRate' },
+        { accessType: 'read', recordType: 'SleepSession' },
+        { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
+        { accessType: 'read', recordType: 'Distance' },
+        { accessType: 'read', recordType: 'ExerciseSession' },
+      ]);
+
+      if (!permissions || permissions.length === 0) {
+        Alert.alert('Permisos', 'Acepta los permisos de Health Connect para sincronizar.');
+        setSyncing(false);
+        return;
+      }
+
+      const range = getDateRange(dayOffset);
+      const dateKey = getDateKey(dayOffset);
+      const data = {};
+
+      try {
+        const r = await readRecords('Steps', { timeRangeFilter: range });
+        if (r && r.length > 0) {
+          data.steps = r.reduce((sum, rec) => sum + (rec.count || 0), 0);
+        }
+      } catch (e) {}
+
+      try {
+        const r = await readRecords('HeartRate', { timeRangeFilter: range });
+        if (r && r.length > 0) {
+          const last = r[r.length - 1];
+          if (last.samples && last.samples.length > 0) {
+            data.heartRate = last.samples[last.samples.length - 1].beatsPerMinute;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const r = await readRecords('SleepSession', { timeRangeFilter: range });
+        if (r && r.length > 0) {
+          const rec = r[0];
+          const ms = new Date(rec.endTime) - new Date(rec.startTime);
+          data.sleep = Math.round(ms / 3600000 * 10) / 10;
+        }
+      } catch (e) {}
+
+      try {
+        const r = await readRecords('ActiveCaloriesBurned', { timeRangeFilter: range });
+        if (r && r.length > 0) {
+          data.calories = Math.round(r.reduce((sum, rec) => sum + (rec.energy?.inKilocalories || 0), 0));
+        }
+      } catch (e) {}
+
+      try {
+        const r = await readRecords('Distance', { timeRangeFilter: range });
+        if (r && r.length > 0) {
+          data.distance = Math.round(r.reduce((sum, rec) => sum + (rec.distance?.inKilometers || 0), 0) * 10) / 10;
+        }
+      } catch (e) {}
+
+      try {
+        const r = await readRecords('ExerciseSession', { timeRangeFilter: range });
+        if (r && r.length > 0) {
+          data.exercise = r.length;
+        }
+      } catch (e) {}
+
+      const updated = { ...healthData, [dateKey]: data };
+      setHealthData(updated);
+      setConnected(true);
+      save(KEYS.healthConnect, updated);
+    } catch (err) {
+      Alert.alert('Error', 'No se pudo sincronizar: ' + (err.message || 'Error desconocido'));
+    }
+
+    setSyncing(false);
+  }, [dayOffset, healthData]);
+
+  const dateKey = getDateKey(dayOffset);
+  const dayData = healthData[dateKey] || {};
   const hasData = Object.keys(dayData).length > 0;
 
   const formatVal = (key) => {
@@ -80,9 +193,9 @@ export default function SaludScreen() {
   const weekSummary = () => {
     let totalSteps = 0, totalCal = 0, totalSleep = 0, days = 0;
     for (let i = 0; i < 7; i++) {
-      const d = diso(dayOffset - i);
-      const dd = allData[d];
-      if (dd) {
+      const dk = getDateKey(dayOffset - i);
+      const dd = healthData[dk];
+      if (dd && Object.keys(dd).length > 0) {
         days++;
         totalSteps += dd.steps || 0;
         totalCal += dd.calories || 0;
@@ -105,7 +218,6 @@ export default function SaludScreen() {
       <Text style={s.label}>SAMSUNG GALAXY FIT3</Text>
       <Text style={s.h1}>Salud</Text>
 
-      {/* Date nav */}
       <View style={s.dateNav}>
         <TouchableOpacity onPress={() => setDayOffset(dayOffset - 1)} style={s.dateArrow}>
           <Text style={s.dateArrowText}>{'<'}</Text>
@@ -118,72 +230,50 @@ export default function SaludScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Metrics */}
       <View style={s.divider}>
         <Text style={s.dividerLabel}>DATOS DEL DIA</Text>
         <View style={s.dividerLine} />
       </View>
 
       <View style={s.card}>
-        {editing ? (
-          <>
-            {METRICS.map((m) => (
-              <View key={m.key} style={s.editRow}>
-                <Text style={s.editIcon}>{m.ic}</Text>
-                <View style={s.editFieldWrap}>
-                  <Text style={s.editLabel}>{m.label}{m.unit ? ' (' + m.unit + ')' : ''}</Text>
-                  <TextInput
-                    style={s.editInput}
-                    keyboardType="numeric"
-                    value={form[m.key] || ''}
-                    onChangeText={(v) => setForm(prev => ({ ...prev, [m.key]: v }))}
-                    placeholder="0"
-                    placeholderTextColor={theme.text3}
-                  />
-                </View>
+        {METRICS.map((m, i) => {
+          const val = formatVal(m.key);
+          return (
+            <View key={m.key} style={[s.metricRow, i < METRICS.length - 1 && s.metricRowBorder]}>
+              <Text style={s.metricIcon}>{m.ic}</Text>
+              <View style={s.metricInfo}>
+                <Text style={s.metricLabel}>{m.label}</Text>
+                <Text style={s.metricTarget}>{m.target}</Text>
               </View>
-            ))}
-            <View style={s.editActions}>
-              <TouchableOpacity style={s.cancelBtn} onPress={() => setEditing(false)} activeOpacity={0.7}>
-                <Text style={s.cancelBtnText}>CANCELAR</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.saveBtn} onPress={saveData} activeOpacity={0.7}>
-                <Text style={s.saveBtnText}>GUARDAR</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        ) : (
-          <>
-            {METRICS.map((m, i) => {
-              const val = formatVal(m.key);
-              return (
-                <View key={m.key} style={[s.metricRow, i < METRICS.length - 1 && s.metricRowBorder]}>
-                  <Text style={s.metricIcon}>{m.ic}</Text>
-                  <View style={s.metricInfo}>
-                    <Text style={s.metricLabel}>{m.label}</Text>
-                    <Text style={s.metricTarget}>{m.target}</Text>
-                  </View>
-                  {val ? (
-                    <View style={s.dataBadge}>
-                      <Text style={s.dataText}>{val}</Text>
-                    </View>
-                  ) : (
-                    <View style={s.pendingBadge}>
-                      <Text style={s.pendingText}>---</Text>
-                    </View>
-                  )}
+              {val ? (
+                <View style={s.dataBadge}>
+                  <Text style={s.dataText}>{val}</Text>
                 </View>
-              );
-            })}
-            <TouchableOpacity style={s.syncBtn} onPress={startEdit} activeOpacity={0.7}>
-              <Text style={s.syncBtnText}>{hasData ? 'ACTUALIZAR DATOS' : 'REGISTRAR DATOS'}</Text>
-            </TouchableOpacity>
-            <Text style={s.syncHint}>Ingresa los datos desde Samsung Health</Text>
-          </>
+              ) : (
+                <View style={s.pendingBadge}>
+                  <Text style={s.pendingText}>---</Text>
+                </View>
+              )}
+            </View>
+          );
+        })}
+
+        <TouchableOpacity
+          style={[s.syncBtn, syncing && { opacity: 0.5 }]}
+          onPress={syncData}
+          activeOpacity={0.7}
+          disabled={syncing}
+        >
+          <Text style={s.syncBtnText}>
+            {syncing ? 'SINCRONIZANDO...' : connected ? 'SINCRONIZAR' : 'CONECTAR HEALTH CONNECT'}
+          </Text>
+        </TouchableOpacity>
+
+        {connected && (
+          <Text style={s.syncHint}>Sincronizacion automatica con Health Connect</Text>
         )}
       </View>
 
-      {/* Weekly summary */}
       {ws && (
         <>
           <View style={s.divider}>
@@ -210,7 +300,6 @@ export default function SaludScreen() {
         </>
       )}
 
-      {/* Reminders */}
       <View style={s.divider}>
         <Text style={s.dividerLabel}>RECORDATORIOS</Text>
         <View style={s.dividerLine} />
@@ -234,7 +323,6 @@ export default function SaludScreen() {
         </View>
       </View>
 
-      {/* Schedule */}
       <View style={s.divider}>
         <Text style={s.dividerLabel}>HORARIO DEL DIA</Text>
         <View style={s.dividerLine} />
@@ -302,16 +390,12 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: theme.line2,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  pendingText: {
-    fontSize: 11, fontWeight: '600', color: theme.text3,
-  },
+  pendingText: { fontSize: 11, fontWeight: '600', color: theme.text3 },
   dataBadge: {
     backgroundColor: theme.accentSoft,
     paddingHorizontal: 10, paddingVertical: 4,
   },
-  dataText: {
-    fontSize: 12, fontWeight: '700', color: theme.good,
-  },
+  dataText: { fontSize: 12, fontWeight: '700', color: theme.good },
 
   syncBtn: {
     backgroundColor: theme.accent, paddingVertical: 14,
@@ -321,38 +405,7 @@ const s = StyleSheet.create({
     fontSize: 12, fontWeight: '700', letterSpacing: 2, color: theme.bg,
   },
   syncHint: {
-    fontSize: 11, color: theme.text3, textAlign: 'center', marginTop: 8,
-  },
-
-  editRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 14,
-  },
-  editIcon: { fontSize: 18, marginRight: 12, width: 28, textAlign: 'center' },
-  editFieldWrap: { flex: 1 },
-  editLabel: {
-    fontSize: 11, fontWeight: '600', letterSpacing: 1,
-    color: theme.text3, marginBottom: 4,
-  },
-  editInput: {
-    borderWidth: 1, borderColor: theme.line, padding: 10,
-    color: theme.text, fontSize: 14,
-  },
-  editActions: {
-    flexDirection: 'row', gap: 10, marginTop: 4,
-  },
-  cancelBtn: {
-    flex: 1, borderWidth: 1, borderColor: theme.line2,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 12, fontWeight: '700', letterSpacing: 2, color: theme.text3,
-  },
-  saveBtn: {
-    flex: 1, backgroundColor: theme.accent,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  saveBtnText: {
-    fontSize: 12, fontWeight: '700', letterSpacing: 2, color: theme.bg,
+    fontSize: 11, color: theme.good, textAlign: 'center', marginTop: 8,
   },
 
   weekRow: {
