@@ -115,17 +115,13 @@ export default function HoyScreen({ onNavigate }) {
 
   // Sum consumed from nutrition log
   const consumed = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
-  if (nutrition && nutrition.meals) {
-    for (const meal of nutrition.meals) {
-      if (meal.items) {
-        for (const item of meal.items) {
-          consumed.kcal += item.k || 0;
-          consumed.protein += item.p || 0;
-          consumed.carbs += item.c || 0;
-          consumed.fat += item.f || 0;
-          consumed.fiber += item.fi || 0;
-        }
-      }
+  if (Array.isArray(nutrition)) {
+    for (const item of nutrition) {
+      consumed.kcal += item.k || 0;
+      consumed.protein += item.p || 0;
+      consumed.carbs += item.c || 0;
+      consumed.fat += item.f || 0;
+      consumed.fiber += item.fi || 0;
     }
   }
 
