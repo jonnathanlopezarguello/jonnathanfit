@@ -16,6 +16,8 @@
     "android": {
       "package": "com.jonnathanfit.app",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
         "backgroundColor": "#121211"
       },
       "permissions": [
