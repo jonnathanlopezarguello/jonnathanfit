@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
-import { T, DT, PD } from '../data/exercises';
+import { T, DT, PD, EXERCISE_LIBRARY } from '../data/exercises';
 import { EI, imgBase } from '../data/images';
 import { fe, getDayName, diso } from '../utils';
 
@@ -31,14 +31,6 @@ function todayTitle() {
   return DT[todayKey()] || null;
 }
 
-function allExerciseNames() {
-  const names = new Set();
-  Object.values(T).forEach(list =>
-    list.forEach(ex => names.add(ex.n)),
-  );
-  return [...names].sort();
-}
-
 /* ── component ─────────────────────────────────────── */
 
 export default function EntrenoScreen() {
@@ -49,6 +41,7 @@ export default function EntrenoScreen() {
   const [showTech, setShowTech] = useState({});
   const [showPicker, setShowPicker] = useState(false);
   const [search, setSearch] = useState('');
+  const [pickerGroup, setPickerGroup] = useState(null);
   const timer = useRef(null);
 
   /* ── load persisted session on mount ── */
@@ -82,11 +75,28 @@ export default function EntrenoScreen() {
 
   /* ── session actions ── */
 
-  function startSession() {
-    const day = todayKey();
+  async function startSession() {
     const exercises = todayExercises();
     const title = todayTitle();
     const iso = diso(0);
+
+    const history = (await load(KEYS.workouts)) || [];
+    const lastSets = {};
+    for (const w of history) {
+      for (const ex of (w.ex || [])) {
+        if (!lastSets[ex.name]) lastSets[ex.name] = ex.sets;
+      }
+    }
+
+    const makeSets = (name, count) => {
+      const prev = lastSets[name];
+      return Array(count).fill(null).map((_, i) => ({
+        kg: prev?.[i]?.kg ?? prev?.[prev.length - 1]?.kg ?? '',
+        rp: prev?.[i]?.rp ?? prev?.[prev.length - 1]?.rp ?? '',
+        d: false,
+      }));
+    };
+
     const newSess = {
       id: Date.now(),
       nm: title || 'Sesion personalizada',
@@ -96,9 +106,7 @@ export default function EntrenoScreen() {
         ? exercises.map(ex => ({
             name: ex.n,
             plan: ex,
-            sets: Array(ex.s)
-              .fill(null)
-              .map(() => ({ kg: '', rp: '', d: false })),
+            sets: makeSets(ex.n, ex.s),
           }))
         : [],
     };
@@ -158,21 +166,27 @@ export default function EntrenoScreen() {
     ]);
   }
 
-  function addExercise(name) {
+  async function addExercise(name) {
+    const history = (await load(KEYS.workouts)) || [];
+    let prevSets = null;
+    for (const w of history) {
+      const found = (w.ex || []).find(e => e.name === name);
+      if (found) { prevSets = found.sets; break; }
+    }
+    const libEntry = EXERCISE_LIBRARY.find(e => e.n === name);
     updateSess(s => {
       s.ex.push({
         name,
-        plan: { n: name, g: '-', s: 3, r: '-', ri: '-', re: '-', f: '' },
-        sets: [
-          { kg: '', rp: '', d: false },
-          { kg: '', rp: '', d: false },
-          { kg: '', rp: '', d: false },
-        ],
+        plan: libEntry || { n: name, g: '-', s: 3, r: '-', ri: '-', re: '-', f: '' },
+        sets: prevSets
+          ? prevSets.map(st => ({ kg: st.kg || '', rp: st.rp || '', d: false }))
+          : [{ kg: '', rp: '', d: false }, { kg: '', rp: '', d: false }, { kg: '', rp: '', d: false }],
       });
     });
-    setCurIdx(sess.ex.length); // will be the new last index
+    setCurIdx(sess.ex.length);
     setShowPicker(false);
     setSearch('');
+    setPickerGroup(null);
   }
 
   function finalize() {
@@ -327,7 +341,7 @@ export default function EntrenoScreen() {
 
           {/* set grid header */}
           {(() => {
-            const isTime = cur.name === 'Rueda abdominal' || cur.name === 'Plancha lastrada';
+            const isTime = cur.name === 'Rueda abdominal' || cur.name === 'Plancha lastrada' || cur.name === 'Plancha lateral';
             return isTime ? (
               <View style={s.setRow}>
                 <Text style={[s.setH, { width: 28 }]}>Set</Text>
@@ -348,7 +362,7 @@ export default function EntrenoScreen() {
 
           {/* set rows */}
           {cur.sets.map((st, si) => {
-            const isTime = cur.name === 'Rueda abdominal' || cur.name === 'Plancha lastrada';
+            const isTime = cur.name === 'Rueda abdominal' || cur.name === 'Plancha lastrada' || cur.name === 'Plancha lateral';
             return (
             <View
               key={si}
@@ -508,7 +522,7 @@ export default function EntrenoScreen() {
       {/* ── add exercise ── */}
       <TouchableOpacity
         style={s.dashedBtn}
-        onPress={() => setShowPicker(!showPicker)}
+        onPress={() => { setShowPicker(!showPicker); setPickerGroup(null); setSearch(''); }}
         activeOpacity={0.7}
       >
         <Text style={s.dashedBtnTxt}>+ ANADIR EJERCICIO</Text>
@@ -524,17 +538,49 @@ export default function EntrenoScreen() {
             placeholderTextColor={theme.text3}
             autoFocus
           />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={s.pickerGroups}
+            contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8, gap: 8 }}
+          >
+            {[null, 'Pecho', 'Espalda', 'Biceps', 'Triceps', 'Hombro', 'Cuadriceps', 'Femoral/Gluteo', 'Gemelo', 'Abdomen'].map(g => (
+              <TouchableOpacity
+                key={g ?? 'todos'}
+                onPress={() => setPickerGroup(g)}
+                style={[s.pgChip, pickerGroup === g && s.pgChipOn]}
+                activeOpacity={0.7}
+              >
+                <Text style={[s.pgText, pickerGroup === g && s.pgTextOn]}>{g ?? 'Todos'}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
           <ScrollView style={s.pickerList} nestedScrollEnabled>
-            {allExerciseNames()
-              .filter(n => n.toLowerCase().includes(search.toLowerCase()))
-              .map(n => (
+            {EXERCISE_LIBRARY
+              .filter(ex =>
+                (!pickerGroup || ex.g === pickerGroup) &&
+                (!search.trim() || ex.n.toLowerCase().includes(search.trim().toLowerCase()))
+              )
+              .map(ex => (
                 <TouchableOpacity
-                  key={n}
+                  key={ex.n}
                   style={s.pickerItem}
-                  onPress={() => addExercise(n)}
+                  onPress={() => addExercise(ex.n)}
                   activeOpacity={0.7}
                 >
-                  <Text style={s.pickerItemTxt}>{n}</Text>
+                  {EI[ex.n] ? (
+                    <Image
+                      source={{ uri: imgBase + EI[ex.n] }}
+                      style={s.pickerThumb}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={[s.pickerThumb, { backgroundColor: theme.line }]} />
+                  )}
+                  <View style={s.pickerInfo}>
+                    <Text style={s.pickerItemTxt} numberOfLines={2}>{ex.n}</Text>
+                    <Text style={s.pickerItemGroup}>{ex.g}</Text>
+                  </View>
                 </TouchableOpacity>
               ))}
           </ScrollView>
@@ -722,12 +768,38 @@ const s = StyleSheet.create({
     fontSize: 14,
     padding: 12,
   },
-  pickerList: { maxHeight: 260 },
+  pickerGroups: {
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+    flexGrow: 0,
+  },
+  pgChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: theme.line2,
+  },
+  pgChipOn: { borderColor: theme.accent, backgroundColor: theme.accentSoft },
+  pgText: { color: theme.text3, fontSize: 11, fontWeight: '600' },
+  pgTextOn: { color: theme.text },
+  pickerList: { maxHeight: 320 },
   pickerItem: {
-    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
     borderBottomColor: theme.line,
   },
-  pickerItemTxt: { color: theme.text2, fontSize: 14 },
+  pickerThumb: {
+    width: 54,
+    height: 54,
+    borderRadius: 6,
+    marginRight: 12,
+    backgroundColor: theme.line,
+  },
+  pickerInfo: { flex: 1 },
+  pickerItemTxt: { color: theme.text2, fontSize: 13 },
+  pickerItemGroup: { color: theme.text3, fontSize: 11, marginTop: 3 },
 });
