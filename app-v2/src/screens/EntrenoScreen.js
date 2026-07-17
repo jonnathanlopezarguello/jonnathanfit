@@ -42,7 +42,10 @@ export default function EntrenoScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [search, setSearch] = useState('');
   const [pickerGroup, setPickerGroup] = useState(null);
+  const [dayOverride, setDayOverride] = useState(null);
   const timer = useRef(null);
+
+  const activeDay = dayOverride || getDayName();
 
   /* ── load persisted session on mount ── */
   useEffect(() => {
@@ -76,8 +79,8 @@ export default function EntrenoScreen() {
   /* ── session actions ── */
 
   async function startSession() {
-    const exercises = todayExercises();
-    const title = todayTitle();
+    const exercises = T[activeDay] || null;
+    const title = DT[activeDay] || null;
     const iso = diso(0);
 
     const history = (await load(KEYS.workouts)) || [];
@@ -218,6 +221,7 @@ export default function EntrenoScreen() {
           setSess(null);
           setCurIdx(0);
           setElapsed(0);
+          setDayOverride(null);
         },
       },
     ]);
@@ -234,6 +238,7 @@ export default function EntrenoScreen() {
           setSess(null);
           setCurIdx(0);
           setElapsed(0);
+          setDayOverride(null);
         },
       },
     ]);
@@ -253,9 +258,9 @@ export default function EntrenoScreen() {
      MODE 1 — no active session
      ═══════════════════════════════════════════════════ */
   if (!sess) {
-    const day = todayKey();
-    const exercises = todayExercises();
-    const title = todayTitle();
+    const day = activeDay;
+    const exercises = T[day] || null;
+    const title = DT[day] || null;
     const isRest = !exercises;
 
     return (
@@ -268,12 +273,30 @@ export default function EntrenoScreen() {
           {title ? ' — ' + title : ''}
         </Text>
 
+        {/* day selector */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={s.dayScroll}
+          contentContainerStyle={s.dayScrollContent}
+        >
+          {PD.map(d => (
+            <TouchableOpacity
+              key={d}
+              style={[s.dayChip, activeDay === d && s.dayChipOn]}
+              onPress={() => setDayOverride(d)}
+              activeOpacity={0.7}
+            >
+              <Text style={[s.dayChipTxt, activeDay === d && s.dayChipTxtOn]}>{d}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         {isRest ? (
           <View style={s.card}>
             <Text style={s.restTxt}>Dia de descanso</Text>
             <Text style={[s.restTxt, { color: theme.text3, fontSize: 13, marginTop: 6 }]}>
-              No hay ejercicios programados para hoy.{'\n'}
-              Puedes iniciar una sesion personalizada.
+              Selecciona una rutina de arriba para entrenar hoy.
             </Text>
           </View>
         ) : (
@@ -802,4 +825,27 @@ const s = StyleSheet.create({
   pickerInfo: { flex: 1 },
   pickerItemTxt: { color: theme.text2, fontSize: 13 },
   pickerItemGroup: { color: theme.text3, fontSize: 11, marginTop: 3 },
+
+  /* day selector */
+  dayScroll: { marginBottom: 16, marginHorizontal: -20 },
+  dayScrollContent: { paddingHorizontal: 20, gap: 8 },
+  dayChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: theme.line2,
+  },
+  dayChipOn: {
+    backgroundColor: theme.accent,
+    borderColor: theme.accent,
+  },
+  dayChipTxt: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    color: theme.text3,
+  },
+  dayChipTxtOn: {
+    color: theme.bg,
+  },
 });

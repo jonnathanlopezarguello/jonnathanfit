@@ -92,6 +92,7 @@ export default function HoyScreen({ onNavigate }) {
   const [supChecked, setSupChecked] = useState([]);
   const [nutrition, setNutrition] = useState(null);
   const [activity, setActivity] = useState({ steps: '', cardio: '' });
+  const [todayWorkout, setTodayWorkout] = useState(null);
 
   const today = diso(0);
 
@@ -108,6 +109,10 @@ export default function HoyScreen({ onNavigate }) {
 
       const a = await load(KEYS.activity);
       if (a && a[today]) setActivity(a[today]);
+
+      const ws = (await load(KEYS.workouts)) || [];
+      const tw = ws.find(w => w.dt === today);
+      if (tw) setTodayWorkout(tw);
     })();
   }, []);
 
@@ -124,6 +129,12 @@ export default function HoyScreen({ onNavigate }) {
       consumed.fiber += item.fi || 0;
     }
   }
+
+  const burnedTraining = todayWorkout
+    ? Math.round(4.5 * profile.weight * (todayWorkout.dur / 60))
+    : 0;
+  const netKcal = consumed.kcal - burnedTraining;
+  const kcalBalance = netKcal - targets.kcal;
 
   const toggleSup = async (key) => {
     const next = supChecked.includes(key)
@@ -160,6 +171,29 @@ export default function HoyScreen({ onNavigate }) {
 
       <View style={s.card}>
         <KcalRing current={consumed.kcal} target={targets.kcal} />
+
+        {burnedTraining > 0 && (
+          <View style={s.balanceStrip}>
+            <View style={s.balanceItem}>
+              <Text style={s.balanceVal}>{consumed.kcal}</Text>
+              <Text style={s.balanceLbl}>INGERIDAS</Text>
+            </View>
+            <Text style={s.balanceSep}>{'−'}</Text>
+            <View style={s.balanceItem}>
+              <Text style={[s.balanceVal, { color: theme.good }]}>{burnedTraining}</Text>
+              <Text style={s.balanceLbl}>QUEMADAS</Text>
+            </View>
+            <Text style={s.balanceSep}>{'='}</Text>
+            <View style={s.balanceItem}>
+              <Text style={[s.balanceVal, netKcal < targets.kcal * 0.8 && { color: theme.over }]}>
+                {netKcal}
+              </Text>
+              <Text style={[s.balanceLbl, { color: kcalBalance >= 0 ? theme.good : theme.over }]}>
+                {kcalBalance >= 0 ? '+' : ''}{kcalBalance} NETO
+              </Text>
+            </View>
+          </View>
+        )}
 
         <View style={s.macros}>
           <MacroBar label="PROTEINA" current={consumed.protein} target={targets.protein} color={MACRO_COLORS.PROTEINA} />
@@ -516,6 +550,40 @@ const s = StyleSheet.create({
   restSub: {
     fontSize: 12,
     color: theme.text3,
+  },
+
+  /* Balance strip */
+  balanceStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: theme.line,
+    paddingTop: 14,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  balanceItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  balanceVal: {
+    fontSize: 18,
+    fontWeight: '300',
+    color: theme.text,
+    fontVariant: ['tabular-nums'],
+  },
+  balanceLbl: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    color: theme.text3,
+    marginTop: 4,
+  },
+  balanceSep: {
+    color: theme.text3,
+    fontSize: 14,
+    paddingHorizontal: 2,
   },
 
   /* Activity */
