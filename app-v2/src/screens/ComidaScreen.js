@@ -75,13 +75,25 @@ export default function ComidaScreen() {
   };
 
   const loadPlan = () => {
-    const items = [];
-    MPLAN.forEach((mg) => {
-      mg.it.forEach((it) => {
-        items.push({ fd: it.fd, k: it.k, p: it.p, c: it.c, f: it.f, ml: mg.m });
-      });
-    });
-    persist({ ...nutr, [iso]: [...dayItems, ...items] });
+    Alert.alert(
+      'Cargar plan del dia',
+      'Esto reemplazara los alimentos registrados hoy con el plan recomendado. Continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cargar',
+          onPress: () => {
+            const items = [];
+            MPLAN.forEach((mg) => {
+              mg.it.forEach((it) => {
+                items.push({ fd: it.fd, k: it.k, p: it.p, c: it.c, f: it.f, ml: mg.m });
+              });
+            });
+            persist({ ...nutr, [iso]: items });
+          },
+        },
+      ],
+    );
   };
 
   const saveManual = () => {

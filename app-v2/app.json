@@ -34,11 +34,14 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
-            "minSdkVersion": 24
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 26
           }
         }
+      ],
+      [
+        "react-native-health-connect"
       ]
     ],
     "extra": {

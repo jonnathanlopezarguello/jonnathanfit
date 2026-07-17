@@ -133,7 +133,9 @@ export default function HoyScreen({ onNavigate }) {
   const burnedTraining = todayWorkout
     ? Math.round(4.5 * profile.weight * (todayWorkout.dur / 60))
     : 0;
-  const netKcal = consumed.kcal - burnedTraining;
+  const burnedSteps = Math.round(parseFloat(activity.steps || 0) * 0.04);
+  const totalBurned = burnedTraining + burnedSteps;
+  const netKcal = consumed.kcal - totalBurned;
   const kcalBalance = netKcal - targets.kcal;
 
   const toggleSup = async (key) => {
@@ -172,7 +174,7 @@ export default function HoyScreen({ onNavigate }) {
       <View style={s.card}>
         <KcalRing current={consumed.kcal} target={targets.kcal} />
 
-        {burnedTraining > 0 && (
+        {(consumed.kcal > 0 || totalBurned > 0) && (
           <View style={s.balanceStrip}>
             <View style={s.balanceItem}>
               <Text style={s.balanceVal}>{consumed.kcal}</Text>
@@ -180,7 +182,7 @@ export default function HoyScreen({ onNavigate }) {
             </View>
             <Text style={s.balanceSep}>{'−'}</Text>
             <View style={s.balanceItem}>
-              <Text style={[s.balanceVal, { color: theme.good }]}>{burnedTraining}</Text>
+              <Text style={[s.balanceVal, { color: theme.good }]}>{totalBurned}</Text>
               <Text style={s.balanceLbl}>QUEMADAS</Text>
             </View>
             <Text style={s.balanceSep}>{'='}</Text>
@@ -193,6 +195,11 @@ export default function HoyScreen({ onNavigate }) {
               </Text>
             </View>
           </View>
+        )}
+        {(consumed.kcal > 0 || totalBurned > 0) && (
+          <Text style={s.burnBreakdown}>
+            Entreno {burnedTraining} kcal  ·  Pasos {burnedSteps} kcal
+          </Text>
         )}
 
         <View style={s.macros}>
@@ -584,6 +591,14 @@ const s = StyleSheet.create({
     color: theme.text3,
     fontSize: 14,
     paddingHorizontal: 2,
+  },
+  burnBreakdown: {
+    fontSize: 10,
+    color: theme.text3,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 4,
   },
 
   /* Activity */
