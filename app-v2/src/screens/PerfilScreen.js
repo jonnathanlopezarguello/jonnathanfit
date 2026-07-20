@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import theme from '../theme';
 import { calc, GL, DEFAULT_PROFILE } from '../utils';
 import { load, save, KEYS } from '../store';
@@ -94,6 +96,61 @@ export default function PerfilScreen({ onNavigate }) {
 
   const updateForm = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const getWeekLabel = (dateStr) => {
+    const d = new Date(dateStr + 'T12:00:00');
+    const jan1 = new Date(d.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    return `${d.getFullYear()}-S${String(weekNum).padStart(2, '0')}`;
+  };
+
+  const exportData = async () => {
+    try {
+      const nutr = (await load(KEYS.nutrition)) || {};
+      const act = (await load(KEYS.activity)) || {};
+      const allDates = [...new Set([...Object.keys(nutr), ...Object.keys(act)])].sort();
+
+      if (allDates.length === 0) {
+        Alert.alert('Sin datos', 'No hay datos registrados para exportar.');
+        return;
+      }
+
+      const header = 'Fecha,Semana,Kcal,Proteina(g),Carbos(g),Grasa(g),Fibra(g),Pasos,Kcal entreno,Kcal pasos,Total quemado,Neto';
+      const rows = allDates.map((date) => {
+        const items = nutr[date] || [];
+        const kcal = Math.round(items.reduce((s, i) => s + (i.k || 0), 0));
+        const prot = Math.round(items.reduce((s, i) => s + (i.p || 0), 0));
+        const carbs = Math.round(items.reduce((s, i) => s + (i.c || 0), 0));
+        const fat = Math.round(items.reduce((s, i) => s + (i.f || 0), 0));
+        const fiber = Math.round(items.reduce((s, i) => s + (i.fi || 0), 0));
+        const activity = act[date] || {};
+        const steps = parseInt(activity.steps || 0, 10);
+        const cardio = parseFloat(activity.cardio || 0);
+        const burnedTraining = Math.round(4.5 * profile.weight * (cardio / 60));
+        const burnedSteps = Math.round(steps * 0.04);
+        const totalBurned = burnedTraining + burnedSteps;
+        const neto = kcal - totalBurned;
+        const semana = getWeekLabel(date);
+        return `${date},${semana},${kcal},${prot},${carbs},${fat},${fiber},${steps},${burnedTraining},${burnedSteps},${totalBurned},${neto}`;
+      });
+
+      const csv = [header, ...rows].join('\n');
+      const path = FileSystem.documentDirectory + 'jonnathanfit_datos.csv';
+      await FileSystem.writeAsStringAsync(path, csv, { encoding: FileSystem.EncodingType.UTF8 });
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(path, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Exportar datos JonnathanFit',
+        });
+      } else {
+        Alert.alert('Exportado', `Archivo guardado en: ${path}`);
+      }
+    } catch {
+      Alert.alert('Error', 'No se pudo exportar los datos.');
+    }
   };
 
   // ─── EDIT MODE ───────────────────────────────────
@@ -353,6 +410,10 @@ export default function PerfilScreen({ onNavigate }) {
         <Text style={s.measureBtnText}>MEDIR PROGRESO</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity style={s.exportBtn} onPress={exportData} activeOpacity={0.7}>
+        <Text style={s.exportBtnText}>EXPORTAR DATOS (EXCEL)</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={s.resetBtn} onPress={resetData} activeOpacity={0.7}>
         <Text style={s.resetBtnText}>REINICIAR DATOS</Text>
       </TouchableOpacity>
@@ -499,6 +560,20 @@ const s = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 2,
     color: theme.text2,
+  },
+
+  exportBtn: {
+    borderWidth: 1,
+    borderColor: theme.good,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  exportBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 2,
+    color: theme.good,
   },
 
   resetBtn: {
