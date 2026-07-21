@@ -1,5 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated } from 'react-native';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, backgroundColor: '#121211', justifyContent: 'center', padding: 24 }}>
+          <Text style={{ color: '#D26A45', fontSize: 14, fontWeight: '700', marginBottom: 12 }}>ERROR DE INICIO</Text>
+          <Text style={{ color: '#F2F2EE', fontSize: 12, lineHeight: 18 }}>
+            {this.state.error.toString()}
+          </Text>
+          <Text style={{ color: '#8A8A82', fontSize: 11, marginTop: 16 }}>
+            {this.state.error.stack ? this.state.error.stack.slice(0, 400) : ''}
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
@@ -66,6 +87,7 @@ export default function App() {
   };
 
   return (
+    <ErrorBoundary>
     <SafeAreaProvider>
       <StatusBar style="light" />
       <SafeAreaView style={s.container}>
@@ -109,6 +131,7 @@ export default function App() {
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
