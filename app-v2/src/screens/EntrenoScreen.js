@@ -41,6 +41,7 @@ export default function EntrenoScreen() {
   const [curIdx, setCurIdx] = useState(0);
   const [showTech, setShowTech] = useState({});
   const [showPicker, setShowPicker] = useState(false);
+  const [showSwap, setShowSwap] = useState(false);
   const [search, setSearch] = useState('');
   const [pickerGroup, setPickerGroup] = useState(null);
   const [dayOverride, setDayOverride] = useState(null);
@@ -164,6 +165,17 @@ export default function EntrenoScreen() {
         s.ex[ei].sets.splice(si, 1);
       }
     });
+  }
+
+  function swapExercise(ei, newName) {
+    const libEntry = EXERCISE_LIBRARY.find(e => e.n === newName);
+    updateSess(s => {
+      const ex = s.ex[ei];
+      ex.name = newName;
+      ex.plan = libEntry || ex.plan;
+    });
+    setShowSwap(false);
+    setSearch('');
   }
 
   function removeExercise(ei) {
@@ -517,10 +529,53 @@ export default function EntrenoScreen() {
                 TECNICA
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.toggleBtn, showSwap && { backgroundColor: theme.accentSoft }]}
+              onPress={() => { setShowSwap(!showSwap); setSearch(''); }}
+              activeOpacity={0.7}
+            >
+              <Text style={s.toggleTxt}>CAMBIAR</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => removeExercise(curIdx)} activeOpacity={0.7}>
               <Text style={[s.toggleTxt, { color: theme.over }]}>QUITAR</Text>
             </TouchableOpacity>
           </View>
+
+          {/* swap panel */}
+          {showSwap && cur && (
+            <View style={s.swapPanel}>
+              <Text style={s.swapTitle}>Alternativas · {cur.plan.g}</Text>
+              <TextInput
+                style={s.pickerInput}
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Buscar..."
+                placeholderTextColor={theme.text3}
+              />
+              <ScrollView style={{ maxHeight: 260 }} nestedScrollEnabled>
+                {EXERCISE_LIBRARY
+                  .filter(ex =>
+                    ex.n !== cur.name &&
+                    (ex.g === cur.plan.g || (search.trim() && ex.n.toLowerCase().includes(search.trim().toLowerCase()))) &&
+                    (!search.trim() || ex.n.toLowerCase().includes(search.trim().toLowerCase()))
+                  )
+                  .map(ex => (
+                    <TouchableOpacity
+                      key={ex.n}
+                      style={s.swapItem}
+                      onPress={() => swapExercise(curIdx, ex.n)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={s.swapItemName}>{ex.n}</Text>
+                        <Text style={s.swapItemSub}>{ex.s}×{ex.r} · RIR {ex.ri}</Text>
+                      </View>
+                      <Text style={s.swapArrow}>›</Text>
+                    </TouchableOpacity>
+                  ))}
+              </ScrollView>
+            </View>
+          )}
 
           {/* technique panel */}
           {showTech[curIdx] && (
@@ -574,7 +629,7 @@ export default function EntrenoScreen() {
           <TouchableOpacity
             key={i}
             style={[s.exListItem, active && { borderColor: theme.accent }]}
-            onPress={() => setCurIdx(i)}
+            onPress={() => { setCurIdx(i); setShowSwap(false); setShowTech({}); }}
             activeOpacity={0.7}
           >
             <Text style={[s.exListName, active && { color: theme.text }]}>
@@ -900,6 +955,30 @@ const s = StyleSheet.create({
     fontStyle: 'italic',
     color: theme.text3,
   },
+
+  /* swap panel */
+  swapPanel: {
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: theme.line,
+    paddingTop: 12,
+  },
+  swapTitle: {
+    color: theme.text3,
+    fontSize: 11,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  swapItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+  },
+  swapItemName: { color: theme.text2, fontSize: 13 },
+  swapItemSub: { color: theme.text3, fontSize: 11, marginTop: 2 },
+  swapArrow: { color: theme.text3, fontSize: 20, paddingLeft: 8 },
 
   /* day selector */
   dayScroll: { marginBottom: 16, marginHorizontal: -20 },
