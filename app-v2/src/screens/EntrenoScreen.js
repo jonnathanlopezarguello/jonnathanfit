@@ -10,6 +10,7 @@ import {
   Linking,
   Alert,
 } from 'react-native';
+import ExerciseDetailModal from '../components/ExerciseDetailModal';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { T, DT, PD, EXERCISE_LIBRARY } from '../data/exercises';
@@ -43,6 +44,7 @@ export default function EntrenoScreen() {
   const [search, setSearch] = useState('');
   const [pickerGroup, setPickerGroup] = useState(null);
   const [dayOverride, setDayOverride] = useState(null);
+  const [detailEx, setDetailEx] = useState(null);
   const timer = useRef(null);
 
   const activeDay = dayOverride || getDayName();
@@ -302,7 +304,16 @@ export default function EntrenoScreen() {
         ) : (
           exercises.map((ex, i) => (
             <View key={i} style={s.card}>
-              <Text style={s.exName}>{ex.n}</Text>
+              <View style={[s.row, { justifyContent: 'space-between', marginBottom: 4 }]}>
+                <Text style={[s.exName, { flex: 1, marginBottom: 0 }]}>{ex.n}</Text>
+                <TouchableOpacity
+                  style={s.infoBtn}
+                  onPress={() => setDetailEx(ex)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={s.infoBtnTxt}>i</Text>
+                </TouchableOpacity>
+              </View>
               <View style={s.row}>
                 <Text style={s.pill}>{ex.s} x {ex.r}</Text>
                 <Text style={s.pill}>RIR {ex.ri}</Text>
@@ -316,6 +327,12 @@ export default function EntrenoScreen() {
         <TouchableOpacity style={s.btnPrimary} onPress={startSession} activeOpacity={0.7}>
           <Text style={s.btnPrimaryTxt}>INICIAR SESION</Text>
         </TouchableOpacity>
+
+        <ExerciseDetailModal
+          visible={!!detailEx}
+          exercise={detailEx}
+          onClose={() => setDetailEx(null)}
+        />
       </ScrollView>
     );
   }
@@ -355,7 +372,16 @@ export default function EntrenoScreen() {
       {/* ── current exercise card ── */}
       {cur ? (
         <View style={s.card}>
-          <Text style={s.exName}>{cur.name}</Text>
+          <View style={[s.row, { justifyContent: 'space-between', marginBottom: 4 }]}>
+            <Text style={[s.exName, { flex: 1, marginBottom: 0 }]}>{cur.name}</Text>
+            <TouchableOpacity
+              style={s.infoBtn}
+              onPress={() => setDetailEx(cur.plan)}
+              activeOpacity={0.7}
+            >
+              <Text style={s.infoBtnTxt}>i</Text>
+            </TouchableOpacity>
+          </View>
           {cur.plan.g !== '-' && (
             <Text style={[s.focus, { marginBottom: 8 }]}>
               {cur.plan.g} · {cur.plan.r} reps · RIR {cur.plan.ri}
@@ -611,6 +637,12 @@ export default function EntrenoScreen() {
       )}
 
       <View style={{ height: 60 }} />
+
+      <ExerciseDetailModal
+        visible={!!detailEx}
+        exercise={detailEx}
+        onClose={() => setDetailEx(null)}
+      />
     </ScrollView>
   );
 }
@@ -825,6 +857,25 @@ const s = StyleSheet.create({
   pickerInfo: { flex: 1 },
   pickerItemTxt: { color: theme.text2, fontSize: 13 },
   pickerItemGroup: { color: theme.text3, fontSize: 11, marginTop: 3 },
+
+  /* info button */
+  infoBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: theme.line2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    flexShrink: 0,
+  },
+  infoBtnTxt: {
+    fontSize: 12,
+    fontWeight: '700',
+    fontStyle: 'italic',
+    color: theme.text3,
+  },
 
   /* day selector */
   dayScroll: { marginBottom: 16, marginHorizontal: -20 },
