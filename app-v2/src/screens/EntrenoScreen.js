@@ -93,12 +93,15 @@ export default function EntrenoScreen() {
       }
     }
 
-    const makeSets = (name, count) => {
+    const makeSets = (name, count, plan) => {
       const prev = lastSets[name];
+      const riHint = plan?.ri ?? '';
       return Array(count).fill(null).map((_, i) => ({
         kg: prev?.[i]?.kg ?? prev?.[prev.length - 1]?.kg ?? '',
         rp: prev?.[i]?.rp ?? prev?.[prev.length - 1]?.rp ?? '',
+        rir: '',
         d: false,
+        riHint,
       }));
     };
 
@@ -111,7 +114,7 @@ export default function EntrenoScreen() {
         ? exercises.map(ex => ({
             name: ex.n,
             plan: ex,
-            sets: makeSets(ex.n, ex.s),
+            sets: makeSets(ex.n, ex.s, ex),
           }))
         : [],
     };
@@ -136,12 +139,22 @@ export default function EntrenoScreen() {
   function updateSetField(ei, si, field, val) {
     updateSess(s => {
       s.ex[ei].sets[si][field] = val;
+      // Auto-propagate kg to subsequent empty sets
+      if (field === 'kg' && val !== '') {
+        for (let j = si + 1; j < s.ex[ei].sets.length; j++) {
+          if (s.ex[ei].sets[j].kg === '') {
+            s.ex[ei].sets[j].kg = val;
+          }
+        }
+      }
     });
   }
 
   function addSet(ei) {
     updateSess(s => {
-      s.ex[ei].sets.push({ kg: '', rp: '', d: false });
+      const sets = s.ex[ei].sets;
+      const last = sets[sets.length - 1];
+      sets.push({ kg: last?.kg ?? '', rp: '', rir: '', d: false });
     });
   }
 
@@ -184,8 +197,8 @@ export default function EntrenoScreen() {
         name,
         plan: libEntry || { n: name, g: '-', s: 3, r: '-', ri: '-', re: '-', f: '' },
         sets: prevSets
-          ? prevSets.map(st => ({ kg: st.kg || '', rp: st.rp || '', d: false }))
-          : [{ kg: '', rp: '', d: false }, { kg: '', rp: '', d: false }, { kg: '', rp: '', d: false }],
+          ? prevSets.map(st => ({ kg: st.kg || '', rp: st.rp || '', rir: '', d: false }))
+          : [{ kg: '', rp: '', rir: '', d: false }, { kg: '', rp: '', rir: '', d: false }, { kg: '', rp: '', rir: '', d: false }],
       });
     });
     setCurIdx(sess.ex.length);
@@ -213,7 +226,7 @@ export default function EntrenoScreen() {
             dur,
             ex: done.map(e => ({
               name: e.name,
-              sets: e.sets.filter(s => s.d),
+              sets: e.sets.filter(s => s.d).map(st => ({ kg: st.kg, rp: st.rp, rir: st.rir ?? '' })),
             })),
           };
           const prev = (await load(KEYS.workouts)) || [];
@@ -395,6 +408,7 @@ export default function EntrenoScreen() {
               <View style={s.setRow}>
                 <Text style={[s.setH, { width: 28 }]}>Set</Text>
                 <Text style={[s.setH, { flex: 1 }]}>Min</Text>
+                <Text style={[s.setH, { width: 44 }]}>RIR</Text>
                 <View style={{ width: 36 }} />
                 <View style={{ width: 26 }} />
               </View>
@@ -403,6 +417,7 @@ export default function EntrenoScreen() {
                 <Text style={[s.setH, { width: 28 }]}>Set</Text>
                 <Text style={[s.setH, { flex: 1 }]}>Kg</Text>
                 <Text style={[s.setH, { flex: 1 }]}>Reps</Text>
+                <Text style={[s.setH, { width: 44 }]}>RIR</Text>
                 <View style={{ width: 36 }} />
                 <View style={{ width: 26 }} />
               </View>
@@ -447,6 +462,15 @@ export default function EntrenoScreen() {
                   />
                 </>
               )}
+              <TextInput
+                style={[s.setInput, { width: 44 }]}
+                value={st.rir ?? ''}
+                onChangeText={v => updateSetField(curIdx, si, 'rir', v)}
+                keyboardType="numeric"
+                placeholder={st.riHint ?? '?'}
+                placeholderTextColor={theme.text3}
+                maxLength={2}
+              />
               <TouchableOpacity
                 style={[s.checkBtn, st.d && s.checkBtnDone]}
                 onPress={() => toggleSet(curIdx, si)}
