@@ -8,7 +8,7 @@ import { SKEL, FM, BM, VR } from '../data/bodymap';
 import { DEFAULT_PROFILE } from '../utils';
 
 export default function ProgresoScreen() {
-  const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  const [profile, setProfile] = useState({ ...DEFAULT_PROFILE });
   const [workouts, setWorkouts] = useState([]);
   const [view, setView] = useState('front');
   const [selectedMuscle, setSelectedMuscle] = useState(null);
@@ -91,9 +91,11 @@ export default function ProgresoScreen() {
   });
 
   // Top 8 records
+  const units = profile.units || 'kg';
   const topRecords = Object.entries(records)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8);
+    .slice(0, 8)
+    .map(([name, e1rm]) => [name, units === 'lbs' ? Math.round(e1rm * 2.2046) : e1rm]);
 
   // Weekend reinforcement: muscle groups below minimum volume
   const lacking = Object.entries(VR)
@@ -256,12 +258,36 @@ export default function ProgresoScreen() {
               <View key={i} style={s.recordRow}>
                 <Text style={s.recordNum}>{i + 1}</Text>
                 <Text style={s.recordName}>{name}</Text>
-                <Text style={s.recordVal}>{e1rm} kg</Text>
+                <Text style={s.recordVal}>{e1rm} {units}</Text>
               </View>
             ))}
           </>
         )}
       </View>
+
+      {/* Workout history */}
+      {workouts.length > 0 && (
+        <>
+          <View style={s.divider}>
+            <Text style={s.dividerLabel}>HISTORIAL</Text>
+            <View style={s.dividerLine} />
+          </View>
+
+          <View style={s.card}>
+            {workouts.slice(0, 10).map((w, i) => (
+              <View key={w.id || i} style={[s.histRow, i === 0 && { borderTopWidth: 0 }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.histName}>{w.nm}</Text>
+                  <Text style={s.histDate}>{w.dt} · {w.dur || '—'} min</Text>
+                </View>
+                <Text style={s.histSets}>
+                  {(w.ex || []).reduce((n, e) => n + (e.sets || []).length, 0)} series
+                </Text>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
 
       {/* Weekend reinforcement */}
       {lacking.length > 0 && (
@@ -526,6 +552,18 @@ const s = StyleSheet.create({
     color: theme.accent,
     fontVariant: ['tabular-nums'],
   },
+
+  /* History */
+  histRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: theme.line,
+  },
+  histName: { fontSize: 13, color: theme.text, fontWeight: '500' },
+  histDate: { fontSize: 11, color: theme.text3, marginTop: 2, fontVariant: ['tabular-nums'] },
+  histSets: { fontSize: 12, color: theme.text3, fontVariant: ['tabular-nums'] },
 
   /* Reinforcement */
   reinforceIntro: {

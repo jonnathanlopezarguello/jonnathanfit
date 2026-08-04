@@ -255,6 +255,20 @@ export default function PerfilScreen({ onNavigate }) {
               </TouchableOpacity>
             ))}
           </View>
+
+          <Text style={s.inputLabel}>UNIDADES DE PESO</Text>
+          <View style={s.chipRow}>
+            {[{ k: 'kg', l: 'Kilogramos (kg)' }, { k: 'lbs', l: 'Libras (lbs)' }].map((opt) => (
+              <TouchableOpacity
+                key={opt.k}
+                style={[s.chip, (form.units || 'kg') === opt.k && s.chipActive]}
+                onPress={() => updateForm('units', opt.k)}
+                activeOpacity={0.7}
+              >
+                <Text style={[s.chipText, (form.units || 'kg') === opt.k && s.chipTextActive]}>{opt.l}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Body composition inputs */}

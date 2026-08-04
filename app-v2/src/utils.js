@@ -53,5 +53,19 @@ export const DEFAULT_PROFILE = {
   name: 'Jonnathan', sex: 'male', age: 25, weight: 79, height: 176,
   activity: 1.55, goal: 'bulk', ppk: 2, fpk: 1,
   bf: '15', wc: '80', nc: '38', hc: '95',
-  yt: '3', sh: '7', sl: 'medio', al: 'moderado'
+  yt: '3', sh: '7', sl: 'medio', al: 'moderado',
+  units: 'kg',
 };
+
+export function toDisplay(kg, units) {
+  if (!kg && kg !== 0) return '';
+  const v = parseFloat(kg);
+  if (isNaN(v)) return kg;
+  return units === 'lbs' ? Math.round(v * 2.2046 * 10) / 10 + '' : kg + '';
+}
+
+export function toKg(val, units) {
+  const v = parseFloat(val);
+  if (isNaN(v)) return '';
+  return units === 'lbs' ? Math.round(v / 2.2046 * 10) / 10 + '' : val;
+}

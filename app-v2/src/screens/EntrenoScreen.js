@@ -15,7 +15,7 @@ import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { T, DT, PD, EXERCISE_LIBRARY } from '../data/exercises';
 import { EI, imgBase } from '../data/images';
-import { fe, getDayName, diso } from '../utils';
+import { fe, getDayName, diso, DEFAULT_PROFILE } from '../utils';
 
 /* ── helpers ───────────────────────────────────────── */
 
@@ -36,6 +36,7 @@ function todayTitle() {
 
 export default function EntrenoScreen() {
   const [sess, setSess] = useState(null);
+  const [units, setUnits] = useState('kg');
   const [loading, setLoading] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const [curIdx, setCurIdx] = useState(0);
@@ -58,6 +59,8 @@ export default function EntrenoScreen() {
         setSess(s);
         setCurIdx(0);
       }
+      const p = await load(KEYS.profile);
+      if (p?.units) setUnits(p.units);
       setLoading(false);
     })();
   }, []);
@@ -427,7 +430,7 @@ export default function EntrenoScreen() {
             ) : (
               <View style={s.setRow}>
                 <Text style={[s.setH, { width: 28 }]}>Set</Text>
-                <Text style={[s.setH, { flex: 1 }]}>Kg</Text>
+                <Text style={[s.setH, { flex: 1 }]}>{units === 'lbs' ? 'Lbs' : 'Kg'}</Text>
                 <Text style={[s.setH, { flex: 1 }]}>Reps</Text>
                 <Text style={[s.setH, { width: 44 }]}>RIR</Text>
                 <View style={{ width: 36 }} />
