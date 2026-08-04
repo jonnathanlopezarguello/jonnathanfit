@@ -342,19 +342,35 @@ export default function ProgresoScreen() {
             <View style={s.dividerLine} />
           </View>
 
-          <View style={s.card}>
-            {workouts.slice(0, 10).map((w, i) => (
-              <View key={w.id || i} style={[s.histRow, i === 0 && { borderTopWidth: 0 }]}>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.histName}>{w.nm}</Text>
-                  <Text style={s.histDate}>{w.dt} · {w.dur || '—'} min</Text>
+          {workouts.slice(0, 10).map((w, wi) => {
+            const totalSets = (w.ex || []).reduce((n, e) => n + (e.sets || []).length, 0);
+            const exWithNotes = (w.ex || []).filter((e) => e.note && e.note.trim());
+            return (
+              <View key={w.id || wi} style={[s.card, { marginBottom: 8 }]}>
+                <View style={s.histRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.histName}>{w.nm}</Text>
+                    <Text style={s.histDate}>{w.dt} · {w.dur || '—'} min</Text>
+                  </View>
+                  <Text style={s.histSets}>{totalSets} series</Text>
                 </View>
-                <Text style={s.histSets}>
-                  {(w.ex || []).reduce((n, e) => n + (e.sets || []).length, 0)} series
-                </Text>
+                {(w.ex || []).map((e, ei) => {
+                  const best = (e.sets || []).reduce((b, st) => {
+                    const v = parseFloat(st.kg) || 0;
+                    return v > b ? v : b;
+                  }, 0);
+                  const dispKg = units === 'lbs' ? Math.round(best * 2.2046 * 10) / 10 : best;
+                  return (
+                    <View key={ei} style={s.histExRow}>
+                      <Text style={s.histExName} numberOfLines={1}>{e.name}</Text>
+                      {best > 0 && <Text style={s.histExVal}>{dispKg} {units}</Text>}
+                      {e.note ? <Text style={s.histExNote} numberOfLines={1}>{e.note}</Text> : null}
+                    </View>
+                  );
+                })}
               </View>
-            ))}
-          </View>
+            );
+          })}
         </>
       )}
 
@@ -669,13 +685,23 @@ const s = StyleSheet.create({
   histRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: theme.line,
+    paddingBottom: 10,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
   },
-  histName: { fontSize: 13, color: theme.text, fontWeight: '500' },
+  histName: { fontSize: 13, color: theme.text, fontWeight: '600' },
   histDate: { fontSize: 11, color: theme.text3, marginTop: 2, fontVariant: ['tabular-nums'] },
   histSets: { fontSize: 12, color: theme.text3, fontVariant: ['tabular-nums'] },
+  histExRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    gap: 8,
+  },
+  histExName: { flex: 1, fontSize: 12, color: theme.text2 },
+  histExVal: { fontSize: 12, color: theme.good, fontVariant: ['tabular-nums'] },
+  histExNote: { flex: 1, fontSize: 11, color: theme.text3, fontStyle: 'italic' },
 
   /* Reinforcement */
   reinforceIntro: {
