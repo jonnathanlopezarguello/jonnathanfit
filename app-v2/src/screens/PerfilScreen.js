@@ -269,6 +269,24 @@ export default function PerfilScreen({ onNavigate }) {
               </TouchableOpacity>
             ))}
           </View>
+
+          <Text style={s.inputLabel}>TIPO DE DIETA</Text>
+          <View style={s.chipRow}>
+            {[
+              { k: 'omni', l: 'Sin restricciones' },
+              { k: 'veg', l: 'Vegetariana' },
+              { k: 'vegan', l: 'Vegana' },
+            ].map((opt) => (
+              <TouchableOpacity
+                key={opt.k}
+                style={[s.chip, (form.diet || 'omni') === opt.k && s.chipActive]}
+                onPress={() => updateForm('diet', opt.k)}
+                activeOpacity={0.7}
+              >
+                <Text style={[s.chipText, (form.diet || 'omni') === opt.k && s.chipTextActive]}>{opt.l}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Body composition inputs */}

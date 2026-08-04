@@ -55,6 +55,7 @@ export const DEFAULT_PROFILE = {
   bf: '15', wc: '80', nc: '38', hc: '95',
   yt: '3', sh: '7', sl: 'medio', al: 'moderado',
   units: 'kg',
+  diet: 'omni',
 };
 
 export function toDisplay(kg, units) {

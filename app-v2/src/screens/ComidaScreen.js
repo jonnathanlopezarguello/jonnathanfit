@@ -106,7 +106,9 @@ export default function ComidaScreen() {
   };
 
   // --- search filtering ---
+  const dietLevel = profile.diet === 'vegan' ? 0 : profile.diet === 'veg' ? 1 : 2;
   const filtered = FOODS.filter((f) => {
+    if ((f.d ?? 2) > dietLevel) return false;
     if (csc && f.c2 !== csc) return false;
     if (csq.trim()) {
       return f.n.toLowerCase().includes(csq.trim().toLowerCase());
