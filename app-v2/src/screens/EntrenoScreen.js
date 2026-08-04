@@ -9,6 +9,8 @@ import {
   Image,
   Linking,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import ExerciseDetailModal from '../components/ExerciseDetailModal';
 import theme from '../theme';
@@ -170,6 +172,12 @@ export default function EntrenoScreen() {
     });
   }
 
+  function updateExNote(ei, text) {
+    updateSess(s => {
+      s.ex[ei].note = text;
+    });
+  }
+
   function swapExercise(ei, newName) {
     const libEntry = EXERCISE_LIBRARY.find(e => e.n === newName);
     updateSess(s => {
@@ -241,6 +249,7 @@ export default function EntrenoScreen() {
             dur,
             ex: done.map(e => ({
               name: e.name,
+              note: e.note ?? '',
               sets: e.sets.filter(s => s.d).map(st => ({ kg: st.kg, rp: st.rp, rir: st.rir ?? '' })),
             })),
           };
@@ -579,6 +588,17 @@ export default function EntrenoScreen() {
               </ScrollView>
             </View>
           )}
+
+          {/* exercise note */}
+          <TextInput
+            style={s.noteInput}
+            value={cur.note ?? ''}
+            onChangeText={(t) => updateExNote(curIdx, t)}
+            placeholder="Notas del ejercicio..."
+            placeholderTextColor={theme.text3}
+            multiline
+            numberOfLines={2}
+          />
 
           {/* technique panel */}
           {showTech[curIdx] && (
@@ -957,6 +977,19 @@ const s = StyleSheet.create({
     fontWeight: '700',
     fontStyle: 'italic',
     color: theme.text3,
+  },
+
+  /* note input */
+  noteInput: {
+    borderWidth: 1,
+    borderColor: theme.line,
+    borderRadius: 6,
+    color: theme.text2,
+    fontSize: 12,
+    padding: 10,
+    marginTop: 10,
+    minHeight: 40,
+    textAlignVertical: 'top',
   },
 
   /* swap panel */
