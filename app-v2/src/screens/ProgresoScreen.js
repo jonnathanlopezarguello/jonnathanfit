@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import theme from '../theme';
 import { load, KEYS } from '../store';
@@ -12,6 +12,8 @@ export default function ProgresoScreen() {
   const [workouts, setWorkouts] = useState([]);
   const [view, setView] = useState('front');
   const [selectedMuscle, setSelectedMuscle] = useState(null);
+  const [exSearch, setExSearch] = useState('');
+  const [selectedEx, setSelectedEx] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -264,6 +266,73 @@ export default function ProgresoScreen() {
           </>
         )}
       </View>
+
+      {/* Per-exercise history */}
+      {workouts.length > 0 && (
+        <>
+          <View style={s.divider}>
+            <Text style={s.dividerLabel}>HISTORIAL POR EJERCICIO</Text>
+            <View style={s.dividerLine} />
+          </View>
+
+          <View style={s.card}>
+            <TextInput
+              style={s.exSearchInput}
+              value={exSearch}
+              onChangeText={(t) => { setExSearch(t); setSelectedEx(null); }}
+              placeholder="Buscar ejercicio..."
+              placeholderTextColor={theme.text3}
+            />
+            {exSearch.trim().length > 0 && !selectedEx && (
+              <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                {Object.keys(records)
+                  .filter((n) => n.toLowerCase().includes(exSearch.trim().toLowerCase()))
+                  .slice(0, 8)
+                  .map((n) => (
+                    <TouchableOpacity
+                      key={n}
+                      style={s.exPickItem}
+                      onPress={() => { setSelectedEx(n); setExSearch(n); }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={s.exPickTxt}>{n}</Text>
+                    </TouchableOpacity>
+                  ))}
+              </ScrollView>
+            )}
+            {selectedEx && (() => {
+              const sessions = workouts
+                .filter((w) => (w.ex || []).some((e) => e.name === selectedEx))
+                .slice(0, 8)
+                .map((w) => {
+                  const ex = (w.ex || []).find((e) => e.name === selectedEx);
+                  const doneSets = (ex?.sets || []).filter((st) => st.kg || st.rp);
+                  const bestKg = Math.max(...doneSets.map((st) => parseFloat(st.kg) || 0), 0);
+                  const totalVol = doneSets.reduce((s, st) => s + (parseFloat(st.kg) || 0) * (parseFloat(st.rp) || 0), 0);
+                  const dispKg = units === 'lbs' ? Math.round(bestKg * 2.2046 * 10) / 10 : bestKg;
+                  return { dt: w.dt, sets: doneSets.length, bestKg: dispKg, vol: Math.round(totalVol) };
+                });
+              if (sessions.length === 0) return <Text style={s.emptyText}>Sin historial para este ejercicio.</Text>;
+              return (
+                <>
+                  <View style={s.exHistHeader}>
+                    <Text style={[s.exHistCell, { flex: 2 }]}>Fecha</Text>
+                    <Text style={[s.exHistCell, { width: 34 }]}>Series</Text>
+                    <Text style={[s.exHistCell, { width: 60, textAlign: 'right' }]}>Mejor {units}</Text>
+                  </View>
+                  {sessions.map((row, i) => (
+                    <View key={i} style={[s.exHistRow, i % 2 === 0 && { backgroundColor: theme.accentSoft }]}>
+                      <Text style={[s.exHistVal, { flex: 2 }]}>{row.dt}</Text>
+                      <Text style={[s.exHistVal, { width: 34 }]}>{row.sets}</Text>
+                      <Text style={[s.exHistVal, { width: 60, textAlign: 'right', color: theme.good }]}>{row.bestKg}</Text>
+                    </View>
+                  ))}
+                </>
+              );
+            })()}
+          </View>
+        </>
+      )}
 
       {/* Workout history */}
       {workouts.length > 0 && (
@@ -550,6 +619,49 @@ const s = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: theme.accent,
+    fontVariant: ['tabular-nums'],
+  },
+
+  /* Exercise history search */
+  exSearchInput: {
+    borderWidth: 1,
+    borderColor: theme.line2,
+    borderRadius: 6,
+    color: theme.text,
+    fontSize: 13,
+    padding: 10,
+    marginBottom: 8,
+  },
+  exPickItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+  },
+  exPickTxt: { color: theme.text2, fontSize: 13 },
+  exHistHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+    marginTop: 8,
+  },
+  exHistCell: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    color: theme.text3,
+  },
+  exHistRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+  },
+  exHistVal: {
+    fontSize: 12,
+    color: theme.text2,
     fontVariant: ['tabular-nums'],
   },
 
