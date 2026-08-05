@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal,
 } from 'react-native';
-import Svg, { Path, Ellipse, Circle, Rect, G } from 'react-native-svg';
+import Svg, {
+  Path, Ellipse, Circle, Rect, G, Defs, LinearGradient, Stop,
+} from 'react-native-svg';
 import theme from '../theme';
 
 /* ── Muscle zone mapping ──────────────────────────────────────────────────── */
@@ -21,183 +23,246 @@ const ZONES = {
   'Trapecio':       { f: [], b: ['trap'] },
 };
 
-/* ══════════════════════════════════════════════════════
-   FRONT BODY — detailed muscle paths
-   viewBox 0 0 120 280
-════════════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────────────────────────────
+   SHARED GRADIENT DEFS (green glow for active muscles)
+───────────────────────────────────────────────────────────────────────── */
+function GradientDefs() {
+  return (
+    <Defs>
+      {/* Highlighted muscle — green gradient top→bottom */}
+      <LinearGradient id="hiV" x1="0" y1="0" x2="0" y2="1">
+        <Stop offset="0"   stopColor="#A8D4A3" stopOpacity="1" />
+        <Stop offset="0.5" stopColor="#7FB07A" stopOpacity="1" />
+        <Stop offset="1"   stopColor="#4E8849" stopOpacity="1" />
+      </LinearGradient>
+      {/* Highlighted muscle — green gradient left→right */}
+      <LinearGradient id="hiH" x1="0" y1="0" x2="1" y2="0">
+        <Stop offset="0"   stopColor="#A8D4A3" stopOpacity="1" />
+        <Stop offset="1"   stopColor="#4E8849" stopOpacity="1" />
+      </LinearGradient>
+      {/* Body depth — dark gradient left shoulder→right */}
+      <LinearGradient id="bodyDepth" x1="0" y1="0" x2="1" y2="0">
+        <Stop offset="0"   stopColor="#1A1A18" stopOpacity="1" />
+        <Stop offset="0.5" stopColor="#282826" stopOpacity="1" />
+        <Stop offset="1"   stopColor="#1A1A18" stopOpacity="1" />
+      </LinearGradient>
+      {/* Muscle resting — subtle definition */}
+      <LinearGradient id="muscRest" x1="0" y1="0" x2="0" y2="1">
+        <Stop offset="0"   stopColor="#353533" stopOpacity="1" />
+        <Stop offset="1"   stopColor="#282826" stopOpacity="1" />
+      </LinearGradient>
+    </Defs>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FRONT BODY — viewBox 0 0 200 480   rendered 120×288
+══════════════════════════════════════════════════════════════════════════ */
 function BodyFront({ hi = [] }) {
-  const B  = '#1E1E1C';   // body base
-  const SK = '#2E2E2C';   // skin / silhouette
-  const LN = '#404040';   // outline
-  const H  = theme.good;  // highlight
-  const c  = (z) => hi.includes(z) ? H : SK;
-  const cs = (z) => hi.includes(z) ? H : LN;
+  const LN  = '#484846';
+  const SK  = '#2E2E2C';
+  const B   = '#1E1E1C';
+  const c   = (z) => hi.includes(z) ? 'url(#hiV)' : 'url(#muscRest)';
+  const cH  = (z) => hi.includes(z) ? 'url(#hiH)' : 'url(#muscRest)';
+  const cs  = (z) => hi.includes(z) ? '#6AAA65' : LN;
+  const sw  = 0.8;
 
   return (
-    <Svg width={100} height={234} viewBox="0 0 120 280">
-      {/* ── Body silhouette base ── */}
-      {/* Head */}
-      <Circle cx={60} cy={16} r={14} fill={SK} stroke={LN} strokeWidth={1} />
-      {/* Neck */}
-      <Path d="M 53 29 L 67 29 L 69 43 L 51 43 Z" fill={SK} />
-      {/* Torso */}
-      <Path d="M 20 41 Q 60 35 100 41 L 103 138 Q 60 145 17 138 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Hip area */}
-      <Path d="M 17 138 L 103 138 L 106 158 L 14 158 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Left leg */}
-      <Path d="M 14 158 L 56 158 L 54 232 L 12 230 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Right leg */}
-      <Path d="M 64 158 L 106 158 L 108 230 L 66 232 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Left shin */}
-      <Path d="M 12 230 L 54 230 L 52 270 L 10 268 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Right shin */}
-      <Path d="M 66 230 L 108 230 L 110 268 L 68 270 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Left arm */}
-      <Path d="M 8 43 L 22 43 L 18 110 L 4 108 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Right arm */}
-      <Path d="M 98 43 L 112 43 L 116 110 L 102 108 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Left forearm */}
-      <Path d="M 4 108 L 18 110 L 14 146 L 0 144 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      {/* Right forearm */}
-      <Path d="M 102 108 L 116 110 L 120 146 L 106 144 Z" fill={B} stroke={LN} strokeWidth={0.8} />
+    <Svg width={120} height={288} viewBox="0 0 200 480">
+      <GradientDefs />
 
-      {/* ── PECTORALS ── */}
-      <Path d="M 50 41 Q 30 45 20 57 Q 14 70 18 86 Q 22 98 34 104 Q 44 108 54 104 Q 60 100 60 90 L 60 41 Z"
-            fill={c('pec_l')} stroke={cs('pec_l')} strokeWidth={0.7} />
-      <Path d="M 70 41 Q 90 45 100 57 Q 106 70 102 86 Q 98 98 86 104 Q 76 108 66 104 Q 60 100 60 90 L 60 41 Z"
-            fill={c('pec_r')} stroke={cs('pec_r')} strokeWidth={0.7} />
+      {/* ── Silhouette base ── */}
+      {/* Head */}
+      <Ellipse cx={100} cy={28} rx={22} ry={26} fill={SK} stroke={LN} strokeWidth={1} />
+      {/* Neck */}
+      <Path d="M 88,52 L112,52 L114,72 L86,72 Z" fill={SK} />
+      {/* Upper torso block */}
+      <Path d="M 28,68 C 14,80 10,110 12,144 C 14,168 20,178 28,184
+               L 32,196 L 168,196 L 172,184
+               C 180,178 186,168 188,144 C 190,110 186,80 172,68 Z"
+            fill="url(#bodyDepth)" stroke={LN} strokeWidth={1} />
+      {/* Hip block */}
+      <Path d="M 30,196 L 170,196 L 174,224 L 26,224 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Left thigh */}
+      <Path d="M 26,224 C 18,232 14,260 16,296 C 18,320 24,334 34,340 L 88,340 C 92,332 92,310 88,286 C 84,260 78,236 72,224 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Right thigh */}
+      <Path d="M 174,224 C 182,232 186,260 184,296 C 182,320 176,334 166,340 L 112,340 C 108,332 108,310 112,286 C 116,260 122,236 128,224 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Left shin */}
+      <Path d="M 28,340 C 22,352 20,380 22,408 C 24,428 32,438 44,440 L 74,440 C 80,436 82,416 80,392 C 78,368 72,348 66,340 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Right shin */}
+      <Path d="M 172,340 C 178,352 180,380 178,408 C 176,428 168,438 156,440 L 126,440 C 120,436 118,416 120,392 C 122,368 128,348 134,340 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Left upper arm */}
+      <Path d="M 12,72 C 2,82 -2,108 2,140 C 4,158 10,170 20,174 L 36,174 C 40,162 40,138 38,112 C 36,88 32,74 24,70 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Right upper arm */}
+      <Path d="M 188,72 C 198,82 202,108 198,140 C 196,158 190,170 180,174 L 164,174 C 160,162 160,138 162,112 C 164,88 168,74 176,70 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Left forearm */}
+      <Path d="M 2,142 C -4,156 -4,180 2,202 C 6,214 14,220 22,218 L 36,216 C 40,206 40,184 36,164 C 34,152 28,142 20,140 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      {/* Right forearm */}
+      <Path d="M 198,142 C 204,156 204,180 198,202 C 194,214 186,220 178,218 L 164,216 C 160,206 160,184 164,164 C 166,152 172,142 180,140 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+
+      {/* ── PECTORALS ── fan shape, two halves meeting at sternum */}
+      <Path d="M 86,71 C 58,76 32,92 22,116 C 16,134 20,152 34,162 C 48,172 66,170 78,160 C 86,152 88,138 86,116 Z"
+            fill={c('pec_l')} stroke={cs('pec_l')} strokeWidth={sw} />
+      <Path d="M 114,71 C 142,76 168,92 178,116 C 184,134 180,152 166,162 C 152,172 134,170 122,160 C 114,152 112,138 114,116 Z"
+            fill={c('pec_r')} stroke={cs('pec_r')} strokeWidth={sw} />
+      {/* Sternum line detail */}
+      <Path d="M 100,72 L 100,168" stroke="#333331" strokeWidth={0.5} fill="none" />
 
       {/* ── ANTERIOR DELTOIDS ── */}
-      <Path d="M 14 43 Q 4 49 2 65 Q 0 82 6 96 Q 10 106 20 106 Q 30 104 34 88 Q 38 70 32 50 Z"
-            fill={c('delt_l')} stroke={cs('delt_l')} strokeWidth={0.7} />
-      <Path d="M 106 43 Q 116 49 118 65 Q 120 82 114 96 Q 110 106 100 106 Q 90 104 86 88 Q 82 70 88 50 Z"
-            fill={c('delt_r')} stroke={cs('delt_r')} strokeWidth={0.7} />
+      <Path d="M 24,68 C 6,76 0,100 2,126 C 4,148 12,164 26,166 C 38,168 48,158 52,140 C 56,120 52,94 44,78 C 38,68 30,66 24,68 Z"
+            fill={c('delt_l')} stroke={cs('delt_l')} strokeWidth={sw} />
+      <Path d="M 176,68 C 194,76 200,100 198,126 C 196,148 188,164 174,166 C 162,168 152,158 148,140 C 144,120 148,94 156,78 C 162,68 170,66 176,68 Z"
+            fill={c('delt_r')} stroke={cs('delt_r')} strokeWidth={sw} />
 
-      {/* ── BICEPS ── */}
-      <Path d="M 2 96 Q -4 110 0 128 Q 2 142 10 146 Q 18 148 22 136 Q 26 122 22 106 Q 18 96 10 94 Z"
-            fill={c('bicep_l')} stroke={cs('bicep_l')} strokeWidth={0.7} />
-      <Path d="M 118 96 Q 124 110 120 128 Q 118 142 110 146 Q 102 148 98 136 Q 94 122 98 106 Q 102 96 110 94 Z"
-            fill={c('bicep_r')} stroke={cs('bicep_r')} strokeWidth={0.7} />
+      {/* ── BICEPS ── elongated convex shape */}
+      <Path d="M 2,128 C -6,148 -4,176 4,196 C 8,210 18,218 28,216 C 38,212 44,200 42,182 C 40,162 34,144 24,132 C 16,122 6,122 2,128 Z"
+            fill={c('bicep_l')} stroke={cs('bicep_l')} strokeWidth={sw} />
+      <Path d="M 198,128 C 206,148 204,176 196,196 C 192,210 182,218 172,216 C 162,212 156,200 158,182 C 160,162 166,144 176,132 C 184,122 194,122 198,128 Z"
+            fill={c('bicep_r')} stroke={cs('bicep_r')} strokeWidth={sw} />
 
-      {/* ── ABS (6-pack) ── */}
-      <Rect x={47} y={106} width={12} height={13} rx={3} fill={c('abs_tl')} stroke={cs('abs_tl')} strokeWidth={0.6} />
-      <Rect x={61} y={106} width={12} height={13} rx={3} fill={c('abs_tr')} stroke={cs('abs_tr')} strokeWidth={0.6} />
-      <Rect x={47} y={121} width={12} height={13} rx={3} fill={c('abs_ml')} stroke={cs('abs_ml')} strokeWidth={0.6} />
-      <Rect x={61} y={121} width={12} height={13} rx={3} fill={c('abs_mr')} stroke={cs('abs_mr')} strokeWidth={0.6} />
-      <Rect x={47} y={136} width={12} height={13} rx={3} fill={c('abs_bl')} stroke={cs('abs_bl')} strokeWidth={0.6} />
-      <Rect x={61} y={136} width={12} height={13} rx={3} fill={c('abs_br')} stroke={cs('abs_br')} strokeWidth={0.6} />
+      {/* ── ABS — 6 segments with linea alba ── */}
+      <Rect x={74}  y={170} width={23} height={19} rx={5} fill={c('abs_tl')} stroke={cs('abs_tl')} strokeWidth={0.7} />
+      <Rect x={103} y={170} width={23} height={19} rx={5} fill={c('abs_tr')} stroke={cs('abs_tr')} strokeWidth={0.7} />
+      <Rect x={74}  y={193} width={23} height={19} rx={5} fill={c('abs_ml')} stroke={cs('abs_ml')} strokeWidth={0.7} />
+      <Rect x={103} y={193} width={23} height={19} rx={5} fill={c('abs_mr')} stroke={cs('abs_mr')} strokeWidth={0.7} />
+      <Rect x={76}  y={216} width={21} height={17} rx={5} fill={c('abs_bl')} stroke={cs('abs_bl')} strokeWidth={0.7} />
+      <Rect x={103} y={216} width={21} height={17} rx={5} fill={c('abs_br')} stroke={cs('abs_br')} strokeWidth={0.7} />
 
       {/* ── OBLIQUES ── */}
-      <Path d="M 36 106 Q 28 120 26 144 Q 26 156 34 160 L 44 154 Q 38 140 40 116 Z"
-            fill={c('obl_l')} stroke={cs('obl_l')} strokeWidth={0.6} />
-      <Path d="M 84 106 Q 92 120 94 144 Q 94 156 86 160 L 76 154 Q 82 140 80 116 Z"
-            fill={c('obl_r')} stroke={cs('obl_r')} strokeWidth={0.6} />
+      <Path d="M 52,168 C 36,188 30,220 32,248 C 34,264 40,272 52,272 L 66,264 C 58,246 56,218 60,192 Z"
+            fill={c('obl_l')} stroke={cs('obl_l')} strokeWidth={sw} />
+      <Path d="M 148,168 C 164,188 170,220 168,248 C 166,264 160,272 148,272 L 134,264 C 142,246 144,218 140,192 Z"
+            fill={c('obl_r')} stroke={cs('obl_r')} strokeWidth={sw} />
 
-      {/* ── QUADS — Vastus Lateralis (outer) ── */}
-      <Path d="M 16 162 Q 6 178 6 210 Q 8 228 18 234 Q 28 238 36 230 Q 40 220 38 196 Q 36 172 26 160 Z"
-            fill={c('quad_vl_l')} stroke={cs('quad_vl_l')} strokeWidth={0.7} />
-      <Path d="M 104 162 Q 114 178 114 210 Q 112 228 102 234 Q 92 238 84 230 Q 80 220 82 196 Q 84 172 94 160 Z"
-            fill={c('quad_vl_r')} stroke={cs('quad_vl_r')} strokeWidth={0.7} />
+      {/* ── QUADS — Vastus Lateralis (outer sweep) ── */}
+      <Path d="M 28,226 C 14,244 10,280 14,314 C 18,336 28,348 42,352 C 54,356 64,348 68,334 C 72,318 68,288 62,260 C 56,238 44,224 36,224 Z"
+            fill={c('quad_vl_l')} stroke={cs('quad_vl_l')} strokeWidth={sw} />
+      <Path d="M 172,226 C 186,244 190,280 186,314 C 182,336 172,348 158,352 C 146,356 136,348 132,334 C 128,318 132,288 138,260 C 144,238 156,224 164,224 Z"
+            fill={c('quad_vl_r')} stroke={cs('quad_vl_r')} strokeWidth={sw} />
 
       {/* ── QUADS — Rectus Femoris (center) ── */}
-      <Path d="M 30 158 Q 22 174 22 206 Q 22 224 32 232 Q 40 238 50 232 Q 56 224 54 202 Q 52 174 46 158 Z"
-            fill={c('quad_rf_l')} stroke={cs('quad_rf_l')} strokeWidth={0.7} />
-      <Path d="M 90 158 Q 98 174 98 206 Q 98 224 88 232 Q 80 238 70 232 Q 64 224 66 202 Q 68 174 74 158 Z"
-            fill={c('quad_rf_r')} stroke={cs('quad_rf_r')} strokeWidth={0.7} />
+      <Path d="M 48,224 C 38,244 36,278 40,312 C 44,336 56,350 70,352 C 82,352 90,342 90,320 C 90,296 82,264 76,242 C 70,226 58,220 48,224 Z"
+            fill={c('quad_rf_l')} stroke={cs('quad_rf_l')} strokeWidth={sw} />
+      <Path d="M 152,224 C 162,244 164,278 160,312 C 156,336 144,350 130,352 C 118,352 110,342 110,320 C 110,296 118,264 124,242 C 130,226 142,220 152,224 Z"
+            fill={c('quad_rf_r')} stroke={cs('quad_rf_r')} strokeWidth={sw} />
 
       {/* ── QUADS — Vastus Medialis (inner teardrop) ── */}
-      <Path d="M 44 176 Q 38 194 40 216 Q 42 230 52 234 Q 62 236 64 224 Q 66 210 60 194 Q 56 178 50 174 Z"
-            fill={c('quad_vm_l')} stroke={cs('quad_vm_l')} strokeWidth={0.7} />
-      <Path d="M 76 176 Q 82 194 80 216 Q 78 230 68 234 Q 58 236 56 224 Q 54 210 60 194 Q 64 178 70 174 Z"
-            fill={c('quad_vm_r')} stroke={cs('quad_vm_r')} strokeWidth={0.7} />
+      <Path d="M 72,252 C 64,272 66,306 72,328 C 76,342 86,350 96,348 C 106,344 110,330 106,312 C 102,294 92,270 84,254 C 80,242 76,244 72,252 Z"
+            fill={c('quad_vm_l')} stroke={cs('quad_vm_l')} strokeWidth={sw} />
+      <Path d="M 128,252 C 136,272 134,306 128,328 C 124,342 114,350 104,348 C 94,344 90,330 94,312 C 98,294 108,270 116,254 C 120,242 124,244 128,252 Z"
+            fill={c('quad_vm_r')} stroke={cs('quad_vm_r')} strokeWidth={sw} />
 
-      {/* ── CALVES (front / tibialis) ── */}
-      <Path d="M 10 232 Q 4 246 6 260 Q 8 268 18 268 Q 28 266 28 256 Q 28 244 20 230 Z"
-            fill={c('calf_fl')} stroke={cs('calf_fl')} strokeWidth={0.6} />
-      <Path d="M 110 232 Q 116 246 114 260 Q 112 268 102 268 Q 92 266 92 256 Q 92 244 100 230 Z"
-            fill={c('calf_fr')} stroke={cs('calf_fr')} strokeWidth={0.6} />
+      {/* ── FRONT CALVES / TIBIALIS ── */}
+      <Path d="M 20,344 C 12,364 12,396 18,418 C 22,432 32,440 44,438 C 52,436 56,424 54,406 C 52,388 44,366 36,348 C 30,336 24,336 20,344 Z"
+            fill={c('calf_fl')} stroke={cs('calf_fl')} strokeWidth={sw} />
+      <Path d="M 180,344 C 188,364 188,396 182,418 C 178,432 168,440 156,438 C 148,436 144,424 146,406 C 148,388 156,366 164,348 C 170,336 176,336 180,344 Z"
+            fill={c('calf_fr')} stroke={cs('calf_fr')} strokeWidth={sw} />
     </Svg>
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   BACK BODY — detailed muscle paths
-════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   BACK BODY — viewBox 0 0 200 480   rendered 120×288
+══════════════════════════════════════════════════════════════════════════ */
 function BodyBack({ hi = [] }) {
-  const B  = '#1E1E1C';
-  const SK = '#2E2E2C';
-  const LN = '#404040';
-  const H  = theme.good;
-  const c  = (z) => hi.includes(z) ? H : SK;
-  const cs = (z) => hi.includes(z) ? H : LN;
+  const LN  = '#484846';
+  const SK  = '#2E2E2C';
+  const B   = '#1E1E1C';
+  const c   = (z) => hi.includes(z) ? 'url(#hiV)' : 'url(#muscRest)';
+  const cs  = (z) => hi.includes(z) ? '#6AAA65' : LN;
+  const sw  = 0.8;
 
   return (
-    <Svg width={100} height={234} viewBox="0 0 120 280">
-      {/* ── Body silhouette base ── */}
-      <Circle cx={60} cy={16} r={14} fill={SK} stroke={LN} strokeWidth={1} />
-      <Path d="M 53 29 L 67 29 L 69 43 L 51 43 Z" fill={SK} />
-      <Path d="M 20 41 Q 60 35 100 41 L 103 138 Q 60 145 17 138 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 17 138 L 103 138 L 106 158 L 14 158 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 14 158 L 56 158 L 54 232 L 12 230 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 64 158 L 106 158 L 108 230 L 66 232 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 12 230 L 54 230 L 52 270 L 10 268 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 66 230 L 108 230 L 110 268 L 68 270 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 8 43 L 22 43 L 18 110 L 4 108 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 98 43 L 112 43 L 116 110 L 102 108 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 4 108 L 18 110 L 14 146 L 0 144 Z" fill={B} stroke={LN} strokeWidth={0.8} />
-      <Path d="M 102 108 L 116 110 L 120 146 L 106 144 Z" fill={B} stroke={LN} strokeWidth={0.8} />
+    <Svg width={120} height={288} viewBox="0 0 200 480">
+      <GradientDefs />
 
-      {/* ── TRAPEZIUS (large diamond shape) ── */}
-      <Path d="M 54 41 Q 38 46 26 58 Q 20 68 26 78 Q 34 84 48 80 Q 58 76 60 60 Q 62 76 72 80 Q 86 84 94 78 Q 100 68 94 58 Q 82 46 66 41 Z"
-            fill={c('trap')} stroke={cs('trap')} strokeWidth={0.7} />
+      {/* ── Silhouette base ── */}
+      <Ellipse cx={100} cy={28} rx={22} ry={26} fill={SK} stroke={LN} strokeWidth={1} />
+      <Path d="M 88,52 L112,52 L114,72 L86,72 Z" fill={SK} />
+      <Path d="M 28,68 C 14,80 10,110 12,144 C 14,168 20,178 28,184
+               L 32,196 L 168,196 L 172,184
+               C 180,178 186,168 188,144 C 190,110 186,80 172,68 Z"
+            fill="url(#bodyDepth)" stroke={LN} strokeWidth={1} />
+      <Path d="M 30,196 L 170,196 L 174,224 L 26,224 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 26,224 C 18,232 14,260 16,296 C 18,320 24,334 34,340 L 88,340 C 92,332 92,310 88,286 C 84,260 78,236 72,224 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 174,224 C 182,232 186,260 184,296 C 182,320 176,334 166,340 L 112,340 C 108,332 108,310 112,286 C 116,260 122,236 128,224 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 28,340 C 22,352 20,380 22,408 C 24,428 32,438 44,440 L 74,440 C 80,436 82,416 80,392 C 78,368 72,348 66,340 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 172,340 C 178,352 180,380 178,408 C 176,428 168,438 156,440 L 126,440 C 120,436 118,416 120,392 C 122,368 128,348 134,340 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 12,72 C 2,82 -2,108 2,140 C 4,158 10,170 20,174 L 36,174 C 40,162 40,138 38,112 C 36,88 32,74 24,70 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 188,72 C 198,82 202,108 198,140 C 196,158 190,170 180,174 L 164,174 C 160,162 160,138 162,112 C 164,88 168,74 176,70 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 2,142 C -4,156 -4,180 2,202 C 6,214 14,220 22,218 L 36,216 C 40,206 40,184 36,164 C 34,152 28,142 20,140 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+      <Path d="M 198,142 C 204,156 204,180 198,202 C 194,214 186,220 178,218 L 164,216 C 160,206 160,184 164,164 C 166,152 172,142 180,140 Z"
+            fill={B} stroke={LN} strokeWidth={0.8} />
+
+      {/* ── TRAPEZIUS — diamond spanning upper back ── */}
+      <Path d="M 86,70 C 68,74 44,86 30,100 C 20,112 22,128 34,136 C 48,144 68,140 80,130 C 90,122 96,108 100,90
+               C 104,108 110,122 120,130 C 132,140 152,144 166,136 C 178,128 180,112 170,100 C 156,86 132,74 114,70 Z"
+            fill={c('trap')} stroke={cs('trap')} strokeWidth={sw} />
 
       {/* ── REAR DELTOIDS ── */}
-      <Path d="M 14 43 Q 4 49 2 65 Q 0 82 6 96 Q 10 106 20 106 Q 30 104 34 88 Q 38 70 32 50 Z"
-            fill={c('rdelt_l')} stroke={cs('rdelt_l')} strokeWidth={0.7} />
-      <Path d="M 106 43 Q 116 49 118 65 Q 120 82 114 96 Q 110 106 100 106 Q 90 104 86 88 Q 82 70 88 50 Z"
-            fill={c('rdelt_r')} stroke={cs('rdelt_r')} strokeWidth={0.7} />
+      <Path d="M 24,68 C 6,76 0,100 2,126 C 4,148 12,164 26,166 C 38,168 48,158 52,140 C 56,120 52,94 44,78 C 38,68 30,66 24,68 Z"
+            fill={c('rdelt_l')} stroke={cs('rdelt_l')} strokeWidth={sw} />
+      <Path d="M 176,68 C 194,76 200,100 198,126 C 196,148 188,164 174,166 C 162,168 152,158 148,140 C 144,120 148,94 156,78 C 162,68 170,66 176,68 Z"
+            fill={c('rdelt_r')} stroke={cs('rdelt_r')} strokeWidth={sw} />
 
-      {/* ── LATS (wing shapes) ── */}
-      <Path d="M 20 60 Q 8 78 6 112 Q 6 134 14 142 L 28 138 Q 34 130 34 112 Q 36 90 32 68 Z"
-            fill={c('lat_l')} stroke={cs('lat_l')} strokeWidth={0.7} />
-      <Path d="M 100 60 Q 112 78 114 112 Q 114 134 106 142 L 92 138 Q 86 130 86 112 Q 84 90 88 68 Z"
-            fill={c('lat_r')} stroke={cs('lat_r')} strokeWidth={0.7} />
+      {/* ── LATS — V-shape wings ── */}
+      <Path d="M 26,84 C 10,100 6,132 8,166 C 10,186 16,198 28,202 L 48,200 C 52,188 52,166 50,144 C 48,120 44,100 38,86 Z"
+            fill={c('lat_l')} stroke={cs('lat_l')} strokeWidth={sw} />
+      <Path d="M 174,84 C 190,100 194,132 192,166 C 190,186 184,198 172,202 L 152,200 C 148,188 148,166 150,144 C 152,120 156,100 162,86 Z"
+            fill={c('lat_r')} stroke={cs('lat_r')} strokeWidth={sw} />
 
-      {/* ── TRICEPS (horseshoe visible from back) ── */}
-      <Path d="M 2 96 Q -4 112 0 130 Q 2 144 10 148 Q 18 150 22 138 Q 26 124 22 106 Q 18 96 10 94 Z"
-            fill={c('tricep_l')} stroke={cs('tricep_l')} strokeWidth={0.7} />
-      <Path d="M 118 96 Q 124 112 120 130 Q 118 144 110 148 Q 102 150 98 138 Q 94 124 98 106 Q 102 96 110 94 Z"
-            fill={c('tricep_r')} stroke={cs('tricep_r')} strokeWidth={0.7} />
+      {/* ── TRICEPS ── horseshoe visible from back */}
+      <Path d="M 2,128 C -6,148 -4,176 4,196 C 8,210 18,218 28,216 C 38,212 44,200 42,182 C 40,162 34,144 24,132 C 16,122 6,122 2,128 Z"
+            fill={c('tricep_l')} stroke={cs('tricep_l')} strokeWidth={sw} />
+      <Path d="M 198,128 C 206,148 204,176 196,196 C 192,210 182,218 172,216 C 162,212 156,200 158,182 C 160,162 166,144 176,132 C 184,122 194,122 198,128 Z"
+            fill={c('tricep_r')} stroke={cs('tricep_r')} strokeWidth={sw} />
 
-      {/* ── SPINAL ERECTORS ── */}
-      <Rect x={53} y={116} width={6} height={24} rx={3} fill={SK} stroke={LN} strokeWidth={0.5} />
-      <Rect x={61} y={116} width={6} height={24} rx={3} fill={SK} stroke={LN} strokeWidth={0.5} />
+      {/* ── SPINAL ERECTORS — two columns ── */}
+      <Rect x={88}  y={136} width={9} height={54} rx={4.5} fill={SK} stroke={LN} strokeWidth={0.6} />
+      <Rect x={103} y={136} width={9} height={54} rx={4.5} fill={SK} stroke={LN} strokeWidth={0.6} />
 
-      {/* ── GLUTES (large rounded shapes) ── */}
-      <Path d="M 14 156 Q 4 162 2 180 Q 2 200 14 210 Q 26 218 40 212 Q 54 206 56 188 Q 58 168 46 156 Z"
-            fill={c('glute_l')} stroke={cs('glute_l')} strokeWidth={0.7} />
-      <Path d="M 106 156 Q 116 162 118 180 Q 118 200 106 210 Q 94 218 80 212 Q 66 206 64 188 Q 62 168 74 156 Z"
-            fill={c('glute_r')} stroke={cs('glute_r')} strokeWidth={0.7} />
+      {/* ── GLUTES — large rounded ── */}
+      <Path d="M 26,222 C 12,232 6,258 10,282 C 14,302 28,316 46,318 C 62,318 76,306 80,288 C 84,268 78,244 66,232 C 56,222 40,218 26,222 Z"
+            fill={c('glute_l')} stroke={cs('glute_l')} strokeWidth={sw} />
+      <Path d="M 174,222 C 188,232 194,258 190,282 C 186,302 172,316 154,318 C 138,318 124,306 120,288 C 116,268 122,244 134,232 C 144,222 160,218 174,222 Z"
+            fill={c('glute_r')} stroke={cs('glute_r')} strokeWidth={sw} />
 
-      {/* ── HAMSTRINGS (bicep femoris + semimembranosus) ── */}
-      <Path d="M 14 212 Q 4 224 6 248 Q 8 260 18 264 Q 30 266 36 256 Q 42 244 38 222 Q 34 208 24 210 Z"
-            fill={c('ham_l')} stroke={cs('ham_l')} strokeWidth={0.7} />
-      <Path d="M 26 210 Q 20 226 22 250 Q 24 262 34 264 Q 44 264 48 252 Q 52 240 46 218 Q 40 208 32 210 Z"
-            fill={c('ham_l')} stroke={cs('ham_l')} strokeWidth={0.6} />
-      <Path d="M 106 212 Q 116 224 114 248 Q 112 260 102 264 Q 90 266 84 256 Q 78 244 82 222 Q 86 208 96 210 Z"
-            fill={c('ham_r')} stroke={cs('ham_r')} strokeWidth={0.7} />
-      <Path d="M 94 210 Q 100 226 98 250 Q 96 262 86 264 Q 76 264 72 252 Q 68 240 74 218 Q 80 208 88 210 Z"
-            fill={c('ham_r')} stroke={cs('ham_r')} strokeWidth={0.6} />
+      {/* ── HAMSTRINGS ── two overlapping paths per side */}
+      <Path d="M 18,318 C 6,336 4,368 10,398 C 14,416 26,428 40,428 C 54,426 62,414 62,396 C 62,374 54,350 44,334 C 36,320 26,316 18,318 Z"
+            fill={c('ham_l')} stroke={cs('ham_l')} strokeWidth={sw} />
+      <Path d="M 40,316 C 30,334 28,364 36,394 C 40,410 52,422 66,420 C 78,418 84,406 82,388 C 80,368 70,344 60,328 C 52,316 46,312 40,316 Z"
+            fill={c('ham_l')} stroke={cs('ham_l')} strokeWidth={0.5} />
+      <Path d="M 182,318 C 194,336 196,368 190,398 C 186,416 174,428 160,428 C 146,426 138,414 138,396 C 138,374 146,350 156,334 C 164,320 174,316 182,318 Z"
+            fill={c('ham_r')} stroke={cs('ham_r')} strokeWidth={sw} />
+      <Path d="M 160,316 C 170,334 172,364 164,394 C 160,410 148,422 134,420 C 122,418 116,406 118,388 C 120,368 130,344 140,328 C 148,316 154,312 160,316 Z"
+            fill={c('ham_r')} stroke={cs('ham_r')} strokeWidth={0.5} />
 
-      {/* ── CALVES (gastrocnemius — two heads) ── */}
-      <Path d="M 10 262 Q 2 274 4 284 Q 6 292 16 292 Q 28 290 28 278 Q 28 266 18 260 Z"
-            fill={c('calf_l')} stroke={cs('calf_l')} strokeWidth={0.7} />
-      <Path d="M 22 260 Q 30 272 28 282 Q 26 290 36 290 Q 46 288 46 276 Q 44 264 36 258 Z"
-            fill={c('calf_ml')} stroke={cs('calf_ml')} strokeWidth={0.7} />
-      <Path d="M 110 262 Q 118 274 116 284 Q 114 292 104 292 Q 92 290 92 278 Q 92 266 102 260 Z"
-            fill={c('calf_r')} stroke={cs('calf_r')} strokeWidth={0.7} />
-      <Path d="M 98 260 Q 90 272 92 282 Q 94 290 84 290 Q 74 288 74 276 Q 76 264 84 258 Z"
-            fill={c('calf_mr')} stroke={cs('calf_mr')} strokeWidth={0.7} />
+      {/* ── GASTROCNEMIUS — two heads per side ── */}
+      <Path d="M 14,428 C 4,448 4,466 10,476 C 14,484 24,488 36,486 C 48,482 52,468 50,452 C 48,436 40,424 30,424 Z"
+            fill={c('calf_l')} stroke={cs('calf_l')} strokeWidth={sw} />
+      <Path d="M 36,424 C 46,440 50,460 46,474 C 44,484 56,488 66,484 C 76,478 78,462 74,446 C 70,430 60,420 50,422 Z"
+            fill={c('calf_ml')} stroke={cs('calf_ml')} strokeWidth={sw} />
+      <Path d="M 186,428 C 196,448 196,466 190,476 C 186,484 176,488 164,486 C 152,482 148,468 150,452 C 152,436 160,424 170,424 Z"
+            fill={c('calf_r')} stroke={cs('calf_r')} strokeWidth={sw} />
+      <Path d="M 164,424 C 154,440 150,460 154,474 C 156,484 144,488 134,484 C 124,478 122,462 126,446 C 130,430 140,420 150,422 Z"
+            fill={c('calf_mr')} stroke={cs('calf_mr')} strokeWidth={sw} />
     </Svg>
   );
 }
@@ -243,11 +308,11 @@ export default function ExerciseDetailModal({ visible, exercise, onClose }) {
 
   if (!exercise) return null;
 
-  const zones       = ZONES[exercise.g] || { f: [], b: [] };
-  const category    = getCategory(exercise.n);
+  const zones        = ZONES[exercise.g] || { f: [], b: [] };
+  const category     = getCategory(exercise.n);
   const instructions = getInstructions(exercise);
-  const muscleLabel = MUSCLE_LABELS[exercise.g] || exercise.g;
-  const initial     = exercise.g.charAt(0).toUpperCase();
+  const muscleLabel  = MUSCLE_LABELS[exercise.g] || exercise.g;
+  const initial      = exercise.g.charAt(0).toUpperCase();
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
