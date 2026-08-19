@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { T, DT, EXERCISE_LIBRARY } from '../data/exercises';
-import { SKEL, FM, BM, VR, MUSCLE_MAP, EXERCISE_MUSCLE_MAP } from '../data/bodymap';
+import { VR, MUSCLE_MAP, EXERCISE_MUSCLE_MAP } from '../data/bodymap';
+import Body from 'react-native-body-highlighter';
 import { DEFAULT_PROFILE } from '../utils';
 
 export default function ProgresoScreen({ onNavigate }) {
@@ -91,15 +91,6 @@ export default function ProgresoScreen({ onNavigate }) {
     return 'Encima MRV';
   };
 
-  // Para el mapa SVG — traducir grupo → color predominante
-  const muscleColor = (group) => {
-    const muscles = MUSCLE_MAP[group];
-    if (!muscles) return theme.text3;
-    const primary = muscles.find(([, w]) => w >= 1.0);
-    if (!primary) return theme.text3;
-    return zoneColor(primary[0]);
-  };
-
   // Ejercicios hechos esta semana por músculo (para el panel expandido)
   const muscleWeekEx = {};
   Object.keys(VR).forEach((m) => { muscleWeekEx[m] = []; });
@@ -160,8 +151,43 @@ export default function ProgresoScreen({ onNavigate }) {
     await save('jfit_qp', next);
   };
 
-  // Muscle map to render (front or back)
-  const muscleMap = view === 'front' ? FM : BM;
+  // Mapeo VR muscle → slug del paquete body-highlighter
+  const MUSCLE_TO_SLUG = {
+    'Pectoral Mayor':     'chest',
+    'Deltoides Lateral':  'deltoids',
+    'Bíceps Braquial':    'biceps',
+    'Tríceps Braquial':   'triceps',
+    'Dorsal Ancho':       'upper-back',
+    'Trapecio':           'trapezius',
+    'Recto Abdominal':    'abs',
+    'Oblicuos':           'obliques',
+    'Cuádriceps':         'quadriceps',
+    'Femoral':            'hamstring',
+    'Glúteo Mayor':       'gluteal',
+    'Gastrocnemio':       'calves',
+  };
+
+  // Reverso: slug → músculos VR para el panel de detalle
+  const SLUG_TO_MUSCLES = {
+    'chest':      ['Pectoral Mayor'],
+    'deltoids':   ['Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior'],
+    'biceps':     ['Bíceps Braquial'],
+    'triceps':    ['Tríceps Braquial'],
+    'upper-back': ['Dorsal Ancho'],
+    'trapezius':  ['Trapecio'],
+    'abs':        ['Recto Abdominal'],
+    'obliques':   ['Oblicuos'],
+    'quadriceps': ['Cuádriceps'],
+    'hamstring':  ['Femoral'],
+    'gluteal':    ['Glúteo Mayor'],
+    'calves':     ['Gastrocnemio'],
+  };
+
+  // Datos para el Body component: un entry por músculo con color de zona
+  const bodyData = Object.entries(MUSCLE_TO_SLUG).map(([muscle, slug]) => ({
+    slug,
+    color: zoneColor(muscle),
+  }));
 
   // Calculate estimated 1RM from workout history
   const records = {};
@@ -239,28 +265,22 @@ export default function ProgresoScreen({ onNavigate }) {
         </TouchableOpacity>
       </View>
 
-      {/* SVG Body Map */}
+      {/* Body Map */}
       <View style={s.card}>
         <View style={s.mapWrap}>
-          <Svg width={230} height={518} viewBox="0 0 160 360">
-            {/* Skeleton */}
-            {SKEL.map((d, i) => (
-              <Path key={'sk' + i} d={d} fill={theme.text3} opacity={0.14} />
-            ))}
-
-            {/* Muscle groups */}
-            {Object.entries(muscleMap).map(([group, paths]) =>
-              paths.map((p, i) => (
-                <Path
-                  key={group + i}
-                  d={p.d}
-                  fill={muscleColor(group)}
-                  opacity={p.o || 1}
-                  onPress={() => setSelectedMuscle(selectedMuscle === group ? null : group)}
-                />
-              ))
-            )}
-          </Svg>
+          <Body
+            data={bodyData}
+            side={view}
+            scale={1.2}
+            defaultFill={theme.line2}
+            defaultStroke={theme.bg}
+            defaultStrokeWidth={1.5}
+            border={theme.bg}
+            onBodyPartPress={(part) => {
+              const slug = part.slug;
+              setSelectedMuscle(selectedMuscle === slug ? null : slug);
+            }}
+          />
         </View>
 
         {/* Legend */}
@@ -281,11 +301,11 @@ export default function ProgresoScreen({ onNavigate }) {
 
         {/* Selected muscle detail */}
         {selectedMuscle && (() => {
-          const muscles = MUSCLE_MAP[selectedMuscle] || [];
+          const muscles = SLUG_TO_MUSCLES[selectedMuscle] || [];
           return (
             <View style={s.muscleDetail}>
               <Text style={s.muscleDetailName}>{selectedMuscle}</Text>
-              {muscles.map(([m]) => {
+              {muscles.map((m) => {
                 const vr = VR[m];
                 const vol = Math.round(muscleVol[m] || 0);
                 const color = zoneColor(m);
