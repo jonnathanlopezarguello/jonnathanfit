@@ -78,7 +78,7 @@ export default function App() {
       case 'Entreno': return <EntrenoScreen />;
       case 'Comida': return <ComidaScreen />;
       case 'Plan': return <PlanScreen />;
-      case 'Progreso': return <ProgresoScreen />;
+      case 'Progreso': return <ProgresoScreen onNavigate={setTab} />;
       case 'Fuentes': return <FuentesScreen />;
       case 'Salud': return <SaludScreen />;
       case 'Perfil': return <PerfilScreen onNavigate={setTab} />;

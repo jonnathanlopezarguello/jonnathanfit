@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import theme from '../theme';
-import { load, KEYS } from '../store';
+import { load, save, KEYS } from '../store';
 import { T, DT } from '../data/exercises';
 import { SKEL, FM, BM, VR, MUSCLE_MAP } from '../data/bodymap';
 import { DEFAULT_PROFILE } from '../utils';
 
-export default function ProgresoScreen() {
+export default function ProgresoScreen({ onNavigate }) {
   const [profile, setProfile] = useState({ ...DEFAULT_PROFILE });
   const [workouts, setWorkouts] = useState([]);
   const [view, setView] = useState('front');
   const [selectedMuscle, setSelectedMuscle] = useState(null);
   const [exSearch, setExSearch] = useState('');
   const [selectedEx, setSelectedEx] = useState(null);
+  const [expandedMuscle, setExpandedMuscle] = useState(null);
+  const [quickPlan, setQuickPlan] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -21,6 +23,8 @@ export default function ProgresoScreen() {
       if (p) setProfile({ ...DEFAULT_PROFILE, ...p });
       const w = await load(KEYS.workouts);
       if (w) setWorkouts(w);
+      const qp = await load('jfit_qp');
+      if (qp) setQuickPlan(qp);
     })();
   }, []);
 
@@ -91,6 +95,27 @@ export default function ProgresoScreen() {
     return zoneColor(primary[0]);
   };
 
+  // Ejercicios hechos esta semana por músculo (para el panel expandido)
+  const muscleWeekEx = {};
+  Object.keys(VR).forEach((m) => { muscleWeekEx[m] = []; });
+  workouts.forEach((w) => {
+    if (w.dt >= weekAgoISO) {
+      (w.ex || []).forEach((exercise) => {
+        const group = exToGroup[exercise.name];
+        const muscles = group ? MUSCLE_MAP[group] : null;
+        if (!muscles) return;
+        const sets = (exercise.sets || []).length;
+        if (sets === 0) return;
+        muscles.forEach(([muscle]) => {
+          if (!muscleWeekEx[muscle]) return;
+          const existing = muscleWeekEx[muscle].find((e) => e.name === exercise.name);
+          if (existing) { existing.sets += sets; }
+          else { muscleWeekEx[muscle].push({ name: exercise.name, sets }); }
+        });
+      });
+    }
+  });
+
   // Mapa músculo → grupos de ejercicios que lo trabajan directamente
   const muscleToGroups = {};
   Object.entries(MUSCLE_MAP).forEach(([group, muscles]) => {
@@ -101,6 +126,31 @@ export default function ProgresoScreen() {
       }
     });
   });
+
+  // Todos los ejercicios de la librería que trabajan directamente un músculo
+  const exercisesForMuscle = (muscle) => {
+    const groups = muscleToGroups[muscle] || [];
+    const result = [];
+    const seen = new Set();
+    Object.values(T).forEach((dayEx) => {
+      dayEx.forEach((ex) => {
+        if (groups.includes(ex.g) && !seen.has(ex.n)) {
+          seen.add(ex.n);
+          result.push(ex);
+        }
+      });
+    });
+    return result;
+  };
+
+  const toggleQuickPlan = async (ex, muscle) => {
+    const exists = quickPlan.find((p) => p.n === ex.n);
+    const next = exists
+      ? quickPlan.filter((p) => p.n !== ex.n)
+      : [...quickPlan, { ...ex, muscle }];
+    setQuickPlan(next);
+    await save('jfit_qp', next);
+  };
 
   // Muscle map to render (front or back)
   const muscleMap = view === 'front' ? FM : BM;
@@ -261,7 +311,7 @@ export default function ProgresoScreen() {
           </View>
         </View>
 
-        {/* Tabla por músculo individual */}
+        {/* Tabla por músculo — acordeón */}
         {Object.entries(VR).map(([muscle, vr]) => {
           const vol = muscleVol[muscle] || 0;
           const volRound = Math.round(vol);
@@ -269,45 +319,114 @@ export default function ProgresoScreen() {
           const pctFill = Math.min(vol / vr.mrv, 1);
           const pctMev = vr.mev > 0 ? (vr.mev / vr.mrv) * 100 : 0;
           const pctMavLow = (vr.mav[0] / vr.mrv) * 100;
+          const isOpen = expandedMuscle === muscle;
+          const doneExs = muscleWeekEx[muscle] || [];
+          const availExs = exercisesForMuscle(muscle);
           return (
-            <View key={muscle} style={s.volRow}>
-              <Text style={s.volName} numberOfLines={1}>{muscle}</Text>
-              <View style={s.volBarOuter}>
-                {/* Zona MEV (rojo) */}
-                {pctMev > 0 && (
+            <View key={muscle}>
+              <TouchableOpacity
+                style={s.volRow}
+                onPress={() => setExpandedMuscle(isOpen ? null : muscle)}
+                activeOpacity={0.75}
+              >
+                <Text style={s.volName} numberOfLines={1}>{muscle}</Text>
+                <View style={s.volBarOuter}>
+                  {pctMev > 0 && (
+                    <View style={[s.volZoneBg, { left: 0, width: pctMev + '%', backgroundColor: theme.over + '22' }]} />
+                  )}
                   <View style={[s.volZoneBg, {
-                    left: 0, width: pctMev + '%',
-                    backgroundColor: theme.over + '22',
+                    left: pctMev + '%',
+                    width: (pctMavLow - pctMev) + '%',
+                    backgroundColor: AMBER + '18',
                   }]} />
-                )}
-                {/* Zona pre-MAV (ámbar) */}
-                <View style={[s.volZoneBg, {
-                  left: pctMev + '%',
-                  width: (pctMavLow - pctMev) + '%',
-                  backgroundColor: AMBER + '18',
-                }]} />
-                {/* Zona MAV (verde) */}
-                <View style={[s.volZoneBg, {
-                  left: pctMavLow + '%',
-                  right: 0,
-                  backgroundColor: theme.good + '18',
-                }]} />
-                {/* Relleno actual */}
-                <View style={[s.volBarFill, {
-                  width: (pctFill * 100) + '%',
-                  backgroundColor: color,
-                }]} />
-                {/* Marcador MEV */}
-                {pctMev > 0 && (
-                  <View style={[s.volTick, { left: pctMev + '%' }]} />
-                )}
-                {/* Marcador MAV inicio */}
-                <View style={[s.volTick, { left: pctMavLow + '%', backgroundColor: theme.good + 'AA' }]} />
-              </View>
-              <Text style={[s.volCount, { color }]}>{volRound}</Text>
+                  <View style={[s.volZoneBg, { left: pctMavLow + '%', right: 0, backgroundColor: theme.good + '18' }]} />
+                  <View style={[s.volBarFill, { width: (pctFill * 100) + '%', backgroundColor: color }]} />
+                  {pctMev > 0 && <View style={[s.volTick, { left: pctMev + '%' }]} />}
+                  <View style={[s.volTick, { left: pctMavLow + '%', backgroundColor: theme.good + 'AA' }]} />
+                </View>
+                <Text style={[s.volCount, { color }]}>{volRound}</Text>
+                <Text style={s.volChevron}>{isOpen ? '▴' : '▾'}</Text>
+              </TouchableOpacity>
+
+              {isOpen && (
+                <View style={[s.expandPanel, { borderLeftColor: color }]}>
+                  {/* Resumen de zona */}
+                  <View style={s.expandStats}>
+                    <Text style={[s.expandVolNum, { color }]}>{volRound}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.expandZoneLabel, { color }]}>{zoneLabel(muscle)}</Text>
+                      <Text style={s.expandRanges}>
+                        MEV {vr.mev} · MAV {vr.mav[0]}–{vr.mav[1]} · MRV {vr.mrv} series/sem
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Ejercicios hechos esta semana */}
+                  {doneExs.length > 0 && (
+                    <View style={s.expandSection}>
+                      <Text style={s.expandSectionLabel}>ESTA SEMANA</Text>
+                      {doneExs.map((ex, i) => (
+                        <View key={i} style={s.doneRow}>
+                          <View style={[s.doneDot, { backgroundColor: color }]} />
+                          <Text style={s.doneName} numberOfLines={1}>{ex.name}</Text>
+                          <Text style={s.doneSets}>{ex.sets} series</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Ejercicios disponibles para este músculo */}
+                  {availExs.length > 0 && (
+                    <View style={s.expandSection}>
+                      <Text style={s.expandSectionLabel}>PUEDES HACER</Text>
+                      {availExs.map((ex, i) => {
+                        const inPlan = quickPlan.some((p) => p.n === ex.n);
+                        return (
+                          <View key={i} style={[s.availRow, i === availExs.length - 1 && { borderBottomWidth: 0 }]}>
+                            <View style={{ flex: 1, paddingRight: 8 }}>
+                              <Text style={s.availName} numberOfLines={1}>{ex.n}</Text>
+                              <Text style={s.availMeta} numberOfLines={1}>
+                                {ex.s}×{ex.r} · {ex.f}
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              style={[s.addBtn, inPlan && s.addBtnDone]}
+                              onPress={() => toggleQuickPlan(ex, muscle)}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={[s.addBtnTxt, inPlan && { color: theme.good }]}>
+                                {inPlan ? '✓' : '+'}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           );
         })}
+
+        {/* Lista de ejercicios guardados para hacer */}
+        {quickPlan.length > 0 && (
+          <View style={s.quickPlanBox}>
+            <View style={s.qpHeader}>
+              <Text style={s.qpTitle}>POR HACER</Text>
+              <TouchableOpacity onPress={() => { setQuickPlan([]); save('jfit_qp', []); }}>
+                <Text style={s.qpClear}>Borrar todo</Text>
+              </TouchableOpacity>
+            </View>
+            {quickPlan.map((ex, i) => (
+              <View key={i} style={s.qpRow}>
+                <Text style={s.qpMuscle} numberOfLines={1}>{ex.muscle}</Text>
+                <Text style={s.qpExName} numberOfLines={1}>{ex.n}</Text>
+                <Text style={s.qpSets}>{ex.s}×{ex.r}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Weight card */}
@@ -661,7 +780,13 @@ const s = StyleSheet.create({
   volName: {
     fontSize: 11,
     color: theme.text2,
-    width: 138,
+    width: 118,
+  },
+  volChevron: {
+    fontSize: 9,
+    color: theme.text3,
+    width: 14,
+    textAlign: 'center',
   },
   volBarOuter: {
     flex: 1,
@@ -833,6 +958,158 @@ const s = StyleSheet.create({
   histExName: { flex: 1, fontSize: 12, color: theme.text2 },
   histExVal: { fontSize: 12, color: theme.good, fontVariant: ['tabular-nums'] },
   histExNote: { flex: 1, fontSize: 11, color: theme.text3, fontStyle: 'italic' },
+
+  /* Acordeón muscular — panel expandido */
+  expandPanel: {
+    backgroundColor: theme.accentSoft,
+    padding: 14,
+    marginBottom: 2,
+    borderLeftWidth: 2,
+  },
+  expandStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+  },
+  expandVolNum: {
+    fontSize: 30,
+    fontWeight: '200',
+    fontVariant: ['tabular-nums'],
+    lineHeight: 32,
+  },
+  expandZoneLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 3,
+  },
+  expandRanges: {
+    fontSize: 10,
+    color: theme.text3,
+    fontVariant: ['tabular-nums'],
+  },
+  expandSection: {
+    marginTop: 10,
+  },
+  expandSectionLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 2,
+    color: theme.text3,
+    marginBottom: 8,
+  },
+  doneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  doneDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    flexShrink: 0,
+  },
+  doneName: {
+    flex: 1,
+    fontSize: 12,
+    color: theme.text2,
+  },
+  doneSets: {
+    fontSize: 11,
+    color: theme.text3,
+    fontVariant: ['tabular-nums'],
+  },
+  availRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+  },
+  availName: {
+    fontSize: 12,
+    color: theme.text,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  availMeta: {
+    fontSize: 10,
+    color: theme.text3,
+    lineHeight: 14,
+  },
+  addBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: theme.line2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  addBtnDone: {
+    borderColor: theme.good,
+    backgroundColor: theme.good + '18',
+  },
+  addBtnTxt: {
+    fontSize: 16,
+    color: theme.text3,
+    lineHeight: 20,
+  },
+
+  /* Plan rápido guardado */
+  quickPlanBox: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: theme.line,
+  },
+  qpHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  qpTitle: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 2,
+    color: theme.text3,
+  },
+  qpClear: {
+    fontSize: 11,
+    color: theme.over,
+  },
+  qpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+  },
+  qpMuscle: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: theme.text3,
+    width: 80,
+    flexShrink: 0,
+  },
+  qpExName: {
+    flex: 1,
+    fontSize: 12,
+    color: theme.text,
+  },
+  qpSets: {
+    fontSize: 11,
+    color: theme.text3,
+    fontVariant: ['tabular-nums'],
+  },
 
   /* Reinforcement */
   reinforceIntro: {
