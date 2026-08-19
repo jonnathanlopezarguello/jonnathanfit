@@ -242,7 +242,7 @@ export default function ProgresoScreen({ onNavigate }) {
       {/* SVG Body Map */}
       <View style={s.card}>
         <View style={s.mapWrap}>
-          <Svg width={200} height={450} viewBox="0 0 160 360">
+          <Svg width={230} height={518} viewBox="0 0 160 360">
             {/* Skeleton */}
             {SKEL.map((d, i) => (
               <Path key={'sk' + i} d={d} fill={theme.text3} opacity={0.14} />
