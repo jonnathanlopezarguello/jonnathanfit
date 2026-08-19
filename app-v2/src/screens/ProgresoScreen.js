@@ -4,7 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import theme from '../theme';
 import { load, KEYS } from '../store';
 import { T, DT } from '../data/exercises';
-import { SKEL, FM, BM, VR } from '../data/bodymap';
+import { SKEL, FM, BM, VR, MUSCLE_MAP } from '../data/bodymap';
 import { DEFAULT_PROFILE } from '../utils';
 
 export default function ProgresoScreen() {
@@ -24,53 +24,83 @@ export default function ProgresoScreen() {
     })();
   }, []);
 
-  // Build exercise-to-muscle-group map from training data
+  const AMBER = '#C8943A';
+
+  // Mapa ejercicio → grupo muscular
   const exToGroup = {};
   Object.values(T).forEach((dayExercises) => {
-    dayExercises.forEach((ex) => {
-      exToGroup[ex.n] = ex.g;
-    });
+    dayExercises.forEach((ex) => { exToGroup[ex.n] = ex.g; });
   });
 
-  // Calculate weekly volume (sets per muscle group) from workout history
-  // Consider workouts from the last 7 days
+  // Volumen semanal (últimos 7 días) por músculo individual
+  // Series directas × 1.0 · Series indirectas × 0.5
   const now = new Date();
   const weekAgo = new Date(now);
   weekAgo.setDate(weekAgo.getDate() - 7);
   const weekAgoISO = weekAgo.toISOString().slice(0, 10);
 
-  const volumeMap = {};
-  Object.keys(VR).forEach((g) => { volumeMap[g] = 0; });
+  const muscleVol = {};
+  Object.keys(VR).forEach((m) => { muscleVol[m] = 0; });
 
   workouts.forEach((w) => {
     if (w.dt >= weekAgoISO) {
       (w.ex || []).forEach((exercise) => {
         const group = exToGroup[exercise.name];
-        if (group && volumeMap[group] !== undefined) {
-          volumeMap[group] += (exercise.sets || []).length;
+        const muscles = group ? MUSCLE_MAP[group] : null;
+        if (muscles) {
+          const sets = (exercise.sets || []).length;
+          muscles.forEach(([muscle, weight]) => {
+            if (muscleVol[muscle] !== undefined) {
+              muscleVol[muscle] += sets * weight;
+            }
+          });
         }
       });
     }
   });
 
-  // Determine muscle color by volume status
-  const muscleColor = (group) => {
-    const vol = volumeMap[group] || 0;
-    const range = VR[group];
-    if (!range) return theme.text3;
-    if (vol >= range[0]) return theme.good;
-    if (vol >= range[0] * 0.6) return theme.text3;
-    return theme.over;
+  // Color por zona MEV/MAV/MRV
+  const zoneColor = (muscle) => {
+    const vol = muscleVol[muscle] || 0;
+    const vr = VR[muscle];
+    if (!vr) return theme.text3;
+    if (vol === 0) return theme.text3;
+    if (vol < vr.mev) return theme.over;
+    if (vol < vr.mav[0]) return AMBER;
+    if (vol <= vr.mrv) return theme.good;
+    return theme.over; // encima del MRV
   };
 
-  const muscleStatus = (group) => {
-    const vol = volumeMap[group] || 0;
-    const range = VR[group];
-    if (!range) return 'unknown';
-    if (vol >= range[0]) return 'met';
-    if (vol >= range[0] * 0.6) return 'almost';
-    return 'lacking';
+  const zoneLabel = (muscle) => {
+    const vol = muscleVol[muscle] || 0;
+    const vr = VR[muscle];
+    if (!vr) return '';
+    if (vol === 0) return 'Sin volumen';
+    if (vol < vr.mev) return 'Bajo MEV';
+    if (vol < vr.mav[0]) return 'Acercándose';
+    if (vol <= vr.mrv) return 'Zona óptima';
+    return 'Encima MRV';
   };
+
+  // Para el mapa SVG — traducir grupo → color predominante
+  const muscleColor = (group) => {
+    const muscles = MUSCLE_MAP[group];
+    if (!muscles) return theme.text3;
+    const primary = muscles.find(([, w]) => w >= 1.0);
+    if (!primary) return theme.text3;
+    return zoneColor(primary[0]);
+  };
+
+  // Mapa músculo → grupos de ejercicios que lo trabajan directamente
+  const muscleToGroups = {};
+  Object.entries(MUSCLE_MAP).forEach(([group, muscles]) => {
+    muscles.forEach(([muscle, weight]) => {
+      if (weight >= 1.0) {
+        if (!muscleToGroups[muscle]) muscleToGroups[muscle] = [];
+        muscleToGroups[muscle].push(group);
+      }
+    });
+  });
 
   // Muscle map to render (front or back)
   const muscleMap = view === 'front' ? FM : BM;
@@ -99,26 +129,27 @@ export default function ProgresoScreen() {
     .slice(0, 8)
     .map(([name, e1rm]) => [name, units === 'lbs' ? Math.round(e1rm * 2.2046) : e1rm]);
 
-  // Weekend reinforcement: muscle groups below minimum volume
+  // Refuerzo: músculos individuales por debajo del MEV
   const lacking = Object.entries(VR)
-    .filter(([group]) => {
-      const vol = volumeMap[group] || 0;
-      return vol < VR[group][0];
+    .filter(([muscle, vr]) => {
+      if (vr.mev === 0) return false; // músculos sin MEV definido no se alertan
+      return (muscleVol[muscle] || 0) < vr.mev;
     })
-    .map(([group, range]) => {
-      const vol = volumeMap[group] || 0;
-      const deficit = range[0] - vol;
-      // Find exercises for this group
+    .map(([muscle, vr]) => {
+      const vol = Math.round(muscleVol[muscle] || 0);
+      const deficit = vr.mev - vol;
+      const groups = muscleToGroups[muscle] || [];
       const exercises = [];
-      Object.values(T).forEach((dayExercises) => {
-        dayExercises.forEach((ex) => {
-          if (ex.g === group && !exercises.find((e) => e.n === ex.n)) {
+      Object.values(T).forEach((dayEx) => {
+        dayEx.forEach((ex) => {
+          if (groups.includes(ex.g) && !exercises.find((e) => e.n === ex.n)) {
             exercises.push(ex);
           }
         });
       });
-      return { group, vol, min: range[0], deficit, exercises: exercises.slice(0, 2) };
-    });
+      return { muscle, vol, mev: vr.mev, deficit, exercises: exercises.slice(0, 2) };
+    })
+    .sort((a, b) => b.deficit - a.deficit);
 
   return (
     <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
@@ -191,36 +222,89 @@ export default function ProgresoScreen() {
         </View>
 
         {/* Selected muscle detail */}
-        {selectedMuscle && (
-          <View style={s.muscleDetail}>
-            <Text style={s.muscleDetailName}>{selectedMuscle}</Text>
-            <Text style={s.muscleDetailVol}>
-              {volumeMap[selectedMuscle] || 0} / {VR[selectedMuscle] ? VR[selectedMuscle][0] + '-' + VR[selectedMuscle][1] : '?'} sets semanales
-            </Text>
-          </View>
-        )}
-
-        {/* Volume table */}
-        {Object.entries(VR).map(([group, range]) => {
-          const vol = volumeMap[group] || 0;
-          const status = muscleStatus(group);
-          const color = status === 'met' ? theme.good : status === 'almost' ? theme.text3 : theme.over;
+        {selectedMuscle && (() => {
+          const muscles = MUSCLE_MAP[selectedMuscle] || [];
           return (
-            <View key={group} style={s.volRow}>
-              <Text style={s.volGroup}>{group}</Text>
+            <View style={s.muscleDetail}>
+              <Text style={s.muscleDetailName}>{selectedMuscle}</Text>
+              {muscles.map(([m]) => {
+                const vr = VR[m];
+                const vol = Math.round(muscleVol[m] || 0);
+                const color = zoneColor(m);
+                if (!vr) return null;
+                return (
+                  <View key={m} style={s.muscleDetailRow}>
+                    <Text style={[s.muscleDetailMuscle, { color }]}>{m}</Text>
+                    <Text style={s.muscleDetailVol}>
+                      {vol} series · MEV {vr.mev} · MAV {vr.mav[0]}–{vr.mav[1]}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          );
+        })()}
+
+        {/* Leyenda de zonas */}
+        <View style={s.zoneLegend}>
+          <View style={s.zoneLegendItem}>
+            <View style={[s.zoneDot, { backgroundColor: theme.over }]} />
+            <Text style={s.zoneLegendTxt}>Bajo MEV</Text>
+          </View>
+          <View style={s.zoneLegendItem}>
+            <View style={[s.zoneDot, { backgroundColor: AMBER }]} />
+            <Text style={s.zoneLegendTxt}>Acercándose</Text>
+          </View>
+          <View style={s.zoneLegendItem}>
+            <View style={[s.zoneDot, { backgroundColor: theme.good }]} />
+            <Text style={s.zoneLegendTxt}>Zona MAV</Text>
+          </View>
+        </View>
+
+        {/* Tabla por músculo individual */}
+        {Object.entries(VR).map(([muscle, vr]) => {
+          const vol = muscleVol[muscle] || 0;
+          const volRound = Math.round(vol);
+          const color = zoneColor(muscle);
+          const pctFill = Math.min(vol / vr.mrv, 1);
+          const pctMev = vr.mev > 0 ? (vr.mev / vr.mrv) * 100 : 0;
+          const pctMavLow = (vr.mav[0] / vr.mrv) * 100;
+          return (
+            <View key={muscle} style={s.volRow}>
+              <Text style={s.volName} numberOfLines={1}>{muscle}</Text>
               <View style={s.volBarOuter}>
-                <View
-                  style={[
-                    s.volBarInner,
-                    {
-                      width: Math.min((vol / range[1]) * 100, 100) + '%',
-                      backgroundColor: color,
-                    },
-                  ]}
-                />
+                {/* Zona MEV (rojo) */}
+                {pctMev > 0 && (
+                  <View style={[s.volZoneBg, {
+                    left: 0, width: pctMev + '%',
+                    backgroundColor: theme.over + '22',
+                  }]} />
+                )}
+                {/* Zona pre-MAV (ámbar) */}
+                <View style={[s.volZoneBg, {
+                  left: pctMev + '%',
+                  width: (pctMavLow - pctMev) + '%',
+                  backgroundColor: AMBER + '18',
+                }]} />
+                {/* Zona MAV (verde) */}
+                <View style={[s.volZoneBg, {
+                  left: pctMavLow + '%',
+                  right: 0,
+                  backgroundColor: theme.good + '18',
+                }]} />
+                {/* Relleno actual */}
+                <View style={[s.volBarFill, {
+                  width: (pctFill * 100) + '%',
+                  backgroundColor: color,
+                }]} />
+                {/* Marcador MEV */}
+                {pctMev > 0 && (
+                  <View style={[s.volTick, { left: pctMev + '%' }]} />
+                )}
+                {/* Marcador MAV inicio */}
+                <View style={[s.volTick, { left: pctMavLow + '%', backgroundColor: theme.good + 'AA' }]} />
               </View>
-              <Text style={[s.volCount, { color }]}>{vol}</Text>
-              <Text style={s.volRange}>/{range[0]}-{range[1]}</Text>
+              <Text style={[s.volCount, { color }]}>{volRound}</Text>
             </View>
           );
         })}
@@ -384,19 +468,19 @@ export default function ProgresoScreen() {
 
           <View style={s.card}>
             <Text style={s.reinforceIntro}>
-              Grupos musculares por debajo del volumen minimo semanal. Completa con estos ejercicios:
+              Músculos por debajo del MEV semanal. Agrega estas series antes del domingo:
             </Text>
             {lacking.map((item) => (
-              <View key={item.group} style={s.reinforceBlock}>
+              <View key={item.muscle} style={s.reinforceBlock}>
                 <View style={s.reinforceHeader}>
-                  <Text style={s.reinforceGroup}>{item.group}</Text>
+                  <Text style={s.reinforceGroup}>{item.muscle}</Text>
                   <Text style={s.reinforceDeficit}>
-                    {item.vol}/{item.min} sets  ·  faltan {item.deficit}
+                    {item.vol}/{item.mev} series · faltan {item.deficit}
                   </Text>
                 </View>
                 {item.exercises.map((ex, i) => (
                   <Text key={i} style={s.reinforceEx}>
-                    {ex.n}  ·  {ex.s}x{ex.r}
+                    {ex.n}  ·  {ex.s}×{ex.r}
                   </Text>
                 ))}
               </View>
@@ -517,56 +601,103 @@ const s = StyleSheet.create({
   muscleDetail: {
     backgroundColor: theme.accentSoft,
     padding: 12,
-    marginBottom: 14,
-    alignItems: 'center',
+    marginBottom: 10,
+    borderRadius: 4,
   },
   muscleDetailName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: theme.text,
-    marginBottom: 2,
+    marginBottom: 6,
+  },
+  muscleDetailRow: {
+    marginBottom: 4,
+  },
+  muscleDetailMuscle: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   muscleDetailVol: {
-    fontSize: 12,
-    color: theme.text2,
+    fontSize: 11,
+    color: theme.text3,
+    marginTop: 1,
+    fontVariant: ['tabular-nums'],
+  },
+
+  /* Leyenda de zonas MEV/MAV */
+  zoneLegend: {
+    flexDirection: 'row',
+    gap: 14,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+  },
+  zoneLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  zoneDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  zoneLegendTxt: {
+    fontSize: 10,
+    color: theme.text3,
+    letterSpacing: 0.3,
   },
 
   /* Volume rows */
   volRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderBottomWidth: 1,
     borderBottomColor: theme.line,
+    gap: 8,
   },
-  volGroup: {
-    fontSize: 12,
-    color: theme.text,
-    width: 100,
+  volName: {
+    fontSize: 11,
+    color: theme.text2,
+    width: 138,
   },
   volBarOuter: {
     flex: 1,
-    height: 4,
-    backgroundColor: theme.line2,
-    borderRadius: 2,
-    marginHorizontal: 8,
-    overflow: 'hidden',
+    height: 6,
+    backgroundColor: theme.line,
+    borderRadius: 3,
+    overflow: 'visible',
+    position: 'relative',
   },
-  volBarInner: {
-    height: 4,
-    borderRadius: 2,
+  volZoneBg: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    borderRadius: 3,
+  },
+  volBarFill: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: 3,
+  },
+  volTick: {
+    position: 'absolute',
+    top: -2,
+    bottom: -2,
+    width: 1.5,
+    backgroundColor: theme.line2,
+    borderRadius: 1,
   },
   volCount: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
-    width: 24,
+    width: 22,
     textAlign: 'right',
-  },
-  volRange: {
-    fontSize: 11,
-    color: theme.text3,
-    fontVariant: ['tabular-nums'],
   },
 
   /* Weight card */

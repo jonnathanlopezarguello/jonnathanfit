@@ -56,16 +56,43 @@ const BM = {
   ],
 };
 
+// Rangos de volumen semanal por MÚSCULO INDIVIDUAL (series/semana)
+// MEV = Mínimo Efectivo · MAV = Zona Óptima [min, max] · MRV = Máximo Recuperable
+// Fuentes: Schoenfeld et al. 2017 (J Sports Sci), Baz-Valle et al. 2022 (J Human Kinetics),
+//          Israetel et al. — RP Hypertrophy Training Guide
 const VR = {
-  'Cuadriceps': [12, 18],
-  'Femoral/Gluteo': [12, 18],
-  'Hombro': [14, 22],
-  'Abdomen': [14, 26],
-  'Gemelo': [8, 16],
-  'Pecho': [10, 18],
-  'Espalda': [10, 18],
-  'Biceps': [8, 16],
-  'Triceps': [8, 16],
+  'Pectoral Mayor':      { mev: 8,  mav: [12, 20], mrv: 22 },
+  'Deltoides Anterior':  { mev: 6,  mav: [12, 18], mrv: 22 },
+  'Deltoides Lateral':   { mev: 8,  mav: [16, 22], mrv: 26 },
+  'Deltoides Posterior': { mev: 8,  mav: [16, 22], mrv: 26 },
+  'Bíceps Braquial':     { mev: 8,  mav: [14, 20], mrv: 26 },
+  'Tríceps Braquial':    { mev: 6,  mav: [10, 14], mrv: 20 },
+  'Dorsal Ancho':        { mev: 10, mav: [14, 22], mrv: 25 },
+  'Trapecio':            { mev: 0,  mav: [12, 20], mrv: 26 },
+  'Recto Abdominal':     { mev: 0,  mav: [16, 20], mrv: 25 },
+  'Oblicuos':            { mev: 0,  mav: [12, 16], mrv: 20 },
+  'Cuádriceps':          { mev: 8,  mav: [12, 18], mrv: 20 },
+  'Femoral':             { mev: 6,  mav: [10, 16], mrv: 20 },
+  'Glúteo Mayor':        { mev: 0,  mav: [4,  12], mrv: 16 },
+  'Gastrocnemio':        { mev: 8,  mav: [12, 16], mrv: 20 },
 };
 
-module.exports = { SKEL, FM, BM, VR };
+// Mapeo ejercicio.g → músculos con peso de contribución
+// 1.0 = músculo primario (series directas)
+// 0.5 = músculo secundario (series indirectas)
+const MUSCLE_MAP = {
+  'Pecho':          [['Pectoral Mayor', 1.0], ['Deltoides Anterior', 0.5], ['Tríceps Braquial', 0.5]],
+  'Hombro':         [['Deltoides Lateral', 1.0], ['Deltoides Anterior', 0.5], ['Deltoides Posterior', 0.5]],
+  'Biceps':         [['Bíceps Braquial', 1.0]],
+  'Triceps':        [['Tríceps Braquial', 1.0]],
+  'Espalda':        [['Dorsal Ancho', 1.0], ['Bíceps Braquial', 0.5], ['Trapecio', 0.5]],
+  'Trapecio':       [['Trapecio', 1.0]],
+  'Abdomen':        [['Recto Abdominal', 1.0], ['Oblicuos', 0.5]],
+  'Cuadriceps':     [['Cuádriceps', 1.0], ['Glúteo Mayor', 0.5]],
+  'Femoral/Gluteo': [['Femoral', 1.0], ['Glúteo Mayor', 1.0]],
+  'Femoral':        [['Femoral', 1.0]],
+  'Gluteo':         [['Glúteo Mayor', 1.0]],
+  'Gemelo':         [['Gastrocnemio', 1.0]],
+};
+
+module.exports = { SKEL, FM, BM, VR, MUSCLE_MAP };
