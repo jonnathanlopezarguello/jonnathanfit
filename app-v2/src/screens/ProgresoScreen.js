@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 
 import Svg, { Path } from 'react-native-svg';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
-import { T, DT } from '../data/exercises';
-import { SKEL, FM, BM, VR, MUSCLE_MAP } from '../data/bodymap';
+import { T, DT, EXERCISE_LIBRARY } from '../data/exercises';
+import { SKEL, FM, BM, VR, MUSCLE_MAP, EXERCISE_MUSCLE_MAP } from '../data/bodymap';
 import { DEFAULT_PROFILE } from '../utils';
 
 export default function ProgresoScreen({ onNavigate }) {
@@ -49,10 +49,15 @@ export default function ProgresoScreen({ onNavigate }) {
   workouts.forEach((w) => {
     if (w.dt >= weekAgoISO) {
       (w.ex || []).forEach((exercise) => {
-        const group = exToGroup[exercise.name];
-        const muscles = group ? MUSCLE_MAP[group] : null;
+        const sets = (exercise.sets || []).length;
+        if (sets === 0) return;
+        // Usar mapa por ejercicio individual primero; si no existe, caer en mapa de grupo
+        const exMuscles = EXERCISE_MUSCLE_MAP[exercise.name];
+        const muscles = exMuscles || (() => {
+          const group = exToGroup[exercise.name];
+          return group ? MUSCLE_MAP[group] : null;
+        })();
         if (muscles) {
-          const sets = (exercise.sets || []).length;
           muscles.forEach(([muscle, weight]) => {
             if (muscleVol[muscle] !== undefined) {
               muscleVol[muscle] += sets * weight;
@@ -101,11 +106,14 @@ export default function ProgresoScreen({ onNavigate }) {
   workouts.forEach((w) => {
     if (w.dt >= weekAgoISO) {
       (w.ex || []).forEach((exercise) => {
-        const group = exToGroup[exercise.name];
-        const muscles = group ? MUSCLE_MAP[group] : null;
-        if (!muscles) return;
         const sets = (exercise.sets || []).length;
         if (sets === 0) return;
+        const exMuscles = EXERCISE_MUSCLE_MAP[exercise.name];
+        const muscles = exMuscles || (() => {
+          const group = exToGroup[exercise.name];
+          return group ? MUSCLE_MAP[group] : null;
+        })();
+        if (!muscles) return;
         muscles.forEach(([muscle]) => {
           if (!muscleWeekEx[muscle]) return;
           const existing = muscleWeekEx[muscle].find((e) => e.name === exercise.name);
@@ -129,16 +137,16 @@ export default function ProgresoScreen({ onNavigate }) {
 
   // Todos los ejercicios de la librería que trabajan directamente un músculo
   const exercisesForMuscle = (muscle) => {
-    const groups = muscleToGroups[muscle] || [];
     const result = [];
     const seen = new Set();
-    Object.values(T).forEach((dayEx) => {
-      dayEx.forEach((ex) => {
-        if (groups.includes(ex.g) && !seen.has(ex.n)) {
-          seen.add(ex.n);
-          result.push(ex);
-        }
-      });
+    EXERCISE_LIBRARY.forEach((ex) => {
+      const muscles = EXERCISE_MUSCLE_MAP[ex.n];
+      if (!muscles) return;
+      const isPrimary = muscles.some(([m, w]) => m === muscle && w >= 1.0);
+      if (isPrimary && !seen.has(ex.n)) {
+        seen.add(ex.n);
+        result.push(ex);
+      }
     });
     return result;
   };
