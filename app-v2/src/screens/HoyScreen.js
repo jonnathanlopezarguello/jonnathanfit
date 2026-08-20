@@ -16,7 +16,6 @@ const MACRO_COLORS = {
   PROTEINA: '#7FB07A',
   CARBOS: '#F2F2EE',
   GRASA: '#D26A45',
-  FIBRA: '#B9B9B2',
 };
 
 function dateLbl() {
@@ -119,14 +118,13 @@ export default function HoyScreen({ onNavigate }) {
   const targets = calc(profile);
 
   // Sum consumed from nutrition log
-  const consumed = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
+  const consumed = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   if (Array.isArray(nutrition)) {
     for (const item of nutrition) {
       consumed.kcal += item.k || 0;
       consumed.protein += item.p || 0;
       consumed.carbs += item.c || 0;
       consumed.fat += item.f || 0;
-      consumed.fiber += item.fi || 0;
     }
   }
 
@@ -134,7 +132,8 @@ export default function HoyScreen({ onNavigate }) {
     ? Math.round(4.5 * profile.weight * (todayWorkout.dur / 60))
     : 0;
   const burnedSteps = Math.round(parseFloat(activity.steps || 0) * 0.04);
-  const totalBurned = burnedTraining + burnedSteps;
+  const burnedCardio = Math.round(7 * (profile.weight / 70) * parseFloat(activity.cardio || 0));
+  const totalBurned = burnedTraining + burnedSteps + burnedCardio;
   const netKcal = consumed.kcal - totalBurned;
   const kcalBalance = netKcal - targets.kcal;
 
@@ -198,7 +197,7 @@ export default function HoyScreen({ onNavigate }) {
         )}
         {(consumed.kcal > 0 || totalBurned > 0) && (
           <Text style={s.burnBreakdown}>
-            Entreno {burnedTraining} kcal  ·  Pasos {burnedSteps} kcal
+            Entreno {burnedTraining} kcal  ·  Pasos {burnedSteps} kcal{burnedCardio > 0 ? `  ·  Cardio ${burnedCardio} kcal` : ''}
           </Text>
         )}
 
@@ -206,7 +205,6 @@ export default function HoyScreen({ onNavigate }) {
           <MacroBar label="PROTEINA" current={consumed.protein} target={targets.protein} color={MACRO_COLORS.PROTEINA} />
           <MacroBar label="CARBOS" current={consumed.carbs} target={targets.carbs} color={MACRO_COLORS.CARBOS} />
           <MacroBar label="GRASA" current={consumed.fat} target={targets.fat} color={MACRO_COLORS.GRASA} />
-          <MacroBar label="FIBRA" current={consumed.fiber} target={targets.fiber} color={MACRO_COLORS.FIBRA} />
         </View>
 
         <TouchableOpacity style={s.btnAccent} onPress={() => onNavigate && onNavigate('Comida')} activeOpacity={0.7}>

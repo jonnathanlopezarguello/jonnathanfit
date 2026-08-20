@@ -37,19 +37,19 @@ export default function PlanScreen() {
         <View style={s.macroGrid}>
           <View style={s.macroItem}>
             <Text style={s.macroValue}>{targets.protein}g</Text>
-            <Text style={s.macroName}>Protein</Text>
+            <Text style={s.macroName}>Proteína</Text>
           </View>
           <View style={s.macroItem}>
             <Text style={s.macroValue}>{targets.carbs}g</Text>
-            <Text style={s.macroName}>Carbs</Text>
+            <Text style={s.macroName}>Carbos</Text>
           </View>
           <View style={s.macroItem}>
             <Text style={s.macroValue}>{targets.fat}g</Text>
-            <Text style={s.macroName}>Fat</Text>
+            <Text style={s.macroName}>Grasa</Text>
           </View>
           <View style={s.macroItem}>
             <Text style={s.macroValue}>{targets.fiber}g</Text>
-            <Text style={s.macroName}>Fiber</Text>
+            <Text style={s.macroName}>Fibra</Text>
           </View>
         </View>
 
