@@ -85,7 +85,7 @@ export default function SaludScreen() {
 
   useEffect(() => {
     if (connected && hcStatus === 'ready') syncDay(dayOffset);
-  }, [dayOffset, connected]);
+  }, [dayOffset, connected, hcStatus, syncDay]);
 
   const toggleReminders = (val) => {
     setRemindersOn(val);
@@ -137,16 +137,18 @@ export default function SaludScreen() {
 
       const dayData = { steps, heartRate, sleep, calories, distance, exercise };
 
-      const next = { ...healthData, [key]: dayData };
-      setHealthData(next);
-      save(KEYS.healthConnect, next);
+      setHealthData(prev => {
+        const next = { ...prev, [key]: dayData };
+        save(KEYS.healthConnect, next);
+        return next;
+      });
       setConnected(true);
     } catch (e) {
       Alert.alert('Error al sincronizar', e.message || 'Verifica los permisos de Health Connect.');
     } finally {
       setSyncing(false);
     }
-  }, [healthData]);
+  }, []);
 
   const connectHealthConnect = async () => {
     if (hcStatus === 'unavailable') {

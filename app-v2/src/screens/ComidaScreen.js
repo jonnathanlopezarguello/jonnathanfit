@@ -111,7 +111,7 @@ export default function ComidaScreen() {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       quality: 0.7,
       base64: true,
     });
@@ -139,7 +139,7 @@ export default function ComidaScreen() {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       quality: 0.7,
       base64: true,
     });
@@ -400,6 +400,7 @@ export default function ComidaScreen() {
   });
 
   return (
+    <>
     <ScrollView style={s.root} contentContainerStyle={s.pad}>
       {/* header */}
       <Text style={s.sectionLabel}>REGISTRO DE ALIMENTACION</Text>
@@ -515,6 +516,7 @@ export default function ComidaScreen() {
       onRegister={registerScannedFoods}
       onClose={() => { setScanVisible(false); setScanFoods([]); setScanLoading(false); }}
     />
+    </>
   );
 }
 

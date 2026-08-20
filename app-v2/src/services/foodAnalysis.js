@@ -53,7 +53,8 @@ Si ves platos colombianos o latinoamericanos, identifícalos correctamente.`;
   }
 
   const data = await response.json();
-  const text = data.content[0].text.trim();
+  const text = (data.content?.[0]?.text || '').trim();
+  if (!text) throw new Error('Respuesta vacía de la IA');
 
   // Strip markdown code blocks if present
   const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();

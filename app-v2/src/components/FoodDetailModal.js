@@ -17,7 +17,7 @@ const FOOD_EMOJIS = {
 };
 
 function getFoodEmoji(name) {
-  const lower = name.toLowerCase();
+  const lower = (name || '').toLowerCase();
   for (const [key, emoji] of Object.entries(FOOD_EMOJIS)) {
     if (lower.includes(key)) return emoji;
   }
@@ -28,6 +28,14 @@ export default function FoodDetailModal({ visible, food, onSave, onDelete, onClo
   const [mode, setMode] = useState('porciones'); // 'porciones' | 'gramos'
   const [portions, setPortions] = useState(1);
   const [grams, setGrams] = useState(food?.g || 100);
+
+  React.useEffect(() => {
+    if (food) {
+      setPortions(1);
+      setGrams(food.g || 100);
+      setMode('porciones');
+    }
+  }, [food?.n]);
 
   const baseGrams = food?.g || 100;
 

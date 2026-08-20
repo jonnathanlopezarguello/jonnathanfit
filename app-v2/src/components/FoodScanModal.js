@@ -24,7 +24,7 @@ function getEmoji(name) {
   return FOOD_EMOJIS.default;
 }
 
-function fmt(d) {
+function fmt() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2, '0');
   const m = now.getMinutes().toString().padStart(2, '0');

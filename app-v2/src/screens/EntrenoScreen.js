@@ -618,21 +618,12 @@ export default function EntrenoScreen() {
                 onPress={() =>
                   Linking.openURL(
                     'https://www.youtube.com/results?search_query=' +
-                      encodeURIComponent(cur.name + ' shakil ahmed tone garage'),
+                      encodeURIComponent(cur.name + ' técnica correcta'),
                   )
                 }
                 activeOpacity={0.7}
               >
-                <Text style={s.techLinkTxt}>Buscar en YouTube</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={s.techLink}
-                onPress={() =>
-                  Linking.openURL('https://www.instagram.com/transformwithshakil/')
-                }
-                activeOpacity={0.7}
-              >
-                <Text style={s.techLinkTxt}>@transformwithshakil</Text>
+                <Text style={s.techLinkTxt}>Ver técnica en YouTube</Text>
               </TouchableOpacity>
             </View>
           )}
