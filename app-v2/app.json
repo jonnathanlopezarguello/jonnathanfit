@@ -31,6 +31,20 @@
             "minSdkVersion": 26
           }
         }
+      ],
+      [
+        "react-native-health-connect",
+        {
+          "permissions": [
+            "android.permission.health.READ_STEPS",
+            "android.permission.health.READ_HEART_RATE",
+            "android.permission.health.READ_SLEEP",
+            "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+            "android.permission.health.READ_DISTANCE",
+            "android.permission.health.READ_EXERCISE_ROUTE",
+            "android.permission.health.READ_TOTAL_CALORIES_BURNED"
+          ]
+        }
       ]
     ],
     "extra": {
