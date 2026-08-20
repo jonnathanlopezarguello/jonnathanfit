@@ -136,14 +136,14 @@ export default function PerfilScreen({ onNavigate }) {
       });
 
       const csv = [header, ...rows].join('\n');
-      const path = FileSystem.documentDirectory + 'jonnathanfit_datos.csv';
+      const path = FileSystem.documentDirectory + 'fulgor_datos.csv';
       await FileSystem.writeAsStringAsync(path, csv, { encoding: FileSystem.EncodingType.UTF8 });
 
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
         await Sharing.shareAsync(path, {
           mimeType: 'text/csv',
-          dialogTitle: 'Exportar datos JonnathanFit',
+          dialogTitle: 'Exportar datos FULGOR',
         });
       } else {
         Alert.alert('Exportado', `Archivo guardado en: ${path}`);
