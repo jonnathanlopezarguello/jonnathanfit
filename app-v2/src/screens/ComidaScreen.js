@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { FOODS, FCAT, FCATS } from '../data/foods';
 import { MPLAN } from '../data/plan';
 import { calc, diso, dlbl, GL } from '../utils';
+import { analyzeFoodPhoto } from '../services/foodAnalysis';
+import FoodScanModal from '../components/FoodScanModal';
 
 const MEALS = ['Desayuno', 'Almuerzo', 'Cena', 'Snack'];
 
@@ -28,6 +31,11 @@ export default function ComidaScreen() {
   const [mP, setMP] = useState('');
   const [mC, setMC] = useState('');
   const [mF, setMF] = useState('');
+
+  // scan modal state
+  const [scanVisible, setScanVisible] = useState(false);
+  const [scanFoods, setScanFoods] = useState([]);
+  const [scanLoading, setScanLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -94,6 +102,86 @@ export default function ComidaScreen() {
         },
       ],
     );
+  };
+
+  const openCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a la cámara para analizar tu comida.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+      base64: true,
+    });
+    if (!result.canceled && result.assets?.[0]) {
+      const asset = result.assets[0];
+      setScanFoods([]);
+      setScanLoading(true);
+      setScanVisible(true);
+      try {
+        const detected = await analyzeFoodPhoto(asset.base64, asset.mimeType || 'image/jpeg');
+        setScanFoods(detected);
+      } catch (e) {
+        Alert.alert('Error', 'No se pudo analizar la foto. Intenta de nuevo.\n' + e.message);
+        setScanVisible(false);
+      } finally {
+        setScanLoading(false);
+      }
+    }
+  };
+
+  const openGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a la galería.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+      base64: true,
+    });
+    if (!result.canceled && result.assets?.[0]) {
+      const asset = result.assets[0];
+      setScanFoods([]);
+      setScanLoading(true);
+      setScanVisible(true);
+      try {
+        const detected = await analyzeFoodPhoto(asset.base64, asset.mimeType || 'image/jpeg');
+        setScanFoods(detected);
+      } catch (e) {
+        Alert.alert('Error', 'No se pudo analizar la foto. Intenta de nuevo.\n' + e.message);
+        setScanVisible(false);
+      } finally {
+        setScanLoading(false);
+      }
+    }
+  };
+
+  const onPhotoBtn = () => {
+    Alert.alert('Analizar foto', 'Elige una opción', [
+      { text: 'Tomar foto', onPress: openCamera },
+      { text: 'Elegir de galería', onPress: openGallery },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  };
+
+  const registerScannedFoods = (foods) => {
+    const entries = foods.map(f => ({
+      fd: f.n,
+      k: f.k || 0,
+      p: f.p || 0,
+      c: f.c || 0,
+      f: f.f || 0,
+      ml: cfm,
+      _ai: true,
+    }));
+    const next = { ...nutr, [iso]: [...dayItems, ...entries] };
+    persist(next);
+    setScanVisible(false);
+    setScanFoods([]);
   };
 
   const saveManual = () => {
@@ -384,10 +472,14 @@ export default function ComidaScreen() {
       {/* bottom actions */}
       <View style={s.actionRow}>
         <TouchableOpacity style={s.actionBtn} onPress={() => setCmode('s')}>
-          <Text style={s.actionBtnText}>BUSCAR ALIMENTO</Text>
+          <Text style={s.actionBtnText}>BUSCAR</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.actionBtn, s.actionBtnCamera]} onPress={onPhotoBtn}>
+          <Text style={s.cameraIcon}>📷</Text>
+          <Text style={s.actionBtnCameraText}>FOTO IA</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={() => setCmode('m')}>
-          <Text style={s.actionBtnText}>ENTRADA MANUAL</Text>
+          <Text style={s.actionBtnText}>MANUAL</Text>
         </TouchableOpacity>
       </View>
 
@@ -415,6 +507,14 @@ export default function ComidaScreen() {
 
       <View style={{ height: 40 }} />
     </ScrollView>
+
+    <FoodScanModal
+      visible={scanVisible}
+      foods={scanFoods}
+      loading={scanLoading}
+      onRegister={registerScannedFoods}
+      onClose={() => { setScanVisible(false); setScanFoods([]); setScanLoading(false); }}
+    />
   );
 }
 
@@ -457,9 +557,12 @@ const s = StyleSheet.create({
   mealItemMacros: { color: theme.text3, fontSize: 11, marginTop: 1 },
 
   // bottom actions
-  actionRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  actionRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   actionBtn: { flex: 1, borderWidth: 1, borderColor: theme.line2, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
-  actionBtnText: { color: theme.text, fontSize: 12, fontWeight: '600', letterSpacing: 0.8 },
+  actionBtnText: { color: theme.text, fontSize: 11, fontWeight: '600', letterSpacing: 0.8 },
+  actionBtnCamera: { borderColor: '#7B61FF', backgroundColor: 'rgba(123,97,255,0.08)' },
+  actionBtnCameraText: { color: '#7B61FF', fontSize: 11, fontWeight: '700', letterSpacing: 0.8 },
+  cameraIcon: { fontSize: 16, marginBottom: 2 },
 
   // weekly summary
   weekTitle: { color: theme.text3, fontSize: 11, letterSpacing: 1.5, marginBottom: 12 },
