@@ -109,6 +109,7 @@ export default function PerfilScreen({ onNavigate }) {
     try {
       const nutr = (await load(KEYS.nutrition)) || {};
       const act = (await load(KEYS.activity)) || {};
+      const wks = (await load(KEYS.workouts)) || [];
       const allDates = [...new Set([...Object.keys(nutr), ...Object.keys(act)])].sort();
 
       if (allDates.length === 0) {
@@ -116,23 +117,30 @@ export default function PerfilScreen({ onNavigate }) {
         return;
       }
 
-      const header = 'Fecha,Semana,Kcal,Proteina(g),Carbos(g),Grasa(g),Fibra(g),Pasos,Kcal entreno,Kcal pasos,Total quemado,Neto';
+      // Build a map date -> total workout minutes
+      const workoutMinByDate = {};
+      for (const w of wks) {
+        if (w.dt) workoutMinByDate[w.dt] = (workoutMinByDate[w.dt] || 0) + (w.dur || 0);
+      }
+
+      const header = 'Fecha,Semana,Kcal,Proteina(g),Carbos(g),Grasa(g),Pasos,Kcal entreno,Kcal cardio,Kcal pasos,Total quemado,Neto';
       const rows = allDates.map((date) => {
         const items = nutr[date] || [];
         const kcal = Math.round(items.reduce((s, i) => s + (i.k || 0), 0));
         const prot = Math.round(items.reduce((s, i) => s + (i.p || 0), 0));
         const carbs = Math.round(items.reduce((s, i) => s + (i.c || 0), 0));
         const fat = Math.round(items.reduce((s, i) => s + (i.f || 0), 0));
-        const fiber = Math.round(items.reduce((s, i) => s + (i.fi || 0), 0));
         const activity = act[date] || {};
         const steps = parseInt(activity.steps || 0, 10);
-        const cardio = parseFloat(activity.cardio || 0);
-        const burnedTraining = Math.round(4.5 * profile.weight * (cardio / 60));
+        const cardioMin = parseFloat(activity.cardio || 0);
+        const workoutDur = workoutMinByDate[date] || 0;
+        const burnedTraining = Math.round(4.5 * profile.weight * (workoutDur / 60));
+        const burnedCardio = Math.round(7 * (profile.weight / 70) * cardioMin);
         const burnedSteps = Math.round(steps * 0.04);
-        const totalBurned = burnedTraining + burnedSteps;
+        const totalBurned = burnedTraining + burnedCardio + burnedSteps;
         const neto = kcal - totalBurned;
         const semana = getWeekLabel(date);
-        return `${date},${semana},${kcal},${prot},${carbs},${fat},${fiber},${steps},${burnedTraining},${burnedSteps},${totalBurned},${neto}`;
+        return `${date},${semana},${kcal},${prot},${carbs},${fat},${steps},${burnedTraining},${burnedCardio},${burnedSteps},${totalBurned},${neto}`;
       });
 
       const csv = [header, ...rows].join('\n');

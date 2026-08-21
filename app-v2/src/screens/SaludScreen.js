@@ -83,15 +83,6 @@ export default function SaludScreen() {
     })();
   }, []);
 
-  useEffect(() => {
-    if (connected && hcStatus === 'ready') syncDay(dayOffset);
-  }, [dayOffset, connected, hcStatus, syncDay]);
-
-  const toggleReminders = (val) => {
-    setRemindersOn(val);
-    save(KEYS.reminders, val);
-  };
-
   const syncDay = useCallback(async (offset) => {
     setSyncing(true);
     try {
@@ -149,6 +140,15 @@ export default function SaludScreen() {
       setSyncing(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (connected && hcStatus === 'ready') syncDay(dayOffset);
+  }, [dayOffset, connected, hcStatus, syncDay]);
+
+  const toggleReminders = (val) => {
+    setRemindersOn(val);
+    save(KEYS.reminders, val);
+  };
 
   const connectHealthConnect = async () => {
     if (hcStatus === 'unavailable') {
