@@ -1,8 +1,11 @@
+// Si EXPO_PUBLIC_PROXY_URL está definida, las llamadas van al Worker (key nunca en APK).
+// Si no, cae al modo directo con EXPO_PUBLIC_ANTHROPIC_API_KEY (solo para desarrollo local).
+const PROXY_URL = process.env.EXPO_PUBLIC_PROXY_URL;
 const API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
-const API_URL = 'https://api.anthropic.com/v1/messages';
+const API_URL = PROXY_URL || 'https://api.anthropic.com/v1/messages';
 
 export async function analyzeFoodPhoto(base64Image, mediaType = 'image/jpeg') {
-  if (!API_KEY) throw new Error('API key no configurada');
+  if (!PROXY_URL && !API_KEY) throw new Error('API key no configurada');
 
   const prompt = `Eres un nutricionista experto. Analiza esta foto de comida e identifica TODOS los alimentos visibles.
 Para cada alimento proporciona una estimación nutricional realista.
@@ -24,13 +27,15 @@ Donde: g=gramos estimados, k=kcal, p=proteína(g), c=carbohidratos(g), f=grasa(g
 Sé específico con los nombres (ej: "Arroz blanco cocido" no solo "arroz").
 Si ves platos colombianos o latinoamericanos, identifícalos correctamente.`;
 
+  const headers = { 'Content-Type': 'application/json' };
+  if (!PROXY_URL) {
+    headers['x-api-key'] = API_KEY;
+    headers['anthropic-version'] = '2023-06-01';
+  }
+
   const response = await fetch(API_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
+    headers,
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,

@@ -2,15 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import theme from '../theme';
-import { calc, greet, diso, getDayName } from '../utils';
+import { calc, greet, diso, getDayName, DEFAULT_PROFILE } from '../utils';
 import { load, save, KEYS } from '../store';
 import { T, DT } from '../data/exercises';
 import { SUPPS } from '../data/plan';
 
-const DEFAULT_PROFILE = {
-  name: 'Jonnathan', weight: 79, height: 176, age: 25,
-  sex: 'male', activity: 1.55, goal: 'bulk', ppk: 2, fpk: 1,
-};
 
 const MACRO_COLORS = {
   PROTEINA: '#7FB07A',

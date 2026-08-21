@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import theme from '../theme';
-import { calc, GL } from '../utils';
+import { calc, GL, DEFAULT_PROFILE } from '../utils';
 import { T, DT, PD } from '../data/exercises';
 import { load, KEYS } from '../store';
 
-const DEFAULT_PROFILE = {
-  weight: 79, height: 176, age: 25, sex: 'male',
-  activity: 1.55, goal: 'bulk', ppk: 2, fpk: 1,
-};
 
 export default function PlanScreen() {
   const [profile, setProfile] = useState(DEFAULT_PROFILE);

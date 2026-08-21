@@ -5,16 +5,12 @@ import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { FOODS, FCAT, FCATS } from '../data/foods';
 import { MPLAN } from '../data/plan';
-import { calc, diso, dlbl } from '../utils';
+import { calc, diso, dlbl, DEFAULT_PROFILE } from '../utils';
 import { analyzeFoodPhoto } from '../services/foodAnalysis';
 import FoodScanModal from '../components/FoodScanModal';
 
 const MEALS = ['Desayuno', 'Almuerzo', 'Cena', 'Snack'];
 
-const DEF_PROFILE = {
-  weight: 79, height: 176, age: 25, sex: 'male',
-  activity: 1.55, goal: 'bulk', ppk: 2, fpk: 1,
-};
 
 export default function ComidaScreen() {
   const [cdo, setCdo] = useState(0);
@@ -23,7 +19,7 @@ export default function ComidaScreen() {
   const [csq, setCsq] = useState('');
   const [csc, setCsc] = useState(null);
   const [cfm, setCfm] = useState('Almuerzo');
-  const [profile, setProfile] = useState(DEF_PROFILE);
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
 
   // manual entry fields
   const [mName, setMName] = useState('');
@@ -42,7 +38,7 @@ export default function ComidaScreen() {
       const n = await load(KEYS.nutrition);
       if (n) setNutr(n);
       const p = await load(KEYS.profile);
-      if (p) setProfile({ ...DEF_PROFILE, ...p });
+      if (p) setProfile({ ...DEFAULT_PROFILE, ...p });
     })();
   }, []);
 
