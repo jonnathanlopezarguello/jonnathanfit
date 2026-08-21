@@ -92,8 +92,17 @@ export default function HoyScreen({ onNavigate }) {
   const [nutrition, setNutrition] = useState(null);
   const [activity, setActivity] = useState({ steps: '', cardio: '' });
   const [todayWorkout, setTodayWorkout] = useState(null);
+  const [today, setToday] = useState(diso(0));
 
-  const today = diso(0);
+  // Refresh date at midnight so toggleSup/updateActivity write to the correct day
+  useEffect(() => {
+    const now = new Date();
+    const msUntilMidnight =
+      new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1).getTime() -
+      now.getTime();
+    const t = setTimeout(() => setToday(diso(0)), msUntilMidnight);
+    return () => clearTimeout(t);
+  }, [today]);
 
   useEffect(() => {
     (async () => {
@@ -113,7 +122,7 @@ export default function HoyScreen({ onNavigate }) {
       const tw = ws.find(w => w.dt === today);
       if (tw) setTodayWorkout(tw);
     })();
-  }, []);
+  }, [today]);
 
   const targets = calc(profile);
 

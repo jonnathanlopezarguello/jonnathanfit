@@ -92,18 +92,18 @@ export default function SaludScreen() {
 
       // Steps
       const stepsRes = await readRecords('Steps', { timeRangeFilter });
-      const steps = stepsRes.records.reduce((s, r) => s + (r.count || 0), 0);
+      const steps = (stepsRes.records || []).reduce((s, r) => s + (r.count || 0), 0);
 
       // Heart Rate (average)
       const hrRes = await readRecords('HeartRate', { timeRangeFilter });
-      const hrSamples = hrRes.records.flatMap(r => r.samples || []);
+      const hrSamples = (hrRes.records || []).flatMap(r => r.samples || []);
       const heartRate = hrSamples.length > 0
         ? Math.round(hrSamples.reduce((s, r) => s + (r.beatsPerMinute || 0), 0) / hrSamples.length)
         : null;
 
       // Sleep (hours)
       const sleepRes = await readRecords('SleepSession', { timeRangeFilter });
-      const sleepMs = sleepRes.records.reduce((s, r) => {
+      const sleepMs = (sleepRes.records || []).reduce((s, r) => {
         const st = new Date(r.startTime).getTime();
         const et = new Date(r.endTime).getTime();
         return s + (et - st);
@@ -112,27 +112,25 @@ export default function SaludScreen() {
 
       // Calories burned
       const calRes = await readRecords('TotalCaloriesBurned', { timeRangeFilter });
-      const calories = calRes.records.length > 0
-        ? Math.round(calRes.records.reduce((s, r) => s + (r.energy?.inKilocalories || 0), 0))
+      const calories = (calRes.records || []).length > 0
+        ? Math.round((calRes.records || []).reduce((s, r) => s + (r.energy?.inKilocalories || 0), 0))
         : null;
 
       // Distance
       const distRes = await readRecords('Distance', { timeRangeFilter });
-      const distance = distRes.records.length > 0
-        ? Math.round(distRes.records.reduce((s, r) => s + (r.distance?.inMeters || 0), 0) / 100) / 10
+      const distance = (distRes.records || []).length > 0
+        ? Math.round((distRes.records || []).reduce((s, r) => s + (r.distance?.inMeters || 0), 0) / 100) / 10
         : null;
 
       // Exercise sessions
       const exRes = await readRecords('ExerciseSession', { timeRangeFilter });
-      const exercise = exRes.records.length;
+      const exercise = (exRes.records || []).length;
 
       const dayData = { steps, heartRate, sleep, calories, distance, exercise };
 
-      setHealthData(prev => {
-        const next = { ...prev, [key]: dayData };
-        save(KEYS.healthConnect, next);
-        return next;
-      });
+      const next = { ...healthData, [key]: dayData };
+      setHealthData(next);
+      save(KEYS.healthConnect, next);
       setConnected(true);
     } catch (e) {
       Alert.alert('Error al sincronizar', e.message || 'Verifica los permisos de Health Connect.');
@@ -234,7 +232,7 @@ export default function SaludScreen() {
 
   return (
     <ScrollView style={s.root} contentContainerStyle={s.rootPad}>
-      <Text style={s.label}>SAMSUNG GALAXY FIT3</Text>
+      <Text style={s.label}>HEALTH CONNECT</Text>
       <Text style={s.h1}>Salud</Text>
 
       <View style={s.dateNav}>

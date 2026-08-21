@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, TouchableOpacity, Modal, StyleSheet,
-  ScrollView, SafeAreaView, Alert,
+  SafeAreaView, Alert,
 } from 'react-native';
 import theme from '../theme';
 
@@ -16,7 +16,7 @@ const FOOD_EMOJIS = {
   zanahoria: '🥕', manzana: '🍎', banana: '🍌', default: '🍽️',
 };
 
-function getFoodEmoji(name) {
+export function getFoodEmoji(name) {
   const lower = (name || '').toLowerCase();
   for (const [key, emoji] of Object.entries(FOOD_EMOJIS)) {
     if (lower.includes(key)) return emoji;
@@ -35,7 +35,7 @@ export default function FoodDetailModal({ visible, food, onSave, onDelete, onClo
       setGrams(food.g || 100);
       setMode('porciones');
     }
-  }, [food?.n]);
+  }, [food]);
 
   const baseGrams = food?.g || 100;
 
@@ -195,7 +195,7 @@ const s = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: {
-    backgroundColor: theme.bg,
+    backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,

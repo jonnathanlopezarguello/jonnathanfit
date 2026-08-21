@@ -5,7 +5,7 @@ import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { FOODS, FCAT, FCATS } from '../data/foods';
 import { MPLAN } from '../data/plan';
-import { calc, diso, dlbl, GL } from '../utils';
+import { calc, diso, dlbl } from '../utils';
 import { analyzeFoodPhoto } from '../services/foodAnalysis';
 import FoodScanModal from '../components/FoodScanModal';
 

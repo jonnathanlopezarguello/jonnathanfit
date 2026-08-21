@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal,
 } from 'react-native';
 import Svg, {
-  Path, Ellipse, Circle, Rect, Defs, LinearGradient, Stop,
+  Path, Ellipse, Rect, Defs, LinearGradient, Stop,
 } from 'react-native-svg';
 import theme from '../theme';
 
@@ -263,8 +263,8 @@ function BodyBack({ hi = [] }) {
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 function getCategory(name) {
   const n = name.toLowerCase();
-  if (/prensa|hack|predicador|extension de|jalon|remo sentado en maquina/.test(n)) return 'Máquina';
-  if (/polea|cable|face pull|jalon brazo|curl en polea|elevacion lateral en polea/.test(n)) return 'Polea';
+  if (/polea|cable|face pull|jalon brazo|jalon agarre|curl en polea|elevacion lateral en polea|jalon al pecho/.test(n)) return 'Polea';
+  if (/prensa|hack|predicador|extension de|remo sentado en maquina|pec deck/.test(n)) return 'Máquina';
   if (/barra|press militar|peso muerto|remo con barra|curl con barra/.test(n)) return 'Barra';
   if (/mancuerna|curl inclinado|elevacion lateral man|curl martillo/.test(n)) return 'Mancuerna';
   if (/dominadas|fondos|crunch|rueda|elevacion de piernas|plancha|hip thrust|bulgara/.test(n)) return 'Peso corporal';
@@ -285,6 +285,8 @@ function getInstructions(ex) {
 const MUSCLE_LABELS = {
   'Cuadriceps':    'Cuádriceps',
   'Femoral/Gluteo':'Femoral & Glúteo',
+  'Femoral':       'Femoral',
+  'Gluteo':        'Glúteo',
   'Hombro':        'Deltoides',
   'Abdomen':       'Abdominales',
   'Gemelo':        'Gemelo (Gastrocnemio)',

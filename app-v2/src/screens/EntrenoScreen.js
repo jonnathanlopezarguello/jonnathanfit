@@ -67,15 +67,16 @@ export default function EntrenoScreen() {
 
   /* ── tick timer while session active ── */
   useEffect(() => {
-    if (sess) {
+    const startTime = sess?.st;
+    if (startTime) {
       timer.current = setInterval(() => {
-        setElapsed(Date.now() - sess.st);
+        setElapsed(Date.now() - startTime);
       }, 1000);
     }
     return () => {
       if (timer.current) clearInterval(timer.current);
     };
-  }, [sess]);
+  }, [sess?.st]);
 
   /* ── persist session on every change ── */
   useEffect(() => {

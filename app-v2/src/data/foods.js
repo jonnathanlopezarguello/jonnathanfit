@@ -249,6 +249,18 @@ const FOODS = [
   { n: 'Proteína vegetal en polvo', c2: 'SU', k: 110, p: 22, c: 4, f: 2, po: '1 scoop (30g)', d: 0 },
 ];
 
+function extractG(po) {
+  // "(123g)" or "(123ml)" inside description
+  const m = po.match(/\((\d+(?:\.\d+)?)\s*(?:g|ml)\)/);
+  if (m) return parseFloat(m[1]);
+  // standalone "123g" or "123ml" at start
+  const m2 = po.match(/^(\d+(?:\.\d+)?)\s*(?:g|ml)/);
+  if (m2) return parseFloat(m2[1]);
+  return 100;
+}
+
+FOODS.forEach(f => { if (!f.g) f.g = extractG(f.po); });
+
 const FCAT = {
   PA: 'Proteínas animales',
   LA: 'Lácteos',

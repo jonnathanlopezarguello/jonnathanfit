@@ -4,25 +4,9 @@ import {
   ScrollView, SafeAreaView, ActivityIndicator, Alert,
 } from 'react-native';
 import theme from '../theme';
-import FoodDetailModal from './FoodDetailModal';
+import FoodDetailModal, { getFoodEmoji } from './FoodDetailModal';
 
-const FOOD_EMOJIS = {
-  arroz: '🍚', pollo: '🍗', carne: '🥩', pescado: '🐟', salmon: '🐟',
-  huevo: '🥚', frijo: '🫘', lenteja: '🫘', ensalada: '🥗', papa: '🥔',
-  platano: '🍌', arepa: '🫓', aguacate: '🥑', mango: '🥭', naranja: '🍊',
-  pizza: '🍕', hamburguesa: '🍔', taco: '🌮', sopa: '🍲', bandeja: '🍽️',
-  chocolate: '🍫', galleta: '🍪', coca: '🥤', agua: '💧', cafe: '☕',
-  proteina: '💪', popcorn: '🍿', pan: '🍞', pasta: '🍝', brocoli: '🥦',
-  zanahoria: '🥕', manzana: '🍎', banana: '🍌', default: '🍽️',
-};
-
-function getEmoji(name) {
-  const lower = (name || '').toLowerCase();
-  for (const [key, emoji] of Object.entries(FOOD_EMOJIS)) {
-    if (lower.includes(key)) return emoji;
-  }
-  return FOOD_EMOJIS.default;
-}
+const getEmoji = getFoodEmoji;
 
 function fmt() {
   const now = new Date();
@@ -101,7 +85,7 @@ export default function FoodScanModal({ visible, foods: initialFoods, loading, o
                 {/* food list */}
                 <ScrollView style={s.list} showsVerticalScrollIndicator={false}>
                   {foods.map((food, idx) => (
-                    <View key={idx} style={s.foodRow}>
+                    <View key={food.n + idx} style={s.foodRow}>
                       <View style={s.foodIcon}>
                         <Text style={s.foodEmoji}>{getEmoji(food.n)}</Text>
                       </View>
@@ -154,7 +138,7 @@ const s = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: {
-    backgroundColor: theme.bg,
+    backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,

@@ -50,10 +50,10 @@ export function getDayName() {
 }
 
 export const DEFAULT_PROFILE = {
-  name: 'Jonnathan', sex: 'male', age: 25, weight: 79, height: 176,
-  activity: 1.55, goal: 'bulk', ppk: 2, fpk: 1,
-  bf: '15', wc: '80', nc: '38', hc: '95',
-  yt: '3', sh: '7', sl: 'medio', al: 'moderado',
+  name: 'Usuario', sex: 'male', age: 25, weight: 75, height: 175,
+  activity: 1.375, goal: 'maint', ppk: 1.6, fpk: 0.8,
+  bf: '', wc: '', nc: '', hc: '',
+  yt: '', sh: '7', sl: 'medio', al: 'moderado',
   units: 'kg',
   diet: 'omni',
 };

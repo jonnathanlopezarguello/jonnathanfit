@@ -185,12 +185,22 @@ export default function ProgresoScreen({ onNavigate }) {
     'calves':     ['Gastrocnemio'],
   };
 
-  // Datos para el Body component: un entry por slug (sin duplicados)
+  // Datos para el Body component: un entry por slug mostrando el color más crítico
   const bodyData = (() => {
-    const seen = new Set();
-    return Object.entries(MUSCLE_TO_SLUG)
-      .filter(([, slug]) => { if (seen.has(slug)) return false; seen.add(slug); return true; })
-      .map(([muscle, slug]) => ({ slug, color: zoneColor(muscle) }));
+    const colorPriority = [theme.over, theme.text3, AMBER, theme.good];
+    const slugColors = {};
+    Object.entries(MUSCLE_TO_SLUG).forEach(([muscle, slug]) => {
+      const color = zoneColor(muscle);
+      if (!slugColors[slug]) {
+        slugColors[slug] = color;
+      } else {
+        const existing = slugColors[slug];
+        if (colorPriority.indexOf(color) < colorPriority.indexOf(existing)) {
+          slugColors[slug] = color;
+        }
+      }
+    });
+    return Object.entries(slugColors).map(([slug, color]) => ({ slug, color }));
   })();
 
   // Calculate estimated 1RM from workout history
@@ -446,7 +456,7 @@ export default function ProgresoScreen({ onNavigate }) {
           <View style={s.quickPlanBox}>
             <View style={s.qpHeader}>
               <Text style={s.qpTitle}>POR HACER</Text>
-              <TouchableOpacity onPress={() => { setQuickPlan([]); save('jfit_qp', []); }}>
+              <TouchableOpacity onPress={() => { setQuickPlan([]); save(KEYS.quickPlan, []); }}>
                 <Text style={s.qpClear}>Borrar todo</Text>
               </TouchableOpacity>
             </View>

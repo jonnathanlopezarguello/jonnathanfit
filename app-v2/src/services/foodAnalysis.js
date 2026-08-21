@@ -48,11 +48,16 @@ Si ves platos colombianos o latinoamericanos, identifícalos correctamente.`;
   });
 
   if (!response.ok) {
-    const err = await response.text();
+    const err = await response.text().catch(() => '');
     throw new Error(`Error API (${response.status}): ${err}`);
   }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('La API devolvió una respuesta no válida.');
+  }
   const text = (data.content?.[0]?.text || '').trim();
   if (!text) throw new Error('Respuesta vacía de la IA');
 
