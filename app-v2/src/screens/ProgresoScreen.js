@@ -7,6 +7,8 @@ import { VR, MUSCLE_MAP, EXERCISE_MUSCLE_MAP } from '../data/bodymap';
 import Body from 'react-native-body-highlighter';
 import { DEFAULT_PROFILE } from '../utils';
 
+const AMBER = '#C8943A';
+
 export default function ProgresoScreen({ onNavigate }) {
   const [profile, setProfile] = useState({ ...DEFAULT_PROFILE });
   const [workouts, setWorkouts] = useState([]);
@@ -23,12 +25,10 @@ export default function ProgresoScreen({ onNavigate }) {
       if (p) setProfile({ ...DEFAULT_PROFILE, ...p });
       const w = await load(KEYS.workouts);
       if (w) setWorkouts(w);
-      const qp = await load('jfit_qp');
+      const qp = await load(KEYS.quickPlan);
       if (qp) setQuickPlan(qp);
     })();
   }, []);
-
-  const AMBER = '#C8943A';
 
   // Mapa ejercicio → grupo muscular
   const exToGroup = {};
@@ -148,7 +148,7 @@ export default function ProgresoScreen({ onNavigate }) {
       ? quickPlan.filter((p) => p.n !== ex.n)
       : [...quickPlan, { ...ex, muscle }];
     setQuickPlan(next);
-    await save('jfit_qp', next);
+    await save(KEYS.quickPlan, next);
   };
 
   // Mapeo VR muscle → slug del paquete body-highlighter
@@ -185,11 +185,13 @@ export default function ProgresoScreen({ onNavigate }) {
     'calves':     ['Gastrocnemio'],
   };
 
-  // Datos para el Body component: un entry por músculo con color de zona
-  const bodyData = Object.entries(MUSCLE_TO_SLUG).map(([muscle, slug]) => ({
-    slug,
-    color: zoneColor(muscle),
-  }));
+  // Datos para el Body component: un entry por slug (sin duplicados)
+  const bodyData = (() => {
+    const seen = new Set();
+    return Object.entries(MUSCLE_TO_SLUG)
+      .filter(([, slug]) => { if (seen.has(slug)) return false; seen.add(slug); return true; })
+      .map(([muscle, slug]) => ({ slug, color: zoneColor(muscle) }));
+  })();
 
   // Calculate estimated 1RM from workout history
   const records = {};

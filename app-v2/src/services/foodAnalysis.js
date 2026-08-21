@@ -58,6 +58,11 @@ Si ves platos colombianos o latinoamericanos, identifícalos correctamente.`;
 
   // Strip markdown code blocks if present
   const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  const parsed = JSON.parse(clean);
+  let parsed;
+  try {
+    parsed = JSON.parse(clean);
+  } catch {
+    throw new Error('La IA devolvió una respuesta no válida. Intenta con otra foto.');
+  }
   return parsed.foods || [];
 }

@@ -71,8 +71,8 @@ export default function SaludScreen() {
       try {
         const status = await getSdkStatus();
         if (status === SdkAvailabilityStatus.SDK_AVAILABLE) {
-          setHcStatus('ready');
           const ok = await initialize();
+          setHcStatus(ok ? 'ready' : 'unavailable');
           if (ok) setConnected(true);
         } else {
           setHcStatus('unavailable');
@@ -163,7 +163,15 @@ export default function SaludScreen() {
     try {
       const ok = await initialize();
       if (!ok) throw new Error('No se pudo inicializar Health Connect');
-      await requestPermission(PERMISSIONS);
+      const granted = await requestPermission(PERMISSIONS);
+      if (!granted || granted.length === 0) {
+        Alert.alert(
+          'Permisos denegados',
+          'Ve a Configuración > Apps > Health Connect y otorga los permisos de salud.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
       await syncDay(dayOffset);
       setConnected(true);
       Alert.alert('✓ Conectado', 'Health Connect sincronizado correctamente.');

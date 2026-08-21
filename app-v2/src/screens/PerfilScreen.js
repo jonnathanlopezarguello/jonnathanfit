@@ -370,8 +370,8 @@ export default function PerfilScreen({ onNavigate }) {
   }
 
   // ─── VIEW MODE ───────────────────────────────────
-  const sexLabel = form.sex === 'male' ? 'Hombre' : 'Mujer';
-  const actLabel = ACTIVITY_OPTS.find((o) => o.k === profile.activity);
+  const sexLabel = profile.sex === 'male' ? 'Hombre' : 'Mujer';
+  const actLabel = ACTIVITY_OPTS.find((o) => Math.abs(o.k - profile.activity) < 0.001);
 
   return (
     <ScrollView style={s.root} contentContainerStyle={s.rootPad}>

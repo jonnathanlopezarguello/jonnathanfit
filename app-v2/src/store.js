@@ -9,6 +9,7 @@ const KEYS = {
   activity: 'jfit_act',
   reminders: 'jfit_rem',
   healthConnect: 'jfit_hc',
+  quickPlan: 'jfit_qp',
 };
 
 export async function load(key) {

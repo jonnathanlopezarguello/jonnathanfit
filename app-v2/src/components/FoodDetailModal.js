@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, TouchableOpacity, Modal, StyleSheet,
-  ScrollView, SafeAreaView,
+  ScrollView, SafeAreaView, Alert,
 } from 'react-native';
 import theme from '../theme';
 
@@ -100,7 +100,7 @@ export default function FoodDetailModal({ visible, food, onSave, onDelete, onClo
             <TouchableOpacity onPress={onClose} style={s.iconBtn}>
               <Text style={s.iconBtnTxt}>✕</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.iconBtn}>
+            <TouchableOpacity style={s.iconBtn} onPress={() => Alert.alert('Editar', 'Edita las calorías y macros directamente en los campos y guarda.')}>
               <Text style={s.iconBtnTxt}>✏️</Text>
             </TouchableOpacity>
           </View>
@@ -137,7 +137,7 @@ export default function FoodDetailModal({ visible, food, onSave, onDelete, onClo
           </View>
 
           {/* adjust with AI */}
-          <TouchableOpacity style={s.aiAdjust}>
+          <TouchableOpacity style={s.aiAdjust} onPress={() => Alert.alert('Próximamente', 'El ajuste automático con IA estará disponible pronto.')}>
             <Text style={s.aiAdjustTxt}>✦ Ajustar con IA</Text>
           </TouchableOpacity>
 
@@ -195,7 +195,7 @@ const s = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.bg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,

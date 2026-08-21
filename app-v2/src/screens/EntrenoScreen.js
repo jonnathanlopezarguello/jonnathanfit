@@ -9,15 +9,13 @@ import {
   Image,
   Linking,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import ExerciseDetailModal from '../components/ExerciseDetailModal';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { T, DT, PD, EXERCISE_LIBRARY } from '../data/exercises';
 import { EI, imgBase } from '../data/images';
-import { fe, getDayName, diso, DEFAULT_PROFILE } from '../utils';
+import { fe, getDayName, diso } from '../utils';
 
 /* ── helpers ───────────────────────────────────────── */
 
@@ -190,17 +188,17 @@ export default function EntrenoScreen() {
   }
 
   function removeExercise(ei) {
+    const snapshotLen = sess.ex.length;
+    const snapshotIdx = curIdx;
     Alert.alert('Quitar ejercicio', 'Eliminar este ejercicio de la sesion?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Quitar',
         style: 'destructive',
         onPress: () => {
-          updateSess(s => {
-            s.ex.splice(ei, 1);
-          });
-          if (curIdx >= sess.ex.length - 1 && curIdx > 0) {
-            setCurIdx(curIdx - 1);
+          updateSess(s => { s.ex.splice(ei, 1); });
+          if (snapshotIdx >= snapshotLen - 1 && snapshotIdx > 0) {
+            setCurIdx(snapshotIdx - 1);
           }
         },
       },
@@ -224,7 +222,7 @@ export default function EntrenoScreen() {
           : [{ kg: '', rp: '', rir: '', d: false }, { kg: '', rp: '', rir: '', d: false }, { kg: '', rp: '', rir: '', d: false }],
       });
     });
-    setCurIdx(sess.ex.length);
+    setCurIdx(sess.ex.length); // sess.ex.length before push = index of new item
     setShowPicker(false);
     setSearch('');
     setPickerGroup(null);

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import theme from '../theme';
-import { calc, greet, diso, GL, getDayName } from '../utils';
+import { calc, greet, diso, getDayName } from '../utils';
 import { load, save, KEYS } from '../store';
-import { T, DT, PD } from '../data/exercises';
+import { T, DT } from '../data/exercises';
 import { SUPPS } from '../data/plan';
 
 const DEFAULT_PROFILE = {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, Modal, StyleSheet,
-  ScrollView, SafeAreaView, ActivityIndicator,
+  ScrollView, SafeAreaView, ActivityIndicator, Alert,
 } from 'react-native';
 import theme from '../theme';
 import FoodDetailModal from './FoodDetailModal';
@@ -126,7 +126,7 @@ export default function FoodScanModal({ visible, foods: initialFoods, loading, o
 
                 {/* bottom */}
                 <View style={s.bottomRow}>
-                  <TouchableOpacity style={s.addBtn} onPress={() => {}}>
+                  <TouchableOpacity style={s.addBtn} onPress={() => Alert.alert('Agregar manualmente', 'Para agregar un alimento manualmente, cierra este diálogo y usa el botón + en la pantalla de Comida.')}>
                     <Text style={s.addBtnTxt}>+</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={s.registerBtn} onPress={handleRegister} disabled={foods.length === 0}>
@@ -154,7 +154,7 @@ const s = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.bg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,

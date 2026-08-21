@@ -55,9 +55,9 @@ export default function ComidaScreen() {
   const totC = dayItems.reduce((s, i) => s + (i.c || 0), 0);
   const totF = dayItems.reduce((s, i) => s + (i.f || 0), 0);
 
-  const persist = (next) => {
+  const persist = async (next) => {
     setNutr(next);
-    save(KEYS.nutrition, next);
+    await save(KEYS.nutrition, next);
   };
 
   const addItem = (fd, k, p, c, f, meal) => {
