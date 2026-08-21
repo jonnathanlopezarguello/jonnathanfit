@@ -155,6 +155,8 @@ export default function ProgresoScreen({ onNavigate }) {
   const MUSCLE_TO_SLUG = {
     'Pectoral Mayor':     'chest',
     'Deltoides Lateral':  'deltoids',
+    'Deltoides Anterior': 'deltoids',
+    'Deltoides Posterior':'deltoids',
     'Bíceps Braquial':    'biceps',
     'Tríceps Braquial':   'triceps',
     'Dorsal Ancho':       'upper-back',

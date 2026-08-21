@@ -98,13 +98,4 @@ const SCHED = [
   { t: '22:30', l: 'Preparar para dormir', ty: 'd' },
 ];
 
-const HMET = [
-  { l: 'Pasos diarios', ic: '👟', tg: '8,000-10,000' },
-  { l: 'Frecuencia cardiaca', ic: '❤️', tg: '60-85% FCmax' },
-  { l: 'Calidad de sueno', ic: '😴', tg: '7-9 horas' },
-  { l: 'Calorias quemadas', ic: '🔥', tg: 'TDEE estimado' },
-  { l: 'Nivel de estres', ic: '🧘', tg: 'Bajo-Medio' },
-  { l: 'Oxigeno en sangre', ic: '🫁', tg: '95-100%' },
-];
-
-module.exports = { MPLAN, SUPPS, REFS, SCHED, HMET };
+module.exports = { MPLAN, SUPPS, REFS, SCHED };

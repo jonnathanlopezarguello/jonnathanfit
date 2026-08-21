@@ -138,6 +138,9 @@ const EXERCISE_LIBRARY = [
   { n: 'Rotacion / Pallof press', g: 'Abdomen', s:2, r:'12-15', ri:'0-1', re:'1 min', f:'Oblicuos' },
   { n: 'Crunch bicicleta', g: 'Abdomen', s:2, r:'16-20', ri:'0-1', re:'1 min', f:'Recto + oblicuos; rotacion controlada' },
   { n: 'Plancha lateral', g: 'Abdomen', s:2, r:'20-30 s', ri:'-', re:'1 min', f:'Oblicuos; cadera elevada' },
+  { n: 'Crunch en polea', g: 'Abdomen', s:2, r:'12-15', ri:'0-1', re:'1 min', f:'Recto superior' },
+  { n: 'Elevacion de piernas', g: 'Abdomen', s:2, r:'10-15', ri:'1-2', re:'1 min', f:'Recto inferior' },
+  { n: 'Crunch lastrado en polea', g: 'Abdomen', s:2, r:'12-15', ri:'0-1', re:'1 min', f:'Recto superior' },
 ];
 
 module.exports = { T, DT, PD, EXERCISE_LIBRARY };

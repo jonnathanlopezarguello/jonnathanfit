@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal,
 } from 'react-native';
 import Svg, {
-  Path, Ellipse, Circle, Rect, G, Defs, LinearGradient, Stop,
+  Path, Ellipse, Circle, Rect, Defs, LinearGradient, Stop,
 } from 'react-native-svg';
 import theme from '../theme';
 
@@ -299,7 +299,7 @@ const MUSCLE_LABELS = {
 export default function ExerciseDetailModal({ visible, exercise, onClose }) {
   const [tab, setTab] = useState('musculatura');
 
-  if (!exercise) return null;
+  if (!exercise || !exercise.g) return null;
 
   const zones        = ZONES[exercise.g] || { f: [], b: [] };
   const category     = getCategory(exercise.n);
