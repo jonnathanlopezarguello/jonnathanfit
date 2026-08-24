@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "FULGOR",
-    "slug": "fulgor",
+    "slug": "jonnathan-fit",
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -43,7 +43,6 @@
             "android.permission.health.READ_SLEEP",
             "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
             "android.permission.health.READ_DISTANCE",
-            "android.permission.health.READ_EXERCISE_ROUTE",
             "android.permission.health.READ_EXERCISE",
             "android.permission.health.READ_TOTAL_CALORIES_BURNED"
           ]
@@ -54,6 +53,7 @@
       "eas": {
         "projectId": "54c33850-6930-4f65-97d6-509a6fa13120"
       }
-    }
+    },
+    "owner": "jonnathanlopezarguello"
   }
 }

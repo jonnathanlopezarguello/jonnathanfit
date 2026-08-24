@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import theme from '../theme';
 import { calc, GL, DEFAULT_PROFILE } from '../utils';
-import { T, DT, PD } from '../data/exercises';
+import { getRoutine } from '../data/exercises';
 import { load, KEYS } from '../store';
 
 
@@ -17,6 +17,7 @@ export default function PlanScreen() {
   }, []);
 
   const targets = calc(profile);
+  const { T, DT, PD } = getRoutine(profile.daysPerWeek);
 
   return (
     <ScrollView style={s.root} contentContainerStyle={s.rootPad}>

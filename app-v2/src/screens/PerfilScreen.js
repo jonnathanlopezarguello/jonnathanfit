@@ -6,6 +6,11 @@ import * as Sharing from 'expo-sharing';
 import theme from '../theme';
 import { calc, GL, DEFAULT_PROFILE } from '../utils';
 import { load, save, KEYS } from '../store';
+import RoutineWizard from '../components/RoutineWizard';
+
+const LEVEL_LABELS = { novato: 'Novato', principiante: 'Principiante', intermedio: 'Intermedio', avanzado: 'Avanzado' };
+const TRAIN_GOAL_LABELS = { hipertrofia: 'Ganar músculo', fuerza: 'Aumentar fuerza', perdida_grasa: 'Perder grasa' };
+const EQUIPMENT_LABELS = { gym: 'Gimnasio completo', casa: 'Casa con mancuernas', peso_corporal: 'Solo peso corporal' };
 
 const SEX_OPTS = [
   { k: 'male', l: 'Hombre' },
@@ -37,6 +42,7 @@ export default function PerfilScreen({ onNavigate }) {
   const [profile, setProfile] = useState(DEFAULT_PROFILE);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(DEFAULT_PROFILE);
+  const [wizardVisible, setWizardVisible] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -441,6 +447,23 @@ export default function PerfilScreen({ onNavigate }) {
         </View>
       </View>
 
+      {/* Training preferences */}
+      <View style={s.divider}>
+        <Text style={s.dividerLabel}>ENTRENAMIENTO</Text>
+        <View style={s.dividerLine} />
+      </View>
+
+      <View style={s.card}>
+        <InfoRow label="Nivel" value={LEVEL_LABELS[profile.level] || profile.level} />
+        <InfoRow label="Meta de entreno" value={TRAIN_GOAL_LABELS[profile.trainGoal] || profile.trainGoal} />
+        <InfoRow label="Dias por semana" value={profile.daysPerWeek} />
+        <InfoRow label="Equipo" value={EQUIPMENT_LABELS[profile.equipment] || profile.equipment} last />
+      </View>
+
+      <TouchableOpacity style={s.measureBtn} activeOpacity={0.7} onPress={() => setWizardVisible(true)}>
+        <Text style={s.measureBtnText}>PERSONALIZAR RUTINA</Text>
+      </TouchableOpacity>
+
       {/* Action buttons */}
       <TouchableOpacity style={s.editBtn} onPress={startEdit} activeOpacity={0.7}>
         <Text style={s.editBtnText}>EDITAR PERFIL</Text>
@@ -457,6 +480,13 @@ export default function PerfilScreen({ onNavigate }) {
       <TouchableOpacity style={s.resetBtn} onPress={resetData} activeOpacity={0.7}>
         <Text style={s.resetBtnText}>REINICIAR DATOS</Text>
       </TouchableOpacity>
+
+      <RoutineWizard
+        visible={wizardVisible}
+        profile={profile}
+        onClose={() => setWizardVisible(false)}
+        onSaved={(next) => { setProfile(next); setForm(next); setWizardVisible(false); }}
+      />
     </ScrollView>
   );
 }

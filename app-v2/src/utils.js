@@ -15,10 +15,17 @@ export function calc(prof) {
 
 export const GL = { bulk: 'Volumen', cut: 'Definicion', recomp: 'Recomposicion', maint: 'Mantenimiento' };
 
+// Fecha local (no UTC) en formato YYYY-MM-DD. toISOString() convierte a UTC
+// primero, lo que adelanta la fecha varias horas antes de medianoche real
+// para cualquier usuario al oeste de Greenwich (ej. Colombia, UTC-5).
+export function dkey(d) {
+  return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+}
+
 export function diso(off) {
   const d = new Date();
   d.setDate(d.getDate() + off);
-  return d.toISOString().slice(0, 10);
+  return dkey(d);
 }
 
 export function dlbl(off) {
@@ -56,7 +63,56 @@ export const DEFAULT_PROFILE = {
   yt: '', sh: '7', sl: 'medio', al: 'moderado',
   units: 'kg',
   diet: 'omni',
+  level: 'principiante', trainGoal: 'hipertrofia', daysPerWeek: 4, equipment: 'gym',
 };
+
+// Ejercicios cuyo nombre no deja claro el equipo con las palabras clave de
+// abajo (ej. "Sentadilla libre" no dice "barra") — se listan explícitos para
+// que ninguno caiga en el cajón genérico "Libre" y se cuele en un filtro de
+// equipo que en realidad no tiene.
+const CATEGORY_OVERRIDES = {
+  'Press banca declinado': 'Barra',
+  'Press frances': 'Barra',
+  'Press cerrado banca': 'Barra',
+  'Fondos o press cerrado': 'Barra',
+  'Sentadilla libre': 'Barra',
+  'Buenos dias': 'Barra',
+  'Sumo deadlift': 'Barra',
+  'Remo en T': 'Máquina',
+  'Curl femoral tumbado': 'Máquina',
+  'Curl femoral sentado': 'Máquina',
+  'Gemelo sentado': 'Máquina',
+  'Gemelo de pie en maquina': 'Máquina',
+  'Curl concentrado': 'Mancuerna',
+  'Extension sobre la cabeza': 'Mancuerna',
+  'Press hombro sentado / Arnold': 'Mancuerna',
+  'Rotacion / Pallof press': 'Polea',
+  'Gemelo de pie': 'Peso corporal',
+};
+
+/* ── Clasificación de equipo por ejercicio (reusa el nombre) ── */
+export function getCategory(name) {
+  if (CATEGORY_OVERRIDES[name]) return CATEGORY_OVERRIDES[name];
+  const n = name.toLowerCase();
+  if (/polea|cable|face pull|jalon brazo|jalon agarre|curl en polea|elevacion lateral en polea|jalon al pecho/.test(n)) return 'Polea';
+  if (/prensa|hack|predicador|extension de|remo sentado en maquina|pec deck/.test(n)) return 'Máquina';
+  if (/barra|press militar|peso muerto|remo con barra|curl con barra/.test(n)) return 'Barra';
+  if (/mancuerna|curl inclinado|elevacion lateral man|curl martillo/.test(n)) return 'Mancuerna';
+  if (/dominadas|fondos|crunch|rueda|elevacion de piernas|plancha|hip thrust|bulgara/.test(n)) return 'Peso corporal';
+  return 'Libre';
+}
+
+// Qué categorías de ejercicio caben en cada nivel de equipo disponible
+export const EQUIPMENT_ALLOWED = {
+  gym: ['Polea', 'Máquina', 'Barra', 'Mancuerna', 'Peso corporal', 'Libre'],
+  casa: ['Mancuerna', 'Peso corporal', 'Libre'],
+  peso_corporal: ['Peso corporal'],
+};
+
+export function exerciseFitsEquipment(exerciseName, equipment) {
+  const allowed = EQUIPMENT_ALLOWED[equipment] || EQUIPMENT_ALLOWED.gym;
+  return allowed.includes(getCategory(exerciseName));
+}
 
 export function toDisplay(kg, units) {
   if (!kg && kg !== 0) return '';

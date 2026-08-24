@@ -1,6 +1,7 @@
 // Si EXPO_PUBLIC_PROXY_URL está definida, las llamadas van al Worker (key nunca en APK).
 // Si no, cae al modo directo con EXPO_PUBLIC_ANTHROPIC_API_KEY (solo para desarrollo local).
 const PROXY_URL = process.env.EXPO_PUBLIC_PROXY_URL;
+const APP_SECRET = process.env.EXPO_PUBLIC_APP_SECRET;
 const API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
 const API_URL = PROXY_URL || 'https://api.anthropic.com/v1/messages';
 
@@ -28,7 +29,9 @@ Sé específico con los nombres (ej: "Arroz blanco cocido" no solo "arroz").
 Si ves platos colombianos o latinoamericanos, identifícalos correctamente.`;
 
   const headers = { 'Content-Type': 'application/json' };
-  if (!PROXY_URL) {
+  if (PROXY_URL) {
+    headers['X-App-Secret'] = APP_SECRET;
+  } else {
     headers['x-api-key'] = API_KEY;
     headers['anthropic-version'] = '2023-06-01';
   }

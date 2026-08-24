@@ -13,30 +13,17 @@ import {
 import ExerciseDetailModal from '../components/ExerciseDetailModal';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
-import { T, DT, PD, EXERCISE_LIBRARY } from '../data/exercises';
+import { getRoutine, EXERCISE_LIBRARY } from '../data/exercises';
 import { EI, imgBase } from '../data/images';
-import { fe, getDayName, diso } from '../utils';
-
-/* ── helpers ───────────────────────────────────────── */
-
-function todayKey() {
-  return getDayName();
-}
-
-function todayExercises() {
-  const day = todayKey();
-  return T[day] || null;
-}
-
-function todayTitle() {
-  return DT[todayKey()] || null;
-}
+import { fe, getDayName, diso, exerciseFitsEquipment, toDisplay, toKg } from '../utils';
 
 /* ── component ─────────────────────────────────────── */
 
 export default function EntrenoScreen() {
   const [sess, setSess] = useState(null);
   const [units, setUnits] = useState('kg');
+  const [equipment, setEquipment] = useState('gym');
+  const [daysPerWeek, setDaysPerWeek] = useState(4);
   const [loading, setLoading] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const [curIdx, setCurIdx] = useState(0);
@@ -48,6 +35,9 @@ export default function EntrenoScreen() {
   const [dayOverride, setDayOverride] = useState(null);
   const [detailEx, setDetailEx] = useState(null);
   const timer = useRef(null);
+  const sessRef = useRef(sess);
+  sessRef.current = sess;
+  const { T, DT, PD } = getRoutine(daysPerWeek);
 
   const activeDay = dayOverride || getDayName();
 
@@ -61,6 +51,8 @@ export default function EntrenoScreen() {
       }
       const p = await load(KEYS.profile);
       if (p?.units) setUnits(p.units);
+      if (p?.equipment) setEquipment(p.equipment);
+      if (p?.daysPerWeek) setDaysPerWeek(p.daysPerWeek);
       setLoading(false);
     })();
   }, []);
@@ -219,11 +211,11 @@ export default function EntrenoScreen() {
         name,
         plan: libEntry || { n: name, g: '-', s: 3, r: '-', ri: '-', re: '-', f: '' },
         sets: prevSets
-          ? prevSets.map(st => ({ kg: st.kg || '', rp: st.rp || '', rir: '', d: false }))
+          ? prevSets.map(st => ({ kg: st.kg ?? '', rp: st.rp ?? '', rir: '', d: false }))
           : [{ kg: '', rp: '', rir: '', d: false }, { kg: '', rp: '', rir: '', d: false }, { kg: '', rp: '', rir: '', d: false }],
       });
     });
-    setCurIdx(sess.ex.length); // sess.ex.length before push = index of new item
+    setCurIdx(sessRef.current.ex.length); // length just before push = index of new item
     setShowPicker(false);
     setSearch('');
     setPickerGroup(null);
@@ -469,8 +461,8 @@ export default function EntrenoScreen() {
                 <>
                   <TextInput
                     style={[s.setInput, { flex: 1 }]}
-                    value={st.kg}
-                    onChangeText={v => updateSetField(curIdx, si, 'kg', v)}
+                    value={toDisplay(st.kg, units)}
+                    onChangeText={v => updateSetField(curIdx, si, 'kg', toKg(v, units))}
                     keyboardType="numeric"
                     placeholder="0"
                     placeholderTextColor={theme.text3}
@@ -567,6 +559,7 @@ export default function EntrenoScreen() {
                 {EXERCISE_LIBRARY
                   .filter(ex =>
                     ex.n !== cur.name &&
+                    exerciseFitsEquipment(ex.n, equipment) &&
                     (ex.g === cur.plan.g || (search.trim() && ex.n.toLowerCase().includes(search.trim().toLowerCase()))) &&
                     (!search.trim() || ex.n.toLowerCase().includes(search.trim().toLowerCase()))
                   )
@@ -699,6 +692,7 @@ export default function EntrenoScreen() {
           <ScrollView style={s.pickerList} nestedScrollEnabled>
             {EXERCISE_LIBRARY
               .filter(ex =>
+                exerciseFitsEquipment(ex.n, equipment) &&
                 (!pickerGroup || ex.g === pickerGroup) &&
                 (!search.trim() || ex.n.toLowerCase().includes(search.trim().toLowerCase()))
               )
@@ -750,6 +744,10 @@ const s = StyleSheet.create({
   label: { color: theme.text3, fontSize: 11, letterSpacing: 1.2, marginBottom: 4 },
   h1: { color: theme.text, fontSize: 28, fontWeight: '700', marginBottom: 4 },
   sub: { color: theme.text2, fontSize: 14, marginBottom: 20 },
+  daysNotice: {
+    color: theme.text3, fontSize: 12, lineHeight: 17, marginTop: -12, marginBottom: 20,
+    backgroundColor: theme.accentSoft, borderWidth: 1, borderColor: theme.line2, padding: 12,
+  },
 
   /* card */
   card: {
@@ -825,6 +823,8 @@ const s = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 6,
     paddingHorizontal: 4,
+    cursorColor: theme.text,
+    selectionColor: theme.text,
   },
 
   /* check button */

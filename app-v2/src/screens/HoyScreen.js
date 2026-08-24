@@ -4,7 +4,7 @@ import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import theme from '../theme';
 import { calc, greet, diso, getDayName, DEFAULT_PROFILE } from '../utils';
 import { load, save, KEYS } from '../store';
-import { T, DT } from '../data/exercises';
+import { getRoutine } from '../data/exercises';
 import { SUPPS } from '../data/plan';
 
 
@@ -89,6 +89,7 @@ export default function HoyScreen({ onNavigate }) {
   const [activity, setActivity] = useState({ steps: '', cardio: '' });
   const [todayWorkout, setTodayWorkout] = useState(null);
   const [today, setToday] = useState(diso(0));
+  const { T, DT } = getRoutine(profile.daysPerWeek);
 
   // Refresh date at midnight so toggleSup/updateActivity write to the correct day
   useEffect(() => {

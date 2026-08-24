@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
 import theme from '../theme';
 import { load, save, KEYS } from '../store';
-import { T, DT, EXERCISE_LIBRARY } from '../data/exercises';
-import { VR, MUSCLE_MAP, EXERCISE_MUSCLE_MAP } from '../data/bodymap';
+import { getRoutine, EXERCISE_LIBRARY } from '../data/exercises';
+import { VR, MUSCLE_MAP, EXERCISE_MUSCLE_MAP, MUSCLE_TO_SLUG } from '../data/bodymap';
 import Body from 'react-native-body-highlighter';
-import { DEFAULT_PROFILE } from '../utils';
+import { DEFAULT_PROFILE, exerciseFitsEquipment, dkey } from '../utils';
 
 const AMBER = '#C8943A';
 
@@ -30,6 +30,8 @@ export default function ProgresoScreen({ onNavigate }) {
     })();
   }, []);
 
+  const { T } = getRoutine(profile.daysPerWeek);
+
   // Mapa ejercicio → grupo muscular
   const exToGroup = {};
   Object.values(T).forEach((dayExercises) => {
@@ -41,7 +43,7 @@ export default function ProgresoScreen({ onNavigate }) {
   const now = new Date();
   const weekAgo = new Date(now);
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekAgoISO = weekAgo.toISOString().slice(0, 10);
+  const weekAgoISO = dkey(weekAgo);
 
   const muscleVol = {};
   Object.keys(VR).forEach((m) => { muscleVol[m] = 0; });
@@ -131,6 +133,7 @@ export default function ProgresoScreen({ onNavigate }) {
     const result = [];
     const seen = new Set();
     EXERCISE_LIBRARY.forEach((ex) => {
+      if (!exerciseFitsEquipment(ex.n, profile.equipment)) return;
       const muscles = EXERCISE_MUSCLE_MAP[ex.n];
       if (!muscles) return;
       const isPrimary = muscles.some(([m, w]) => m === muscle && w >= 1.0);
@@ -151,39 +154,12 @@ export default function ProgresoScreen({ onNavigate }) {
     await save(KEYS.quickPlan, next);
   };
 
-  // Mapeo VR muscle → slug del paquete body-highlighter
-  const MUSCLE_TO_SLUG = {
-    'Pectoral Mayor':     'chest',
-    'Deltoides Lateral':  'deltoids',
-    'Deltoides Anterior': 'deltoids',
-    'Deltoides Posterior':'deltoids',
-    'Bíceps Braquial':    'biceps',
-    'Tríceps Braquial':   'triceps',
-    'Dorsal Ancho':       'upper-back',
-    'Trapecio':           'trapezius',
-    'Recto Abdominal':    'abs',
-    'Oblicuos':           'obliques',
-    'Cuádriceps':         'quadriceps',
-    'Femoral':            'hamstring',
-    'Glúteo Mayor':       'gluteal',
-    'Gastrocnemio':       'calves',
-  };
-
   // Reverso: slug → músculos VR para el panel de detalle
-  const SLUG_TO_MUSCLES = {
-    'chest':      ['Pectoral Mayor'],
-    'deltoids':   ['Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior'],
-    'biceps':     ['Bíceps Braquial'],
-    'triceps':    ['Tríceps Braquial'],
-    'upper-back': ['Dorsal Ancho'],
-    'trapezius':  ['Trapecio'],
-    'abs':        ['Recto Abdominal'],
-    'obliques':   ['Oblicuos'],
-    'quadriceps': ['Cuádriceps'],
-    'hamstring':  ['Femoral'],
-    'gluteal':    ['Glúteo Mayor'],
-    'calves':     ['Gastrocnemio'],
-  };
+  const SLUG_TO_MUSCLES = {};
+  Object.entries(MUSCLE_TO_SLUG).forEach(([muscle, slug]) => {
+    if (!SLUG_TO_MUSCLES[slug]) SLUG_TO_MUSCLES[slug] = [];
+    SLUG_TO_MUSCLES[slug].push(muscle);
+  });
 
   // Datos para el Body component: un entry por slug mostrando el color más crítico
   const bodyData = (() => {
@@ -200,7 +176,11 @@ export default function ProgresoScreen({ onNavigate }) {
         }
       }
     });
-    return Object.entries(slugColors).map(([slug, color]) => ({ slug, color }));
+    return Object.entries(slugColors).map(([slug, color]) => ({
+      slug,
+      color,
+      ...(slug === selectedMuscle ? { styles: { stroke: theme.text, strokeWidth: 3 } } : {}),
+    }));
   })();
 
   // Calculate estimated 1RM from workout history
@@ -240,7 +220,7 @@ export default function ProgresoScreen({ onNavigate }) {
       const exercises = [];
       Object.values(T).forEach((dayEx) => {
         dayEx.forEach((ex) => {
-          if (groups.includes(ex.g) && !exercises.find((e) => e.n === ex.n)) {
+          if (groups.includes(ex.g) && exerciseFitsEquipment(ex.n, profile.equipment) && !exercises.find((e) => e.n === ex.n)) {
             exercises.push(ex);
           }
         });
@@ -318,7 +298,7 @@ export default function ProgresoScreen({ onNavigate }) {
           const muscles = SLUG_TO_MUSCLES[selectedMuscle] || [];
           return (
             <View style={s.muscleDetail}>
-              <Text style={s.muscleDetailName}>{selectedMuscle}</Text>
+              <Text style={s.muscleDetailName}>{muscles.join('  +  ') || selectedMuscle}</Text>
               {muscles.map((m) => {
                 const vr = VR[m];
                 const vol = Math.round(muscleVol[m] || 0);

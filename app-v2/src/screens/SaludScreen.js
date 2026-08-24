@@ -10,7 +10,7 @@ import {
 import theme from '../theme';
 import { SCHED } from '../data/plan';
 import { load, save, KEYS } from '../store';
-import { dlbl } from '../utils';
+import { dlbl, diso } from '../utils';
 
 const DOT_COLORS = {
   n: theme.good,
@@ -44,12 +44,6 @@ function getDateRange(offset) {
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, 0, 0, 0, 0);
   const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, 23, 59, 59, 999);
   return { startTime: start.toISOString(), endTime: end.toISOString() };
-}
-
-function getDateKey(offset) {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
 }
 
 export default function SaludScreen() {
@@ -88,7 +82,7 @@ export default function SaludScreen() {
     try {
       const { startTime, endTime } = getDateRange(offset);
       const timeRangeFilter = { operator: 'between', startTime, endTime };
-      const key = getDateKey(offset);
+      const key = diso(offset);
 
       // Steps
       const stepsRes = await readRecords('Steps', { timeRangeFilter });
@@ -188,7 +182,7 @@ export default function SaludScreen() {
     }
   };
 
-  const dateKey = getDateKey(dayOffset);
+  const dateKey = diso(dayOffset);
   const dayData = healthData[dateKey] || {};
 
   const formatVal = (key) => {
@@ -203,7 +197,7 @@ export default function SaludScreen() {
   const weekSummary = () => {
     let totalSteps = 0, totalCal = 0, totalSleep = 0, days = 0;
     for (let i = 0; i < 7; i++) {
-      const dk = getDateKey(dayOffset - i);
+      const dk = diso(dayOffset - i);
       const dd = healthData[dk];
       if (dd && Object.keys(dd).length > 0) {
         days++;

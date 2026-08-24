@@ -5,7 +5,7 @@ import theme from '../theme';
 import { load, save, KEYS } from '../store';
 import { FOODS, FCAT, FCATS } from '../data/foods';
 import { MPLAN } from '../data/plan';
-import { calc, diso, dlbl, DEFAULT_PROFILE } from '../utils';
+import { calc, diso, dkey, dlbl, DEFAULT_PROFILE } from '../utils';
 import { analyzeFoodPhoto } from '../services/foodAnalysis';
 import FoodScanModal from '../components/FoodScanModal';
 
@@ -157,11 +157,7 @@ export default function ComidaScreen() {
   };
 
   const onPhotoBtn = () => {
-    Alert.alert('Analizar foto', 'Elige una opción', [
-      { text: 'Tomar foto', onPress: openCamera },
-      { text: 'Elegir de galería', onPress: openGallery },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+    Alert.alert('Próximamente', 'El análisis de fotos con IA está desactivado por ahora.');
   };
 
   const registerScannedFoods = (foods) => {
@@ -216,7 +212,7 @@ export default function ComidaScreen() {
     for (let i = 0; i < 7; i++) {
       const dd = new Date(ws);
       dd.setDate(dd.getDate() + i);
-      const key = dd.toISOString().slice(0, 10);
+      const key = dkey(dd);
       const items = nutr[key] || [];
       items.forEach((it) => { wk += it.k || 0; wp += it.p || 0; wc += it.c || 0; wf += it.f || 0; });
     }
@@ -471,9 +467,10 @@ export default function ComidaScreen() {
         <TouchableOpacity style={s.actionBtn} onPress={() => setCmode('s')}>
           <Text style={s.actionBtnText}>BUSCAR</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.actionBtn, s.actionBtnCamera]} onPress={onPhotoBtn}>
-          <Text style={s.cameraIcon}>📷</Text>
-          <Text style={s.actionBtnCameraText}>FOTO IA</Text>
+        <TouchableOpacity style={s.actionBtn} onPress={onPhotoBtn}>
+          <Text style={[s.cameraIcon, { opacity: 0.4 }]}>📷</Text>
+          <Text style={s.actionBtnText}>FOTO IA</Text>
+          <Text style={s.actionBtnSoon}>PRONTO</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={() => setCmode('m')}>
           <Text style={s.actionBtnText}>MANUAL</Text>
@@ -558,8 +555,7 @@ const s = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   actionBtn: { flex: 1, borderWidth: 1, borderColor: theme.line2, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
   actionBtnText: { color: theme.text, fontSize: 11, fontWeight: '600', letterSpacing: 0.8 },
-  actionBtnCamera: { borderColor: '#7B61FF', backgroundColor: 'rgba(123,97,255,0.08)' },
-  actionBtnCameraText: { color: '#7B61FF', fontSize: 11, fontWeight: '700', letterSpacing: 0.8 },
+  actionBtnSoon: { color: theme.text3, fontSize: 8, fontWeight: '600', letterSpacing: 1, marginTop: 2 },
   cameraIcon: { fontSize: 16, marginBottom: 2 },
 
   // weekly summary

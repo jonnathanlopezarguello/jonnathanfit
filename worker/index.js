@@ -2,18 +2,25 @@
  * Cloudflare Worker — proxy para Anthropic API
  *
  * Configuración en Cloudflare Dashboard:
- *   Settings → Variables → Secrets → Añadir "ANTHROPIC_API_KEY"
+ *   Settings → Variables → Secrets → Añadir "ANTHROPIC_API_KEY" y "APP_SECRET"
  *
  * La app llama a este Worker; el Worker llama a Anthropic con la key secreta.
  * La key NUNCA queda en el APK.
  *
- * Variable en la app: EXPO_PUBLIC_PROXY_URL=https://<tu-worker>.workers.dev
+ * APP_SECRET evita que alguien fuera de la app llame el Worker directamente
+ * (con curl, por ejemplo) y consuma tu crédito de Anthropic. No es
+ * inviolable — igual queda embebido en el APK — pero sube la barrera de
+ * "URL pública sin fricción" a "hay que decompilar el APK para encontrarlo".
+ *
+ * Variables en la app: EXPO_PUBLIC_PROXY_URL=https://<tu-worker>.workers.dev
+ *                       EXPO_PUBLIC_APP_SECRET=<mismo valor que el secret APP_SECRET>
  */
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
-// Orígenes permitidos — agrega tu dominio si publicas versión web
-const ALLOWED_ORIGINS = ['*'];
+// Orígenes permitidos para llamadas desde navegador — la app móvil no manda
+// Origin, así que esto solo importa si además publicas una versión web.
+const ALLOWED_ORIGINS = ['https://jonnathanlopezarguello.github.io'];
 
 function corsHeaders(origin) {
   return {
@@ -34,6 +41,12 @@ export default {
 
     if (request.method !== 'POST') {
       return new Response('Método no permitido', { status: 405 });
+    }
+
+    // Solo la app conoce este secreto — bloquea llamadas directas al Worker
+    const appSecret = request.headers.get('X-App-Secret');
+    if (!env.APP_SECRET || appSecret !== env.APP_SECRET) {
+      return new Response('No autorizado', { status: 401, headers: corsHeaders(origin) });
     }
 
     // Reenviar body tal cual a Anthropic, solo reemplazando la key
