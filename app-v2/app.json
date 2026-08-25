@@ -47,7 +47,8 @@
             "android.permission.health.READ_TOTAL_CALORIES_BURNED"
           ]
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "extra": {
       "eas": {
