@@ -5,6 +5,7 @@ import {
   requestPermission,
   readRecords,
   getSdkStatus,
+  getGrantedPermissions,
   SdkAvailabilityStatus,
 } from 'react-native-health-connect';
 import theme from '../theme';
@@ -53,6 +54,7 @@ export default function SaludScreen() {
   const [healthData, setHealthData]     = useState({});
   const [dayOffset, setDayOffset]       = useState(0);
   const [hcStatus, setHcStatus]         = useState('unknown'); // 'unknown'|'unavailable'|'ready'
+  const [grantedTypes, setGrantedTypes] = useState(new Set());
 
   useEffect(() => {
     (async () => {
@@ -67,7 +69,11 @@ export default function SaludScreen() {
         if (status === SdkAvailabilityStatus.SDK_AVAILABLE) {
           const ok = await initialize();
           setHcStatus(ok ? 'ready' : 'unavailable');
-          if (ok) setConnected(true);
+          if (ok) {
+            const granted = await getGrantedPermissions();
+            setGrantedTypes(new Set((granted || []).map(p => p.recordType)));
+            if (granted && granted.length > 0) setConnected(true);
+          }
         } else {
           setHcStatus('unavailable');
         }
@@ -77,7 +83,8 @@ export default function SaludScreen() {
     })();
   }, []);
 
-  const syncDay = useCallback(async (offset) => {
+  const syncDay = useCallback(async (offset, grantedSet) => {
+    const granted = grantedSet || new Set();
     setSyncing(true);
     try {
       const { startTime, endTime } = getDateRange(offset);
@@ -85,46 +92,66 @@ export default function SaludScreen() {
       const key = diso(offset);
 
       // Steps
-      const stepsRes = await readRecords('Steps', { timeRangeFilter });
-      const steps = (stepsRes.records || []).reduce((s, r) => s + (r.count || 0), 0);
+      let steps = null;
+      if (granted.has('Steps')) {
+        const stepsRes = await readRecords('Steps', { timeRangeFilter });
+        steps = (stepsRes.records || []).reduce((s, r) => s + (r.count || 0), 0);
+      }
 
       // Heart Rate (average)
-      const hrRes = await readRecords('HeartRate', { timeRangeFilter });
-      const hrSamples = (hrRes.records || []).flatMap(r => r.samples || []);
-      const heartRate = hrSamples.length > 0
-        ? Math.round(hrSamples.reduce((s, r) => s + (r.beatsPerMinute || 0), 0) / hrSamples.length)
-        : null;
+      let heartRate = null;
+      if (granted.has('HeartRate')) {
+        const hrRes = await readRecords('HeartRate', { timeRangeFilter });
+        const hrSamples = (hrRes.records || []).flatMap(r => r.samples || []);
+        heartRate = hrSamples.length > 0
+          ? Math.round(hrSamples.reduce((s, r) => s + (r.beatsPerMinute || 0), 0) / hrSamples.length)
+          : null;
+      }
 
       // Sleep (hours)
-      const sleepRes = await readRecords('SleepSession', { timeRangeFilter });
-      const sleepMs = (sleepRes.records || []).reduce((s, r) => {
-        const st = new Date(r.startTime).getTime();
-        const et = new Date(r.endTime).getTime();
-        return s + (et - st);
-      }, 0);
-      const sleep = sleepMs > 0 ? Math.round(sleepMs / 3600000 * 10) / 10 : null;
+      let sleep = null;
+      if (granted.has('SleepSession')) {
+        const sleepRes = await readRecords('SleepSession', { timeRangeFilter });
+        const sleepMs = (sleepRes.records || []).reduce((s, r) => {
+          const st = new Date(r.startTime).getTime();
+          const et = new Date(r.endTime).getTime();
+          return s + (et - st);
+        }, 0);
+        sleep = sleepMs > 0 ? Math.round(sleepMs / 3600000 * 10) / 10 : null;
+      }
 
       // Calories burned
-      const calRes = await readRecords('TotalCaloriesBurned', { timeRangeFilter });
-      const calories = (calRes.records || []).length > 0
-        ? Math.round((calRes.records || []).reduce((s, r) => s + (r.energy?.inKilocalories || 0), 0))
-        : null;
+      let calories = null;
+      if (granted.has('TotalCaloriesBurned')) {
+        const calRes = await readRecords('TotalCaloriesBurned', { timeRangeFilter });
+        calories = (calRes.records || []).length > 0
+          ? Math.round((calRes.records || []).reduce((s, r) => s + (r.energy?.inKilocalories || 0), 0))
+          : null;
+      }
 
       // Distance
-      const distRes = await readRecords('Distance', { timeRangeFilter });
-      const distance = (distRes.records || []).length > 0
-        ? Math.round((distRes.records || []).reduce((s, r) => s + (r.distance?.inMeters || 0), 0) / 100) / 10
-        : null;
+      let distance = null;
+      if (granted.has('Distance')) {
+        const distRes = await readRecords('Distance', { timeRangeFilter });
+        distance = (distRes.records || []).length > 0
+          ? Math.round((distRes.records || []).reduce((s, r) => s + (r.distance?.inMeters || 0), 0) / 100) / 10
+          : null;
+      }
 
       // Exercise sessions
-      const exRes = await readRecords('ExerciseSession', { timeRangeFilter });
-      const exercise = (exRes.records || []).length;
+      let exercise = null;
+      if (granted.has('ExerciseSession')) {
+        const exRes = await readRecords('ExerciseSession', { timeRangeFilter });
+        exercise = (exRes.records || []).length;
+      }
 
       const dayData = { steps, heartRate, sleep, calories, distance, exercise };
 
-      const next = { ...healthData, [key]: dayData };
-      setHealthData(next);
-      save(KEYS.healthConnect, next);
+      setHealthData(prev => {
+        const next = { ...prev, [key]: dayData };
+        save(KEYS.healthConnect, next);
+        return next;
+      });
       setConnected(true);
     } catch (e) {
       Alert.alert('Error al sincronizar', e.message || 'Verifica los permisos de Health Connect.');
@@ -134,8 +161,8 @@ export default function SaludScreen() {
   }, []);
 
   useEffect(() => {
-    if (connected && hcStatus === 'ready') syncDay(dayOffset);
-  }, [dayOffset, connected, hcStatus, syncDay]);
+    if (connected && hcStatus === 'ready') syncDay(dayOffset, grantedTypes);
+  }, [dayOffset, connected, hcStatus, grantedTypes, syncDay]);
 
   const toggleReminders = (val) => {
     setRemindersOn(val);
@@ -164,9 +191,18 @@ export default function SaludScreen() {
         );
         return;
       }
-      await syncDay(dayOffset);
+      const grantedSet = new Set(granted.map(p => p.recordType));
+      setGrantedTypes(grantedSet);
+      await syncDay(dayOffset, grantedSet);
       setConnected(true);
-      Alert.alert('✓ Conectado', 'Health Connect sincronizado correctamente.');
+      if (grantedSet.size < PERMISSIONS.length) {
+        Alert.alert(
+          '✓ Conectado parcialmente',
+          'Se sincronizaron los datos que autorizaste. Puedes otorgar el resto de permisos desde Configuración > Apps > Health Connect.'
+        );
+      } else {
+        Alert.alert('✓ Conectado', 'Health Connect sincronizado correctamente.');
+      }
     } catch (e) {
       Alert.alert('Error', e.message || 'No se pudo conectar con Health Connect.');
     } finally {
@@ -178,7 +214,7 @@ export default function SaludScreen() {
     if (!connected) {
       connectHealthConnect();
     } else {
-      syncDay(dayOffset);
+      syncDay(dayOffset, grantedTypes);
     }
   };
 
