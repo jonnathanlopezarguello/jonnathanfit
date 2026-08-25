@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal,
+  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal,
 } from 'react-native';
 import theme from '../theme';
 import { save, KEYS } from '../store';
 
-const STEPS = ['Nivel', 'Objetivo', 'Días', 'Equipo'];
+const BASE_STEPS = ['Nivel', 'Objetivo', 'Días', 'Equipo'];
+
+const SEX_OPTS = [
+  { k: 'male', l: 'Hombre' },
+  { k: 'female', l: 'Mujer' },
+];
+
+const ACTIVITY_OPTS = [
+  { k: 1.2, l: 'Sedentario' },
+  { k: 1.375, l: 'Ligero' },
+  { k: 1.55, l: 'Moderado' },
+  { k: 1.725, l: 'Activo' },
+  { k: 1.9, l: 'Muy activo' },
+];
 
 const LEVEL_OPTS = [
   { k: 'novato',       l: 'Novato',       d: 'Nunca he entrenado con pesas' },
@@ -36,12 +49,19 @@ const EQUIPMENT_OPTS = [
   { k: 'peso_corporal',  l: 'Solo peso corporal', d: 'Sin ningún equipo' },
 ];
 
-export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
+export default function RoutineWizard({ visible, profile, onClose, onSaved, personalData }) {
+  const STEPS = personalData ? ['Datos', ...BASE_STEPS] : BASE_STEPS;
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState({
+  const buildAnswers = () => ({
     level: profile.level, trainGoal: profile.trainGoal,
     daysPerWeek: profile.daysPerWeek, equipment: profile.equipment,
+    ...(personalData ? {
+      name: profile.name, sex: profile.sex, age: String(profile.age),
+      weight: String(profile.weight), height: String(profile.height),
+      activity: profile.activity,
+    } : {}),
   });
+  const [answers, setAnswers] = useState(buildAnswers());
 
   // El modal se monta una sola vez y solo se oculta/muestra con `visible`, así
   // que reseteamos las respuestas al perfil actual cada vez que se abre —
@@ -50,10 +70,7 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
   useEffect(() => {
     if (visible) {
       setStep(0);
-      setAnswers({
-        level: profile.level, trainGoal: profile.trainGoal,
-        daysPerWeek: profile.daysPerWeek, equipment: profile.equipment,
-      });
+      setAnswers(buildAnswers());
     }
   }, [visible]);
 
@@ -69,6 +86,11 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
 
   const finish = async () => {
     const next = { ...profile, ...answers };
+    if (personalData) {
+      next.age = +answers.age || profile.age;
+      next.weight = +answers.weight || profile.weight;
+      next.height = +answers.height || profile.height;
+    }
     if (answers.trainGoal === 'perdida_grasa') {
       next.goal = 'cut';
     } else if (profile.trainGoal === 'perdida_grasa') {
@@ -80,11 +102,13 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
     setStep(0);
   };
 
+  const current = STEPS[step];
   const canAdvance =
-    (step === 0 && !!answers.level) ||
-    (step === 1 && !!answers.trainGoal) ||
-    (step === 2 && !!answers.daysPerWeek) ||
-    (step === 3 && !!answers.equipment);
+    (current === 'Datos' && !!answers.name && !!answers.age && !!answers.weight && !!answers.height) ||
+    (current === 'Nivel' && !!answers.level) ||
+    (current === 'Objetivo' && !!answers.trainGoal) ||
+    (current === 'Días' && !!answers.daysPerWeek) ||
+    (current === 'Equipo' && !!answers.equipment);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -95,7 +119,7 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
             <TouchableOpacity onPress={onClose} style={s.closeBtn} activeOpacity={0.7}>
               <Text style={s.closeTxt}>✕</Text>
             </TouchableOpacity>
-            <Text style={s.headerTitle}>Personalizar rutina</Text>
+            <Text style={s.headerTitle}>{personalData ? 'Bienvenido a FULGOR' : 'Personalizar rutina'}</Text>
             <View style={{ width: 32 }} />
           </View>
 
@@ -112,7 +136,70 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
           <ScrollView style={s.content} showsVerticalScrollIndicator={false}>
             <View style={s.pad}>
 
-              {step === 0 && (
+              {current === 'Datos' && (
+                <>
+                  <Text style={s.question}>Cuéntanos un poco de ti</Text>
+                  <Text style={s.inputLabel}>NOMBRE</Text>
+                  <TextInput
+                    style={s.input}
+                    value={answers.name}
+                    onChangeText={(v) => set('name', v)}
+                    placeholderTextColor={theme.text3}
+                  />
+                  <Text style={s.inputLabel}>SEXO</Text>
+                  <View style={s.chipRow}>
+                    {SEX_OPTS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.k}
+                        style={[s.chip, answers.sex === opt.k && s.chipOn]}
+                        onPress={() => set('sex', opt.k)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[s.chipTxt, answers.sex === opt.k && s.chipTxtOn]}>{opt.l}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <Text style={s.inputLabel}>EDAD</Text>
+                  <TextInput
+                    style={s.input}
+                    value={answers.age}
+                    onChangeText={(v) => set('age', v)}
+                    keyboardType="numeric"
+                    placeholderTextColor={theme.text3}
+                  />
+                  <Text style={s.inputLabel}>PESO (kg)</Text>
+                  <TextInput
+                    style={s.input}
+                    value={answers.weight}
+                    onChangeText={(v) => set('weight', v)}
+                    keyboardType="numeric"
+                    placeholderTextColor={theme.text3}
+                  />
+                  <Text style={s.inputLabel}>ESTATURA (cm)</Text>
+                  <TextInput
+                    style={s.input}
+                    value={answers.height}
+                    onChangeText={(v) => set('height', v)}
+                    keyboardType="numeric"
+                    placeholderTextColor={theme.text3}
+                  />
+                  <Text style={s.inputLabel}>NIVEL DE ACTIVIDAD DIARIA</Text>
+                  <View style={s.chipRow}>
+                    {ACTIVITY_OPTS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.k}
+                        style={[s.chip, answers.activity === opt.k && s.chipOn]}
+                        onPress={() => set('activity', opt.k)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[s.chipTxt, answers.activity === opt.k && s.chipTxtOn]}>{opt.l}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {current === 'Nivel' && (
                 <>
                   <Text style={s.question}>¿Cuál es tu experiencia entrenando?</Text>
                   {LEVEL_OPTS.map((opt) => (
@@ -127,7 +214,7 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
                 </>
               )}
 
-              {step === 1 && (
+              {current === 'Objetivo' && (
                 <>
                   <Text style={s.question}>¿Qué quieres lograr?</Text>
                   {GOAL_OPTS.map((opt) => (
@@ -149,7 +236,7 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
                 </>
               )}
 
-              {step === 2 && (
+              {current === 'Días' && (
                 <>
                   <Text style={s.question}>¿Cuántos días a la semana puedes entrenar?</Text>
                   <View style={s.daysGrid}>
@@ -169,7 +256,7 @@ export default function RoutineWizard({ visible, profile, onClose, onSaved }) {
                 </>
               )}
 
-              {step === 3 && (
+              {current === 'Equipo' && (
                 <>
                   <Text style={s.question}>¿Qué equipo tienes disponible?</Text>
                   {EQUIPMENT_OPTS.map((opt) => (
@@ -251,6 +338,14 @@ const s = StyleSheet.create({
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: theme.line2, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   radioOn: { borderColor: theme.text },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: theme.text },
+
+  inputLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 2, color: theme.text3, marginBottom: 6, marginTop: 14 },
+  input: { borderWidth: 1, borderColor: theme.line2, padding: 10, color: theme.text, fontSize: 14 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { borderWidth: 1, borderColor: theme.line2, paddingHorizontal: 14, paddingVertical: 8 },
+  chipOn: { borderColor: theme.text, backgroundColor: theme.accentSoft },
+  chipTxt: { fontSize: 12, color: theme.text3 },
+  chipTxtOn: { color: theme.text },
 
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   dayCell: { width: '18%', aspectRatio: 1, borderWidth: 1, borderColor: theme.line2, alignItems: 'center', justifyContent: 'center' },

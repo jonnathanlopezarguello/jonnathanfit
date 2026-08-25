@@ -35,6 +35,9 @@ import ProgresoScreen from './src/screens/ProgresoScreen';
 import FuentesScreen from './src/screens/FuentesScreen';
 import SaludScreen from './src/screens/SaludScreen';
 import PerfilScreen from './src/screens/PerfilScreen';
+import RoutineWizard from './src/components/RoutineWizard';
+import { load, save, KEYS } from './src/store';
+import { DEFAULT_PROFILE } from './src/utils';
 
 const TABS = [
   { k: 'Hoy', l: 'Hoy', icon: (c) => <Path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke={c} strokeWidth={1.4} strokeLinejoin="round" fill="none" /> },
@@ -49,7 +52,17 @@ const TABS = [
 export default function App() {
   const [tab, setTab] = useState('Hoy');
   const [clock, setClock] = useState('');
+  const [onboardProfile, setOnboardProfile] = useState(DEFAULT_PROFILE);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const breathAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    (async () => {
+      const p = await load(KEYS.profile);
+      if (!p) setNeedsOnboarding(true);
+      else setOnboardProfile({ ...DEFAULT_PROFILE, ...p });
+    })();
+  }, []);
 
   useEffect(() => {
     const tick = () => {
@@ -94,7 +107,7 @@ export default function App() {
         <View style={s.topbar}>
           <View style={s.topbarLeft}>
             <Animated.View style={[s.bdot, { opacity: breathAnim }]} />
-            <Text style={s.logo}>Jonnathan <Text style={s.logoBold}>Fit</Text></Text>
+            <Text style={s.logo}>FUL<Text style={s.logoBold}>GOR</Text></Text>
           </View>
           <View style={s.topbarRight}>
             <Text style={s.clock}>{clock}</Text>
@@ -130,6 +143,14 @@ export default function App() {
           {renderScreen()}
         </View>
       </SafeAreaView>
+
+      <RoutineWizard
+        visible={needsOnboarding}
+        profile={onboardProfile}
+        personalData
+        onClose={() => setNeedsOnboarding(false)}
+        onSaved={(next) => { setOnboardProfile(next); setNeedsOnboarding(false); }}
+      />
     </SafeAreaProvider>
     </ErrorBoundary>
   );
