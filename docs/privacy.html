@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidad — FULGOR</title>
+<style>
+  :root {
+    --bg: #121211; --text: #F2F2EE; --text2: #B9B9B2; --text3: #8A8A82;
+    --line: #2A2A28; --good: #7FB07A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text2);
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    max-width: 720px; margin: 0 auto; padding: 56px 24px 80px;
+    line-height: 1.6; font-size: 15px;
+  }
+  h1 {
+    color: var(--text); font-weight: 400; font-size: clamp(22px,4vw,32px);
+    letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .updated { color: var(--text3); font-size: 12px; margin-bottom: 40px; letter-spacing: .05em; }
+  h2 {
+    color: var(--text); font-weight: 500; font-size: 13px; letter-spacing: .12em;
+    text-transform: uppercase; margin-top: 40px; margin-bottom: 12px;
+    border-bottom: 1px solid var(--line); padding-bottom: 10px;
+  }
+  p, li { color: var(--text2); }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 8px; }
+  strong { color: var(--text); font-weight: 600; }
+  a { color: var(--good); }
+  .note {
+    background: rgba(242,242,238,0.05); border: 1px solid var(--line);
+    padding: 14px 16px; font-size: 13px; color: var(--text3); margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Política de Privacidad — FULGOR</h1>
+  <p class="updated">Última actualización: 21 de agosto de 2026</p>
+
+  <p>
+    FULGOR es una aplicación personal de entrenamiento y nutrición. Esta política
+    explica qué información usa la app, cómo la usa y qué control tienes sobre ella.
+  </p>
+
+  <h2>Quién la desarrolla</h2>
+  <p>
+    Desarrollador independiente: Jonnathan López.
+    Contacto: <a href="mailto:jonnathan@fulgorapp.com">jonnathan@fulgorapp.com</a>
+  </p>
+
+  <h2>Qué datos se guardan y dónde</h2>
+  <ul>
+    <li>
+      <strong>Datos de entrenamiento y nutrición</strong> (series, pesos, repeticiones,
+      comidas, macros, peso corporal, medidas corporales, perfil): se guardan
+      <strong>únicamente en tu dispositivo</strong> (almacenamiento local de la app).
+      Nunca se suben a un servidor propio ni se comparten con nadie.
+    </li>
+    <li>
+      <strong>Fotos de comida</strong> (función opcional de análisis nutricional,
+      actualmente desactivada en la app — se describe aquí porque la capacidad
+      sigue presente en el código y puede activarse en una futura actualización):
+      cuando tomas o eliges una foto para identificar alimentos, la imagen se envía
+      de forma temporal a un servicio propio (Cloudflare Workers) que la reenvía a
+      la API de Anthropic (Claude) únicamente para generar el análisis nutricional.
+      La foto no queda almacenada de forma permanente en ningún servidor — se usa
+      solo para esa respuesta y se descarta.
+    </li>
+    <li>
+      <strong>Datos de salud (Health Connect)</strong>: si das el permiso explícito
+      de Android, la app <strong>lee</strong> pasos, frecuencia cardiaca, sueño,
+      calorías activas y totales, distancia y sesiones de ejercicio. Estos datos se
+      usan únicamente dentro de la app para mostrarte tu actividad — nunca se envían
+      a ningún servidor ni se comparten con terceros.
+    </li>
+  </ul>
+
+  <h2>Lo que NO hacemos</h2>
+  <ul>
+    <li>No mostramos anuncios.</li>
+    <li>No usamos rastreadores ni analítica de terceros.</li>
+    <li>No vendemos ni compartimos tu información con nadie.</li>
+    <li>No creamos una cuenta ni un perfil en ningún servidor — la app funciona sin login.</li>
+  </ul>
+
+  <h2>Cómo eliminar tus datos</h2>
+  <p>
+    Puedes borrar todos tus datos en cualquier momento desde
+    <strong>Perfil → Reiniciar datos</strong> dentro de la app, o simplemente
+    desinstalando la aplicación (el almacenamiento local se borra por completo).
+  </p>
+
+  <h2>Menores de edad</h2>
+  <p>
+    FULGOR no está dirigida a menores de 13 años y no recopila intencionalmente
+    información de menores.
+  </p>
+
+  <h2>Cambios a esta política</h2>
+  <p>
+    Si esta política cambia, se actualizará esta misma página con una nueva fecha
+    de "Última actualización".
+  </p>
+
+  <div class="note">
+    Herramienta orientativa y educativa. FULGOR no sustituye el consejo de un
+    médico, entrenador o nutricionista-dietista certificado.
+  </div>
+
+</body>
+</html>

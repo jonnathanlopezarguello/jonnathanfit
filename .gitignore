@@ -13,6 +13,10 @@ preguntas-jonnathanfit.xlsx
 openspec/
 stitch-*.png
 
+# Cache local de herramientas
+worker/.wrangler/
+node_modules/
+
 # Sistema
 Thumbs.db
 .DS_Store

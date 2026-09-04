@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "JONNATHAN FIT",
+    "slug": "jonnathan-fit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121211"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.jonnathanfit.app"
+    },
+    "android": {
+      "package": "com.jonnathanfit.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#121211",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "plugins": [
+      "expo-notifications"
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "54c33850-6930-4f65-97d6-509a6fa13120"
+      }
+    }
+  }
+}

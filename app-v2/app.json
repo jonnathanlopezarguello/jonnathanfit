@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "FULGOR",
+    "slug": "jonnathan-fit",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#121211"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.jonnathanfit.app"
+    },
+    "android": {
+      "package": "com.jonnathanfit.app",
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#121211"
+      }
+    },
+    "plugins": [
+      "expo-image-picker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      [
+        "react-native-health-connect",
+        {
+          "permissions": [
+            "android.permission.health.READ_STEPS",
+            "android.permission.health.READ_HEART_RATE",
+            "android.permission.health.READ_SLEEP",
+            "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+            "android.permission.health.READ_DISTANCE",
+            "android.permission.health.READ_EXERCISE",
+            "android.permission.health.READ_TOTAL_CALORIES_BURNED"
+          ]
+        }
+      ],
+      "expo-sharing"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "54c33850-6930-4f65-97d6-509a6fa13120"
+      }
+    },
+    "owner": "jonnathanlopezarguello",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/54c33850-6930-4f65-97d6-509a6fa13120"
+    }
+  }
+}
